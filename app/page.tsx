@@ -2,6 +2,7 @@ import Navbar from "./components/Navbar";
 import Hero from "./landing-page/Hero";
 import PackageSection from "./landing-page/PackageSection";
 import SubscribeSteps from "./landing-page/SubscribeSteps";
+import BannerSlider from "./components/BannerSlider";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         <PackageSection />
         <footer className="h-32 bg-brand-purple" />
       </main>
+      <BannerSlider />
     </>
   );
 }
