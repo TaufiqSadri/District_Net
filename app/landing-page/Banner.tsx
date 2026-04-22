@@ -13,7 +13,7 @@ const slides: BannerSlide[] = [
   { id: "banner-3", background: "#d9f9d2" },
 ];
 
-export default function BannerSlider() {
+export default function Banner() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const goToPrevious = () => {
@@ -36,7 +36,7 @@ export default function BannerSlider() {
 
   return (
     <section
-      className="relative mt-10 h-[220px] w-full overflow-hidden bg-white sm:h-[260px] lg:h-[300px]"
+      className="relative h-44 w-full overflow-hidden border-y-4 border-brand-yellow bg-white sm:h-56 md:h-64"
       aria-label="Banner promo"
       aria-roledescription="carousel"
     >
@@ -44,21 +44,31 @@ export default function BannerSlider() {
         {visibleSlides.map(({ slide, className }) => (
           <div
             key={slide.id}
-            className={`${className} h-full rounded-[10px] transition-colors duration-300`}
+            className={`${className} h-full transition-colors duration-300`}
             style={{ backgroundColor: slide.background }}
           />
         ))}
       </div>
 
-      <button type="button" onClick={goToPrevious} className="absolute left-[calc(17%+8px)] top-1/2 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-black shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2 sm:h-11 sm:w-11" aria-label="Banner sebelumnya">
+      <button
+        type="button"
+        onClick={goToPrevious}
+        className="absolute left-[calc(17%+8px)] top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-black shadow-sm transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2"
+        aria-label="Banner sebelumnya"
+      >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
-      <button type="button" onClick={goToNext} className="absolute right-[calc(17%+8px)] top-1/2 grid h-10 w-10 translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-black shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2 sm:h-11 sm:w-11" aria-label="Banner berikutnya">
+      <button
+        type="button"
+        onClick={goToNext}
+        className="absolute right-[calc(17%+8px)] top-1/2 grid h-9 w-9 translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-black shadow-sm transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2"
+        aria-label="Banner berikutnya"
+      >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
     </section>

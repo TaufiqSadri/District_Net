@@ -1,25 +1,8 @@
-import { ArrowLeft, ArrowRight, LocateFixed, MapPin, RadioTower } from "lucide-react";
+import { LocateFixed, MapPin, RadioTower } from "lucide-react";
 
 export default function Hero() {
   return (
     <section className="overflow-hidden bg-white">
-      <div className="relative h-44 border-y-4 border-brand-yellow bg-[#d9d9d9] sm:h-56 md:h-64">
-        <div className="absolute left-[17%] top-0 h-full w-4 bg-white/80" />
-        <div className="absolute right-[17%] top-0 h-full w-4 bg-white/80" />
-        <button
-          aria-label="Previous banner"
-          className="absolute left-[16%] top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white shadow-sm"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <button
-          aria-label="Next banner"
-          className="absolute right-[16%] top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white shadow-sm"
-        >
-          <ArrowRight className="h-4 w-4" />
-        </button>
-      </div>
-
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-10 sm:px-8 md:grid-cols-[1.1fr_0.9fr] md:py-14">
         <div>
           <p className="text-sm font-extrabold text-black">Internet Broadband Unlimited</p>
