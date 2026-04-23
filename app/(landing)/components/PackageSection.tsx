@@ -50,8 +50,8 @@ const packages = [
                   </p>
   
                   <div className="mt-4 grid gap-2">
-                    <button className="h-11 rounded bg-[#68247B] text-sm font-black text-white">Subscribe Now</button>
-                    <button className="h-11 rounded border border-[#68247B] bg-white text-sm font-black text-[#68247B]">
+                    <button className="h-11 rounded bg-[#68247B] text-sm font-black text-white transition-all duration-200 hover:bg-white hover:text-[#68247B] hover:border hover:border-[#68247B]">Subscribe Now</button>
+                    <button className="h-11 rounded border border-[#68247B] bg-white text-sm font-black text-[#68247B] transition-all duration-200 hover:text-white hover:bg-[#68247B]">
                       Chat Sales
                     </button>
                   </div>
