@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 const navLinks = [
-  { href: "#package", label: "Package" },
-  { href: "#promo", label: "Promo" },
-  { href: "#faq", label: "FAQ" },
-  { href: "#about", label: "About us" },
+  { href: "/package", label: "Package" },
+  { href: "/promo", label: "Promo" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/about", label: "About us" },
 ];
 
 export default function Navbar() {
@@ -37,9 +37,11 @@ export default function Navbar() {
               </Link>
             </li>
           ))}
-          <button className="rounded-full bg-[#68247B] px-4 py-1.5 text-xs font-bold text-white hover:bg-purple-950">
-            Login
-          </button>
+          <li>
+            <Link href="/login" className="rounded-full bg-[#68247B] px-4 py-1.5 text-xs font-bold text-white hover:bg-purple-950">
+              Login
+            </Link>
+          </li>
         </ul>
 
         <div className="hidden items-center gap-3 lg:flex">
@@ -75,9 +77,9 @@ export default function Navbar() {
             ))}
           </ul>
           <div className="grid gap-2">
-            <button className="h-10 rounded-full bg-[#68247B] text-sm font-bold text-white">
+            <Link href="/login" className="grid h-10 place-items-center rounded-full bg-[#68247B] text-sm font-bold text-white" onClick={() => setIsOpen(false)}>
               Login
-            </button>
+            </Link>
             <button className="flex h-10 items-center justify-center gap-2 rounded border border-gray-300 text-sm font-bold text-black">
               <MapPin className="h-4 w-4" />
               Check your location here

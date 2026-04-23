@@ -1,27 +1,10 @@
 "use client";
 import { useState } from "react";
-
-const packages = [
-    {
-      speed: "25",
-      price: "250.000",
-      benefits: ["Kecepatan internet hingga 25 Mbps", "Bisa digunakan untuk 4-6 perangkat", "Kuota tidak terbatas"],
-    },
-    {
-      speed: "35",
-      price: "370.000",
-      benefits: ["Kecepatan internet hingga 35 Mbps", "Bisa digunakan untuk 10-13 perangkat", "Kuota tidak terbatas"],
-    },
-    {
-      speed: "50",
-      price: "400.000",
-      benefits: ["Kecepatan internet hingga 50 Mbps", "Bisa digunakan untuk banyak perangkat", "Kuota tidak terbatas"],
-    },
-  ];
+import { internetPackages } from "../data";
   
   export default function PackageSection() {
     const [openStates, setOpenStates] = useState(
-      packages.map(() => true) 
+      internetPackages.map(() => true) 
     );
 
     const toggle = (index: number) => {
@@ -35,7 +18,7 @@ const packages = [
           <h2 className="text-center text-4xl font-black text-black">Package</h2>
   
           <div className="mt-10 grid gap-8 md:grid-cols-3">
-            {packages.map((item, index) => (
+            {internetPackages.map((item, index) => (
               <article key={item.speed} className="overflow-hidden rounded-lg border border-gray-400 bg-white shadow-sm">
                 <div className="h-48 bg-[#d9d9d9]" />
                 <div className="p-4">
