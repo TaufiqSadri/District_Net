@@ -1,4 +1,4 @@
-import { deactivatePelanggan } from '@/app/admin/actions'
+import { deactivatePelanggan, togglePelangganStatus } from '@/app/admin/actions'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 type Pelanggan = {
@@ -82,16 +82,26 @@ export default async function AdminPelangganPage() {
               </td>
 
               <td className="py-4">
-                {p.status_langganan === 'aktif' ? (
-                  <form action={deactivatePelanggan.bind(null, p.id)}>
-                    <button
-                      type="submit"
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
-                    >
-                      Nonaktifkan
-                    </button>
-                  </form>
-                ) : null}
+                <form
+                  action={togglePelangganStatus.bind(
+                    null,
+                    p.id,
+                    p.status_langganan
+                  )}
+                >
+                  <button
+                    type="submit"
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                      p.status_langganan === 'aktif'
+                        ? 'border border-red-200 text-red-600 hover:bg-red-50'
+                        : 'border border-green-200 text-green-600 hover:bg-green-50'
+                    }`}
+                  >
+                    {p.status_langganan === 'aktif'
+                      ? 'Nonaktifkan'
+                      : 'Aktifkan'}
+                  </button>
+                </form>
               </td>
             </tr>
           ))}

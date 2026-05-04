@@ -37,6 +37,40 @@ export async function deactivatePelanggan(pelangganId: string, _formData: FormDa
   revalidatePath('/admin/pelanggan')
 }
 
+export async function activatePelanggan(pelangganId: string, _formData: FormData) {
+  const admin = createAdminClient()
+  await admin.from('pelanggan').update({ status_langganan: 'aktif' }).eq('id', pelangganId)
+  revalidatePath('/admin/pelanggan')
+}
+
+export async function togglePelangganStatus(
+  pelangganId: string,
+  currentStatus: string,
+  _formData: FormData
+) {
+  const admin = createAdminClient()
+
+  const newStatus =
+    currentStatus === 'aktif'
+      ? 'nonaktif'
+      : 'aktif'
+
+  await admin
+    .from('pelanggan')
+    .update({
+      status_langganan: newStatus,
+    })
+    .eq('id', pelangganId)
+
+  revalidatePath('/admin/pelanggan')
+}
+
+/*
+-----------------------------
+  Function untuk CRUD Paket
+-----------------------------
+*/
+
 export async function togglePaketStatus(
   paketId: string,
   isActive: boolean,
