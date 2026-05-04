@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 export async function approvePelanggan(pelangganId: string, _formData: FormData) {
   const admin = createAdminClient()
@@ -34,4 +35,121 @@ export async function nonaktifkanPelanggan(pelangganId: string, _formData: FormD
   const admin = createAdminClient()
   await admin.from('pelanggan').update({ status_langganan: 'nonaktif' }).eq('id', pelangganId)
   revalidatePath('/admin/pelanggan')
+}
+
+export async function togglePaketStatus(
+  paketId: string,
+  isActive: boolean,
+  _formData: FormData
+) {
+  const admin = createAdminClient()
+
+  await admin
+    .from('paket_internet')
+    .update({
+      is_active: !isActive
+    })
+    .eq('id', paketId)
+
+  revalidatePath('/admin/paket')
+}
+
+export async function hapusPaket(
+  paketId: string,
+  _formData: FormData
+) {
+  const admin = createAdminClient()
+
+  await admin
+    .from('paket_internet')
+    .delete()
+    .eq('id', paketId)
+
+  revalidatePath('/admin/paket')
+}
+
+export async function tambahPaket(
+  formData: FormData
+) {
+  const admin = createAdminClient()
+
+  const nama_paket =
+    formData.get('nama_paket') as string
+
+  const kecepatan_mbps = Number(
+    formData.get('kecepatan_mbps')
+  )
+
+  const harga = Number(
+    formData.get('harga')
+  )
+
+  const deskripsi =
+    formData.get('deskripsi') as string
+
+  const createAnother =
+    formData.get('create_another')
+
+  const { error } = await admin
+    .from('paket_internet')
+    .insert({
+      nama_paket,
+      kecepatan_mbps,
+      harga,
+      deskripsi,
+      is_active: true,
+    })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/admin/paket')
+
+  if (createAnother) {
+    redirect(
+      `/admin/paket/create?reset=${Date.now()}`
+    )
+  }
+
+  redirect('/admin/paket')
+}
+
+export async function updatePaket(
+  paketId: string,
+  formData: FormData
+) {
+  const admin = createAdminClient()
+
+  const nama_paket =
+    formData.get('nama_paket') as string
+
+  const kecepatan_mbps = Number(
+    formData.get('kecepatan_mbps')
+  )
+
+  const harga = Number(
+    formData.get('harga')
+  )
+
+  const deskripsi =
+    formData.get('deskripsi') as string
+
+  const { error } = await admin
+    .from('paket_internet')
+    .update({
+      nama_paket,
+      kecepatan_mbps,
+      harga,
+      deskripsi,
+    })
+    .eq('id', paketId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/admin/paket')
+
+  redirect('/admin/paket')
 }
