@@ -1,60 +1,75 @@
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { tambahPaket } from '@/app/admin/actions'
+import Link from 'next/link'
+      
+import { updatePaket } from '@/app/admin/actions'
+import { createAdminClient } from '@/lib/supabase/admin'
 
-export default function CreatePaketPage() {
+type Props = {
+params: {
+      id: string
+      }
+}
+
+export default async function UpdatePaketPage({
+      params,
+      }: Props) {
+      const admin = createAdminClient()
+
+      const { data } = await admin
+      .from('paket_internet')
+      .select('*')
+      .eq('id', params.id)
+      .single()
+
+      if (!data) {
+      throw new Error('Paket tidak ditemukan')
+      }
+
       return (
       <div className="mx-auto max-w-4xl rounded-2xl bg-white p-4 md:p-8 shadow-card">
 
             <Link
             href="/admin/paket"
-            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-600"
             >
             <ArrowLeft size={16} />
             Kembali
             </Link>
 
             <div className="mb-8">
+
             <h1 className="font-display text-xl font-bold text-gray-900">
-            Create Paket Baru
+            Edit Paket
             </h1>
 
             <p className="mt-2 text-sm text-gray-500">
-            Tambahkan paket internet baru untuk pelanggan.
+            Ubah detail paket internet.
             </p>
+
             </div>
 
             <form
-            action={tambahPaket}
+            action={updatePaket.bind(
+            null,
+            params.id
+            )}
             className="space-y-6"
             >
 
             <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Gambar Paket
+                  Nama Paket
             </label>
 
             <input
-                  type="file"
-                  name="gambar"
-                  accept="image/*"
+                  name="nama_paket"
+                  defaultValue={data.nama_paket}
+                  required
                   className="w-full rounded-xl border px-4 py-3"
             />
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-            <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Nama Paket
-                  </label>
-
-                  <input
-                  name="nama_paket"
-                  required
-                  className="w-full rounded-xl border px-4 py-3"
-                  />
-            </div>
 
             <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -64,6 +79,7 @@ export default function CreatePaketPage() {
                   <input
                   type="number"
                   name="kecepatan_mbps"
+                  defaultValue={data.kecepatan_mbps}
                   required
                   className="w-full rounded-xl border px-4 py-3"
                   />
@@ -77,6 +93,7 @@ export default function CreatePaketPage() {
                   <input
                   type="number"
                   name="harga"
+                  defaultValue={data.harga}
                   required
                   className="w-full rounded-xl border px-4 py-3"
                   />
@@ -92,38 +109,31 @@ export default function CreatePaketPage() {
             <textarea
                   name="deskripsi"
                   rows={4}
+                  defaultValue={data.deskripsi ?? ''}
                   className="w-full rounded-xl border px-4 py-3"
             />
             </div>
 
             <div className="flex flex-col gap-3 md:flex-row">
 
-                  <button
+            <button
                   type="submit"
-                  className="rounded-xl bg-brand-pink px-5 py-3 text-sm font-semibold text-white hover:bg-pink-900"
-                  >
-                  Save Paket
-                  </button>
+                  className="rounded-xl bg-brand-pink px-5 py-3 text-sm font-semibold text-white"
+            >
+                  Save
+            </button>
 
-                  <button
-                  type="submit"
-                  name="create_another"
-                  value="true"
-                  className="rounded-xl bg-brand-purple px-5 py-3 text-sm font-semibold text-white hover:bg-purple-900"
-                  >
-                  Save & Create Another
-                  </button>
-
-                  <Link
+            <Link
                   href="/admin/paket"
-                  className="rounded-xl border border-gray-200 px-5 py-3 text-center text-sm font-semibold text-gray-700 hover:bg-slate-300"
-                  >
+                  className="rounded-xl border border-gray-200 px-5 py-3 text-center text-sm font-semibold text-gray-700"
+            >
                   Discard Changes
-                  </Link>
+            </Link>
 
             </div>
 
             </form>
+
       </div>
       )
 }

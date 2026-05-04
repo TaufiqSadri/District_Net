@@ -1,4 +1,4 @@
-import { approvePelanggan, terimaPembayaran, tolakPembayaran } from '@/app/admin/actions'
+import { approvePelanggan, approvePembayaran, rejectPembayaran } from '@/app/admin/actions'
 import StatCard from '@/components/StatCard'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Clock, CreditCard, UserCheck, Users } from 'lucide-react'
@@ -203,7 +203,7 @@ export default async function AdminDashboardPage() {
                   <td className="py-3 text-xs font-medium text-gray-700">{fmt(p.jumlah_bayar)}</td>
                   <td className="py-3">
                     <div className="flex flex-wrap gap-1">
-                      <form action={terimaPembayaran.bind(null, p.id, p.tagihan_id)}>
+                      <form action={approvePembayaran.bind(null, p.id, p.tagihan_id)}>
                         <button
                           type="submit"
                           className="rounded-lg bg-green-600 px-2 py-1.5 text-xs font-semibold text-white transition hover:bg-green-700"
@@ -211,7 +211,7 @@ export default async function AdminDashboardPage() {
                           Terima
                         </button>
                       </form>
-                      <form action={tolakPembayaran.bind(null, p.id, '')}>
+                      <form action={rejectPembayaran.bind(null, p.id, '')}>
                         <button
                           type="submit"
                           className="rounded-lg border border-red-200 px-2 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"

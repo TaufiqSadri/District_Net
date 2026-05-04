@@ -11,7 +11,7 @@ export async function approvePelanggan(pelangganId: string, _formData: FormData)
   revalidatePath('/admin')
 }
 
-export async function terimaPembayaran(pembayaranId: string, tagihanId: string, _formData: FormData) {
+export async function approvePembayaran(pembayaranId: string, tagihanId: string, _formData: FormData) {
   const admin = createAdminClient()
   await Promise.all([
     admin.from('pembayaran').update({ status_verifikasi: 'diterima' }).eq('id', pembayaranId),
@@ -21,7 +21,7 @@ export async function terimaPembayaran(pembayaranId: string, tagihanId: string, 
   revalidatePath('/admin/verifikasi')
 }
 
-export async function tolakPembayaran(pembayaranId: string, catatan: string, _formData: FormData) {
+export async function rejectPembayaran(pembayaranId: string, catatan: string, _formData: FormData) {
   const admin = createAdminClient()
   await admin
     .from('pembayaran')
@@ -31,7 +31,7 @@ export async function tolakPembayaran(pembayaranId: string, catatan: string, _fo
   revalidatePath('/admin/verifikasi')
 }
 
-export async function nonaktifkanPelanggan(pelangganId: string, _formData: FormData) {
+export async function deactivatePelanggan(pelangganId: string, _formData: FormData) {
   const admin = createAdminClient()
   await admin.from('pelanggan').update({ status_langganan: 'nonaktif' }).eq('id', pelangganId)
   revalidatePath('/admin/pelanggan')
@@ -54,7 +54,7 @@ export async function togglePaketStatus(
   revalidatePath('/admin/paket')
 }
 
-export async function hapusPaket(
+export async function deletePaket(
   paketId: string,
   _formData: FormData
 ) {
@@ -68,7 +68,7 @@ export async function hapusPaket(
   revalidatePath('/admin/paket')
 }
 
-export async function tambahPaket(
+export async function addPaket(
   formData: FormData
 ) {
   const admin = createAdminClient()
