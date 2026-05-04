@@ -1,8 +1,5 @@
 import Link from 'next/link'
-import {
-  togglePaketStatus,
-  hapusPaket,
-} from '@/app/admin/actions'
+import { togglePaketStatus, deletePaket } from '@/app/admin/actions'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -45,7 +42,7 @@ export default async function AdminPaketPage() {
           </div>
 
           <Link
-            href="/admin/paket/create"
+            href="/admin/paket/createForm"
             className="rounded-xl bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900"
           >
             + Create Paket
@@ -122,7 +119,7 @@ export default async function AdminPaketPage() {
               <div className="flex flex-wrap gap-2">
 
                 <Link
-                  href={`/admin/paket/edit/${paket.id}`}
+                  href={`/admin/paket/updateForm/${paket.id}`}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-slate-300"
                 >
                   Edit
@@ -146,7 +143,7 @@ export default async function AdminPaketPage() {
                 </form>
 
                 <form
-                  action={hapusPaket.bind(
+                  action={deletePaket.bind(
                     null,
                     paket.id
                   )}
