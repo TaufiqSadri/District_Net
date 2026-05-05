@@ -29,47 +29,36 @@ export default function CustomerActions({ pelanggan, onStatusChange, onDelete }:
   const router = useRouter()
 
   useOnClickOutside(ref, () => setOpen(false))
+  function navigate(href: string) {
+    setOpen(false)
+    setTimeout(() => router.push(href), 0)
+  }
 
   const menuItems = [
     {
       icon: Eye,
       label: 'Lihat Detail',
-      onClick: () => {
-        router.push(`/admin/pelanggan/${pelanggan.id}`)
-        setOpen(false)
-      },
+      onClick: () => navigate(`/admin/pelanggan/${pelanggan.id}`),
     },
     {
       icon: Pencil,
       label: 'Edit Pelanggan',
-      onClick: () => {
-        router.push(`/admin/pelanggan/${pelanggan.id}/edit`)
-        setOpen(false)
-      },
+      onClick: () => navigate(`/admin/pelanggan/${pelanggan.id}/updatePelanggan`),
     },
     {
       icon: Receipt,
       label: 'Lihat Tagihan',
-      onClick: () => {
-        router.push(`/admin/tagihan?pelanggan=${pelanggan.id}`)
-        setOpen(false)
-      },
+      onClick: () => navigate(`/admin/tagihan?pelanggan=${pelanggan.id}`),
     },
     {
       icon: History,
       label: 'Riwayat Pembayaran',
-      onClick: () => {
-        router.push(`/admin/verifikasi?pelanggan=${pelanggan.id}`)
-        setOpen(false)
-      },
+      onClick: () => navigate(`/admin/verifikasi?pelanggan=${pelanggan.id}`),
     },
     {
       icon: MessageSquare,
       label: 'Lihat Komplain',
-      onClick: () => {
-        router.push(`/admin/komplain?pelanggan=${pelanggan.id}`)
-        setOpen(false)
-      },
+      onClick: () => navigate(`/admin/komplain?pelanggan=${pelanggan.id}`),
     },
     { divider: true },
     pelanggan.status_langganan === 'aktif'
@@ -109,7 +98,6 @@ export default function CustomerActions({ pelanggan, onStatusChange, onDelete }:
         setOpen(false)
         if (confirm(`Hapus pelanggan "${pelanggan.nama_lengkap}"? Tindakan ini tidak bisa dibatalkan.`)) {
           startTransition(async () => {
-            // Call delete action
             onDelete?.(pelanggan.id)
             router.refresh()
           })

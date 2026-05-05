@@ -187,3 +187,119 @@ export async function updatePaket(
 
   redirect('/admin/paket')
 }
+
+/*
+---------------------------------
+  Function untuk CRUD Pelanggan
+---------------------------------
+*/
+
+// ── Tambah pelanggan oleh admin ───────────────────────────────────────────────
+export async function addPelangganByAdmin(formData: FormData) {
+  const admin = createAdminClient()
+
+  const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirm_password') as string
+
+  if (password !== confirmPassword) return { error: 'Password tidak cocok.' }
+  if (password.length < 8) return { error: 'Password minimal 8 karakter.' }
+
+  const nama_lengkap = formData.get('nama_lengkap') as string
+  const email = formData.get('email') as string
+  const no_hp = formData.get('no_hp') as string
+  const alamat_pemasangan = formData.get('alamat_pemasangan') as string
+  const paket_id = formData.get('paket_id') as string
+  const status_langganan = (formData.get('status_langganan') as string) || 'aktif'
+  const latRaw = formData.get('latitude') as string
+  const lngRaw = formData.get('longitude') as string
+  const tanggalRaw = formData.get('tanggal_bergabung') as string
+
+  if (!nama_lengkap || !email || !no_hp || !alamat_pemasangan || !paket_id) {
+    return { error: 'Semua field wajib diisi.' }
+  }
+
+  // Buat akun auth via admin API (tanpa email confirmation)
+  const { data: authData, error: authError } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { nama_lengkap },
+  })
+
+  if (authError) {
+    if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
+      return { error: 'Email ini sudah terdaftar.' }
+    }
+    return { error: authError.message }
+  }
+
+  if (!authData.user) return { error: 'Gagal membuat akun.' }
+
+  const tanggal_bergabung = tanggalRaw
+    ? new Date(tanggalRaw).toISOString()
+    : new Date().toISOString()
+
+  const { error: pelangganError } = await admin.from('pelanggan').insert({
+    user_id: authData.user.id,
+    nama_lengkap,
+    email,
+    no_hp,
+    alamat_pemasangan,
+    latitude: latRaw ? Number(latRaw) : null,
+    longitude: lngRaw ? Number(lngRaw) : null,
+    paket_id,
+    status_langganan,
+    tanggal_bergabung,
+  })
+
+  if (pelangganError) {
+    await admin.auth.admin.deleteUser(authData.user.id)
+    return { error: 'Gagal menyimpan data pelanggan.' }
+  }
+
+  revalidatePath('/admin/pelanggan')
+  return { success: true }
+}
+
+// ── Update data pelanggan ─────────────────────────────────────────────────────
+export async function updatePelangganByAdmin(pelangganId: string, formData: FormData): Promise<void> {
+  const admin = createAdminClient()
+ 
+  const nama_lengkap = formData.get('nama_lengkap') as string
+  const no_hp = formData.get('no_hp') as string
+  const alamat_pemasangan = formData.get('alamat_pemasangan') as string
+  const paket_id = formData.get('paket_id') as string
+  const status_langganan = formData.get('status_langganan') as string
+  const latRaw = formData.get('latitude') as string
+  const lngRaw = formData.get('longitude') as string
+ 
+  const { error } = await admin
+    .from('pelanggan')
+    .update({
+      nama_lengkap,
+      no_hp,
+      alamat_pemasangan,
+      paket_id,
+      status_langganan,
+      latitude: latRaw ? Number(latRaw) : null,
+      longitude: lngRaw ? Number(lngRaw) : null,
+    })
+    .eq('id', pelangganId)
+ 
+  if (error) throw new Error(error.message)
+ 
+  revalidatePath('/admin/pelanggan')
+  revalidatePath(`/admin/pelanggan/${pelangganId}`)
+  redirect(`/admin/pelanggan/${pelangganId}`)
+}
+
+// ── Delete pelanggan ──────────────────────────────────────────────────────────
+export async function deletePelangganByAdmin(pelangganId: string, userId: string) {
+  const admin = createAdminClient()
+
+  await admin.from('pelanggan').delete().eq('id', pelangganId)
+  await admin.auth.admin.deleteUser(userId)
+
+  revalidatePath('/admin/pelanggan')
+  redirect('/admin/pelanggan')
+}
