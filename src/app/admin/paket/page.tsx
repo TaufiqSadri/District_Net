@@ -23,8 +23,7 @@ export default async function AdminPaketPage() {
 
   const paketList = (data ?? []) as Paket[]
 
-  const rupiah = (n: number) =>
-    `Rp ${n.toLocaleString('id-ID')}`
+  const rupiah = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
 
   return (
     <div>
@@ -49,7 +48,6 @@ export default async function AdminPaketPage() {
           </Link>
 
         </div>
-        
       </div>
 
       <br />
@@ -61,7 +59,6 @@ export default async function AdminPaketPage() {
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-
         {paketList.map((paket) => (
           <div
             key={paket.id}
@@ -83,9 +80,7 @@ export default async function AdminPaketPage() {
             </div>
 
             <div className="p-5">
-
               <div className="mb-3 flex items-start justify-between">
-
                 <div>
                   <h2 className="font-display text-lg font-bold text-gray-900">
                     {paket.nama_paket}
@@ -105,7 +100,6 @@ export default async function AdminPaketPage() {
                 >
                   {paket.is_active ? 'Aktif' : 'Nonaktif'}
                 </span>
-
               </div>
 
               <p className="mb-4 text-2xl font-bold text-brand-purple">
@@ -117,7 +111,6 @@ export default async function AdminPaketPage() {
               </p>
 
               <div className="flex flex-wrap gap-2">
-
                 <Link
                   href={`/admin/paket/updateForm/${paket.id}`}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-slate-300"
@@ -155,17 +148,11 @@ export default async function AdminPaketPage() {
                     Hapus
                   </button>
                 </form>
-
               </div>
-
             </div>
-
           </div>
         ))}
-
       </div>
-
     </div>
   )
 }
-
