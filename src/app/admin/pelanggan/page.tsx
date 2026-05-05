@@ -1,123 +1,102 @@
-import { deactivatePelanggan, togglePelangganStatus } from '@/app/admin/actions'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { Suspense } from 'react'
+import Link from 'next/link'
+import { UserPlus } from 'lucide-react'
+import { getPelangganStats, getPelangganList, getPaketList } from '@/lib/data/pelanggan'
+import CustomerStats from '@/components/admin/customers/customerStats'
+import CustomerFilters from '@/components/admin/customers/customerFilters'
+import CustomerTable from '@/components/admin/customers/customerTable'
+import {
+  CustomerStatsSkeleton,
+  CustomerTableSkeleton,
+} from '@/components/admin/customers/customerSkeleton'
+import type { StatusLangganan } from '@/types/database'
 
-type Pelanggan = {
-  id: string
-  nama_lengkap: string
-  email: string
-  no_hp: string
-  status_langganan: string
-  paket_internet: {
-    nama_paket: string
-    kecepatan_mbps: number
-  } | null
+interface SearchParams {
+  search?: string
+  status?: string
+  paket_id?: string
+  sort?: string
+  page?: string
 }
 
-export default async function AdminPelangganPage() {
-  const admin = createAdminClient()
+// ─── Stats (isolated Suspense boundary) ──────────────────────────────────────
+async function StatsSection() {
+  const stats = await getPelangganStats()
+  return <CustomerStats stats={stats} />
+}
 
-  const { data } = await admin
-    .from('pelanggan')
-    .select(`
-      *,
-      paket_internet (
-        nama_paket,
-        kecepatan_mbps
-      )
-    `)
-    .order('created_at', { ascending: false })
+// ─── Table (isolated Suspense boundary) ──────────────────────────────────────
+async function TableSection({ searchParams }: { searchParams: SearchParams }) {
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
+  const status = (['aktif', 'pending', 'nonaktif'].includes(searchParams.status ?? '')
+    ? searchParams.status
+    : 'semua') as StatusLangganan | 'semua'
 
-  const pelanggan = (data ?? []) as Pelanggan[]
+  const result = await getPelangganList({
+    search: searchParams.search ?? '',
+    status,
+    paket_id: searchParams.paket_id ?? 'semua',
+    sort: searchParams.sort === 'terlama' ? 'terlama' : 'terbaru',
+    page,
+    pageSize: 10,
+  })
 
   return (
-    <div className="rounded-2xl bg-white p-8 shadow-card">
-      <div className="mb-6">
-        <h1 className="font-display text-xl font-bold text-gray-900">
-          Kelola Pelanggan
-        </h1>
-        <p className="mt-2 text-sm text-gray-500">
-          Daftar dan aksi pelanggan.
-        </p>
+    <CustomerTable
+      rows={result.data}
+      total={result.total}
+      page={result.page}
+      pageSize={result.pageSize}
+      totalPages={result.totalPages}
+    />
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default async function AdminPelangganPage({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}) {
+  // Fetch paket list for filter options (fast, cached)
+  const paketList = await getPaketList()
+
+  return (
+    <div className="space-y-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-gray-900">
+            Kelola Pelanggan
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manajemen data pelanggan Distric Net
+          </p>
+        </div>
+        <Link
+          href="/admin/pelanggan/tambah"
+          className="inline-flex items-center gap-2 rounded-xl bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 active:scale-95"
+        >
+          <UserPlus size={15} />
+          Tambah Pelanggan
+        </Link>
       </div>
 
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-100 text-left text-xs uppercase text-gray-400">
-            <th className="pb-3">Nama</th>
-            <th className="pb-3">Kontak</th>
-            <th className="pb-3">Paket</th>
-            <th className="pb-3">Status</th>
-            <th className="pb-3">Aksi</th>
-          </tr>
-        </thead>
+      {/* ── Stats Cards ── */}
+      <Suspense fallback={<CustomerStatsSkeleton />}>
+        <StatsSection />
+      </Suspense>
 
-        <tbody>
-          {pelanggan.map((p) => (
-            <tr key={p.id} className="border-b border-gray-50">
-              <td className="py-4 font-medium text-gray-700">
-                {p.nama_lengkap}
-              </td>
+      {/* ── Filters ── */}
+      <CustomerFilters paketList={paketList} />
 
-              <td className="py-4 text-gray-500">
-                <div>{p.email}</div>
-                <div className="text-xs">{p.no_hp}</div>
-              </td>
-
-              <td className="py-4 text-gray-500">
-                {p.paket_internet
-                  ? `${p.paket_internet.kecepatan_mbps} Mbps`
-                  : '-'}
-              </td>
-
-              <td className="py-4">
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                    p.status_langganan === 'aktif'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {p.status_langganan}
-                </span>
-              </td>
-
-              <td className="py-4">
-                <form
-                  action={togglePelangganStatus.bind(
-                    null,
-                    p.id,
-                    p.status_langganan
-                  )}
-                >
-                  <button
-                    type="submit"
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                      p.status_langganan === 'aktif'
-                        ? 'border border-red-200 text-red-600 hover:bg-red-50'
-                        : 'border border-green-200 text-green-600 hover:bg-green-50'
-                    }`}
-                  >
-                    {p.status_langganan === 'aktif'
-                      ? 'Nonaktifkan'
-                      : 'Aktifkan'}
-                  </button>
-                </form>
-              </td>
-            </tr>
-          ))}
-
-          {pelanggan.length === 0 ? (
-            <tr>
-              <td
-                colSpan={5}
-                className="py-8 text-center text-gray-400"
-              >
-                Tidak ada pelanggan
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+      {/* ── Table ── */}
+      <Suspense
+        key={JSON.stringify(searchParams)}
+        fallback={<CustomerTableSkeleton />}
+      >
+        <TableSection searchParams={searchParams} />
+      </Suspense>
     </div>
   )
 }
