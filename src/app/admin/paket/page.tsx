@@ -41,7 +41,7 @@ export default async function AdminPaketPage() {
           </div>
 
           <Link
-            href="/admin/paket/createForm"
+            href="/admin/paket/createPaket"
             className="rounded-xl bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900"
           >
             + Create Paket
@@ -112,7 +112,7 @@ export default async function AdminPaketPage() {
 
               <div className="flex flex-wrap gap-2">
                 <Link
-                  href={`/admin/paket/updateForm/${paket.id}`}
+                  href={`/admin/paket/updatePaket/${paket.id}`}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-slate-300"
                 >
                   Edit
