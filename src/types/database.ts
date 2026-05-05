@@ -60,3 +60,27 @@ export interface PembayaranRow {
   created_at: string
   catatan_admin?: string | null
 }
+
+// ── New types for admin customer management ──────────────────────────────────
+ 
+export interface PelangganStats {
+  total: number
+  aktif: number
+  pending: number
+  nonaktif: number
+}
+ 
+export interface PelangganFilter {
+  search: string
+  status: StatusLangganan | 'semua'
+  paket_id: string | 'semua'
+  sort: 'terbaru' | 'terlama'
+}
+ 
+export interface PelangganListResult {
+  data: PelangganWithPaket[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}

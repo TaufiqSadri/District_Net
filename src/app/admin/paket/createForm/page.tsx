@@ -28,101 +28,95 @@ export default function CreatePaketPage() {
             action={addPaket}
             className="space-y-6"
             >
+                  <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Gambar Paket
+                        </label>
 
-            <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Gambar Paket
-            </label>
+                        <input
+                              type="file"
+                              name="gambar"
+                              accept="image/*"
+                              className="w-full rounded-xl border px-4 py-3"
+                        />
+                  </div>
 
-            <input
-                  type="file"
-                  name="gambar"
-                  accept="image/*"
-                  className="w-full rounded-xl border px-4 py-3"
-            />
-            </div>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                              <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Nama Paket
+                              </label>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                              <input
+                              name="nama_paket"
+                              required
+                              className="w-full rounded-xl border px-4 py-3"
+                              />
+                        </div>
 
-            <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Nama Paket
-                  </label>
+                        <div>
+                              <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Kecepatan (Mbps)
+                              </label>
 
-                  <input
-                  name="nama_paket"
-                  required
-                  className="w-full rounded-xl border px-4 py-3"
-                  />
-            </div>
+                              <input
+                              type="number"
+                              name="kecepatan_mbps"
+                              required
+                              className="w-full rounded-xl border px-4 py-3"
+                              />
+                        </div>
 
-            <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Kecepatan (Mbps)
-                  </label>
+                        <div>
+                              <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Harga
+                              </label>
 
-                  <input
-                  type="number"
-                  name="kecepatan_mbps"
-                  required
-                  className="w-full rounded-xl border px-4 py-3"
-                  />
-            </div>
+                              <input
+                              type="number"
+                              name="harga"
+                              required
+                              className="w-full rounded-xl border px-4 py-3"
+                              />
+                        </div>
+                  </div>
 
-            <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Harga
-                  </label>
+                  <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Deskripsi
+                        </label>
 
-                  <input
-                  type="number"
-                  name="harga"
-                  required
-                  className="w-full rounded-xl border px-4 py-3"
-                  />
-            </div>
+                        <textarea
+                              name="deskripsi"
+                              rows={4}
+                              className="w-full rounded-xl border px-4 py-3"
+                        />
+                  </div>
 
-            </div>
+                  <div className="flex flex-col gap-3 md:flex-row">
+                        <button
+                        type="submit"
+                        className="rounded-xl bg-brand-pink px-5 py-3 text-sm font-semibold text-white hover:bg-pink-900"
+                        >
+                        Save Paket
+                        </button>
 
-            <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Deskripsi
-            </label>
+                        <button
+                        type="submit"
+                        name="create_another"
+                        value="true"
+                        className="rounded-xl bg-brand-purple px-5 py-3 text-sm font-semibold text-white hover:bg-purple-900"
+                        >
+                        Save & Create Another
+                        </button>
 
-            <textarea
-                  name="deskripsi"
-                  rows={4}
-                  className="w-full rounded-xl border px-4 py-3"
-            />
-            </div>
-
-            <div className="flex flex-col gap-3 md:flex-row">
-
-                  <button
-                  type="submit"
-                  className="rounded-xl bg-brand-pink px-5 py-3 text-sm font-semibold text-white hover:bg-pink-900"
-                  >
-                  Save Paket
-                  </button>
-
-                  <button
-                  type="submit"
-                  name="create_another"
-                  value="true"
-                  className="rounded-xl bg-brand-purple px-5 py-3 text-sm font-semibold text-white hover:bg-purple-900"
-                  >
-                  Save & Create Another
-                  </button>
-
-                  <Link
-                  href="/admin/paket"
-                  className="rounded-xl border border-gray-200 px-5 py-3 text-center text-sm font-semibold text-gray-700 hover:bg-slate-300"
-                  >
-                  Discard Changes
-                  </Link>
-
-            </div>
-
+                        <Link
+                        href="/admin/paket"
+                        className="rounded-xl border border-gray-200 px-5 py-3 text-center text-sm font-semibold text-gray-700 hover:bg-slate-300"
+                        >
+                        Discard Changes
+                        </Link>
+                  </div>
             </form>
       </div>
       )
