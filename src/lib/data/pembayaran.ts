@@ -92,7 +92,7 @@ export async function getPendingPembayaran({
     return { data: [], total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
   }
 
-  const uniqueTagihanIds = [...new Set(rows.map((r) => r.tagihan_id))]
+  const uniqueTagihanIds = Array.from(new Set(rows.map((r) => r.tagihan_id)))
   const { data: tagihanRows } = await admin
     .from('tagihan')
     .select('id, bulan, tahun, jumlah_tagihan, status_tagihan, pelanggan_id')
@@ -100,7 +100,9 @@ export async function getPendingPembayaran({
 
   const tagihanMap = Object.fromEntries((tagihanRows ?? []).map((t) => [t.id, t]))
 
-  const uniquePelangganIds = [...new Set((tagihanRows ?? []).map((t) => t.pelanggan_id).filter(Boolean))]
+  const uniquePelangganIds = Array.from(
+    new Set((tagihanRows ?? []).map((t) => t.pelanggan_id).filter(Boolean)),
+  )
   const { data: pelangganRows } = await admin
     .from('pelanggan')
     .select('id, nama_lengkap, email, no_hp')

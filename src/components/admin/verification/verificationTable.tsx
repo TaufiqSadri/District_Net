@@ -130,8 +130,8 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
                   <td className="px-5 py-4 text-right">
                     <VerificationActions
                       pembayaran={p}
-                      onApprove={(id) => setRemovedIds((prev) => new Set([...prev, id]))}
-                      onReject={(id) => setRemovedIds((prev) => new Set([...prev, id]))}
+                      onApprove={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
+                      onReject={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
                       onViewProof={(url, name) => setProofModal({ url, name })}
                     />
                   </td>
@@ -158,8 +158,8 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
                   </div>
                   <VerificationActions
                     pembayaran={p}
-                    onApprove={(id) => setRemovedIds((prev) => new Set([...prev, id]))}
-                    onReject={(id) => setRemovedIds((prev) => new Set([...prev, id]))}
+                    onApprove={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
+                    onReject={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
                     onViewProof={(url, name) => setProofModal({ url, name })}
                   />
                 </div>

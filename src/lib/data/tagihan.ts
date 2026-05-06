@@ -132,7 +132,7 @@ export async function getAllTagihan({
   }
 
   // ── Step 3: enrich with pelanggan ─────────────────────────────────────────
-  const uniquePelangganIds = [...new Set(rows.map((r) => r.pelanggan_id).filter(Boolean))]
+  const uniquePelangganIds = Array.from(new Set(rows.map((r) => r.pelanggan_id).filter(Boolean)))
   const { data: pelangganRows, error: pelangganErr } = await admin
     .from('pelanggan')
     .select('id, nama_lengkap, email, no_hp, paket_id')
