@@ -1,0 +1,182 @@
+'use server'
+
+import { createAdminClient } from '@/lib/supabase/admin'
+import { revalidatePath } from 'next/cache'
+
+export interface PembayaranWithRelations {
+  id: string
+  tagihan_id: string
+  bukti_pembayaran_url: string | null
+  status_verifikasi: string
+  tanggal_upload: string | null
+  created_at: string
+  tagihan: {
+    id: string
+    bulan: number
+    tahun: number
+    jumlah_tagihan: number
+    status_pembayaran: string
+    pelanggan: {
+      id: string
+      nama_lengkap: string
+      email: string
+      no_hp: string
+    } | null
+  } | null
+}
+
+export interface VerificationStats {
+  menunggu: number
+  approvedHariIni: number
+  rejectedHariIni: number
+}
+
+export async function getPendingPembayaran({
+  search = '',
+  sort = 'terbaru',
+  page = 1,
+  pageSize = 10,
+}: {
+  search?: string
+  sort?: 'terbaru' | 'terlama'
+  page?: number
+  pageSize?: number
+} = {}): Promise<{ data: PembayaranWithRelations[]; total: number; page: number; pageSize: number; totalPages: number }> {
+  const admin = createAdminClient()
+  const empty = { data: [], total: 0, page, pageSize, totalPages: 0 }
+
+  let tagihanIds: string[] | null = null
+  if (search.trim()) {
+    const { data: matched } = await admin
+      .from('pelanggan')
+      .select('id')
+      .ilike('nama_lengkap', `%${search}%`)
+    const pelangganIds = (matched ?? []).map((p) => p.id)
+    if (pelangganIds.length === 0) return empty
+
+    const { data: tagihanMatched } = await admin
+      .from('tagihan')
+      .select('id')
+      .in('pelanggan_id', pelangganIds)
+    tagihanIds = (tagihanMatched ?? []).map((t) => t.id)
+    if (tagihanIds.length === 0) return empty
+  }
+
+  let query = admin
+    .from('pembayaran')
+    .select('*', { count: 'exact' })
+    .eq('status_verifikasi', 'menunggu')
+
+  if (tagihanIds) {
+    query = query.in('tagihan_id', tagihanIds)
+  }
+
+  query = query.order('created_at', { ascending: sort === 'terlama' })
+
+  const from = (page - 1) * pageSize
+  query = query.range(from, from + pageSize - 1)
+
+  const { data: pembayaranRows, count, error } = await query
+
+  if (error) {
+    console.error('getPendingPembayaran error:', error)
+    return empty
+  }
+
+  const rows = pembayaranRows ?? []
+  const total = count ?? 0
+
+  if (rows.length === 0) {
+    return { data: [], total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+  }
+
+  const uniqueTagihanIds = [...new Set(rows.map((r) => r.tagihan_id))]
+  const { data: tagihanRows } = await admin
+    .from('tagihan')
+    .select('id, bulan, tahun, jumlah_tagihan, status_pembayaran, pelanggan_id')
+    .in('id', uniqueTagihanIds)
+
+  const tagihanMap = Object.fromEntries((tagihanRows ?? []).map((t) => [t.id, t]))
+
+  const uniquePelangganIds = [...new Set((tagihanRows ?? []).map((t) => t.pelanggan_id).filter(Boolean))]
+  const { data: pelangganRows } = await admin
+    .from('pelanggan')
+    .select('id, nama_lengkap, email, no_hp')
+    .in('id', uniquePelangganIds)
+
+  const pelangganMap = Object.fromEntries((pelangganRows ?? []).map((p) => [p.id, p]))
+
+  const enriched: PembayaranWithRelations[] = rows.map((p) => {
+    const tagihan = tagihanMap[p.tagihan_id] ?? null
+    return {
+      ...p,
+      tagihan: tagihan
+        ? { ...tagihan, pelanggan: pelangganMap[tagihan.pelanggan_id] ?? null }
+        : null,
+    }
+  })
+
+  return { data: enriched, total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+}
+
+export async function getVerificationStats(): Promise<VerificationStats> {
+  const admin = createAdminClient()
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayISO = today.toISOString()
+
+  const [menunggu, approved, rejected] = await Promise.allSettled([
+    admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'menunggu'),
+    admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'diterima').gte('created_at', todayISO),
+    admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'ditolak').gte('created_at', todayISO),
+  ])
+
+  return {
+    menunggu: menunggu.status === 'fulfilled' ? (menunggu.value.count ?? 0) : 0,
+    approvedHariIni: approved.status === 'fulfilled' ? (approved.value.count ?? 0) : 0,
+    rejectedHariIni: rejected.status === 'fulfilled' ? (rejected.value.count ?? 0) : 0,
+  }
+}
+
+export async function approvePayment(pembayaranId: string, tagihanId: string): Promise<void> {
+  const admin = createAdminClient()
+  await Promise.all([
+    admin.from('pembayaran').update({ status_verifikasi: 'diterima' }).eq('id', pembayaranId),
+    admin.from('tagihan').update({ status_pembayaran: 'paid' }).eq('id', tagihanId),
+  ])
+  revalidatePath('/admin/verifikasi')
+  revalidatePath('/admin')
+}
+
+export async function rejectPayment(pembayaranId: string, tagihanId: string): Promise<void> {
+  const admin = createAdminClient()
+  await Promise.all([
+    admin.from('pembayaran').update({ status_verifikasi: 'ditolak' }).eq('id', pembayaranId),
+    admin.from('tagihan').update({ status_pembayaran: 'unpaid' }).eq('id', tagihanId),
+  ])
+  revalidatePath('/admin/verifikasi')
+  revalidatePath('/admin')
+}
+
+export async function getPaymentDetail(pembayaranId: string): Promise<PembayaranWithRelations | null> {
+  const admin = createAdminClient()
+  const { data: p } = await admin.from('pembayaran').select('*').eq('id', pembayaranId).single()
+  if (!p) return null
+
+  const { data: tagihan } = await admin
+    .from('tagihan')
+    .select('id, bulan, tahun, jumlah_tagihan, status_pembayaran, pelanggan_id')
+    .eq('id', p.tagihan_id)
+    .single()
+
+  if (!tagihan) return { ...p, tagihan: null }
+
+  const { data: pelanggan } = await admin
+    .from('pelanggan')
+    .select('id, nama_lengkap, email, no_hp')
+    .eq('id', tagihan.pelanggan_id)
+    .single()
+
+  return { ...p, tagihan: { ...tagihan, pelanggan: pelanggan ?? null } }
+}
