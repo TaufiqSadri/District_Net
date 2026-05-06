@@ -6,16 +6,18 @@ import { revalidatePath } from 'next/cache'
 export interface PembayaranWithRelations {
   id: string
   tagihan_id: string
-  bukti_pembayaran_url: string | null
+  bukti_pembayaran: string | null      // was: bukti_pembayaran_url
   status_verifikasi: string
-  tanggal_upload: string | null
+  tanggal_pembayaran: string | null    // was: tanggal_upload
+  jumlah_bayar: number
+  catatan_admin: string | null
   created_at: string
   tagihan: {
     id: string
     bulan: number
     tahun: number
     jumlah_tagihan: number
-    status_pembayaran: string
+    status_tagihan: string             // was: status_pembayaran
     pelanggan: {
       id: string
       nama_lengkap: string
@@ -93,7 +95,7 @@ export async function getPendingPembayaran({
   const uniqueTagihanIds = [...new Set(rows.map((r) => r.tagihan_id))]
   const { data: tagihanRows } = await admin
     .from('tagihan')
-    .select('id, bulan, tahun, jumlah_tagihan, status_pembayaran, pelanggan_id')
+    .select('id, bulan, tahun, jumlah_tagihan, status_tagihan, pelanggan_id')
     .in('id', uniqueTagihanIds)
 
   const tagihanMap = Object.fromEntries((tagihanRows ?? []).map((t) => [t.id, t]))
@@ -143,7 +145,7 @@ export async function approvePayment(pembayaranId: string, tagihanId: string): P
   const admin = createAdminClient()
   await Promise.all([
     admin.from('pembayaran').update({ status_verifikasi: 'diterima' }).eq('id', pembayaranId),
-    admin.from('tagihan').update({ status_pembayaran: 'paid' }).eq('id', tagihanId),
+    admin.from('tagihan').update({ status_tagihan: 'lunas' }).eq('id', tagihanId),
   ])
   revalidatePath('/admin/verifikasi')
   revalidatePath('/admin')
@@ -153,7 +155,7 @@ export async function rejectPayment(pembayaranId: string, tagihanId: string): Pr
   const admin = createAdminClient()
   await Promise.all([
     admin.from('pembayaran').update({ status_verifikasi: 'ditolak' }).eq('id', pembayaranId),
-    admin.from('tagihan').update({ status_pembayaran: 'unpaid' }).eq('id', tagihanId),
+    admin.from('tagihan').update({ status_tagihan: 'belum_bayar' }).eq('id', tagihanId),
   ])
   revalidatePath('/admin/verifikasi')
   revalidatePath('/admin')
@@ -166,7 +168,7 @@ export async function getPaymentDetail(pembayaranId: string): Promise<Pembayaran
 
   const { data: tagihan } = await admin
     .from('tagihan')
-    .select('id, bulan, tahun, jumlah_tagihan, status_pembayaran, pelanggan_id')
+    .select('id, bulan, tahun, jumlah_tagihan, status_tagihan, pelanggan_id')
     .eq('id', p.tagihan_id)
     .single()
 

@@ -147,8 +147,8 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
           </thead>
           <tbody>
             {visibleRows.map((t) => {
-              const status: TagihanStatus = paidIds.has(t.id) ? 'paid' : t.status_pembayaran
-              const buktiUrl = t.pembayaran?.[0]?.bukti_pembayaran_url ?? null
+              const status: TagihanStatus = paidIds.has(t.id) ? 'paid' : t.status_tagihan
+              const buktiUrl = t.pembayaran?.[0]?.bukti_pembayaran ?? null
 
               return (
                 <tr
@@ -208,7 +208,7 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
                   {/* Action */}
                   <td className="px-5 py-4 text-right">
                     <BillingActions
-                      tagihan={{ ...t, status_pembayaran: status }}
+                      tagihan={{ ...t, status_tagihan: status }}
                       onMarkPaid={handleMarkPaid}
                       onDelete={handleDelete}
                     />
@@ -223,7 +223,7 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
       {/* Mobile cards */}
       <div className="divide-y divide-gray-100 lg:hidden">
         {visibleRows.map((t) => {
-          const status: TagihanStatus = paidIds.has(t.id) ? 'paid' : t.status_pembayaran
+          const status: TagihanStatus = paidIds.has(t.id) ? 'paid' : t.status_tagihan
           return (
             <div key={t.id} className="flex items-start gap-3 px-4 py-4">
               <Avatar name={t.pelanggan?.nama_lengkap ?? '?'} />
@@ -239,7 +239,7 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
                     <p className="text-xs text-gray-400">Jatuh tempo: {fmtDate(t.jatuh_tempo)}</p>
                   </div>
                   <BillingActions
-                    tagihan={{ ...t, status_pembayaran: status }}
+                    tagihan={{ ...t, status_tagihan: status }}
                     onMarkPaid={handleMarkPaid}
                     onDelete={handleDelete}
                   />

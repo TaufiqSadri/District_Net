@@ -82,7 +82,7 @@ export default function VerificationActions({ pembayaran, onApprove, onReject, o
         type="button"
         onClick={() => {
           setOpen(false)
-          onViewProof?.(pembayaran.bukti_pembayaran_url, pembayaran.tagihan?.pelanggan?.nama_lengkap ?? '')
+          onViewProof?.(pembayaran.bukti_pembayaran, pembayaran.tagihan?.pelanggan?.nama_lengkap ?? '')
         }}
         className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
       >

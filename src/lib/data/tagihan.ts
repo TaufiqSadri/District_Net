@@ -8,7 +8,7 @@ export interface TagihanWithRelations {
   bulan: number
   tahun: number
   jumlah_tagihan: number
-  status_pembayaran: TagihanStatus
+  status_tagihan: TagihanStatus
   jatuh_tempo: string
   created_at: string
   pelanggan: {
@@ -21,9 +21,9 @@ export interface TagihanWithRelations {
   pembayaran: Array<{
     id: string
     tagihan_id: string
-    bukti_pembayaran_url: string | null
+    bukti_pembayaran: string | null
     status_verifikasi: string
-    tanggal_upload: string | null
+    tanggal_pembayaran: string | null
     created_at: string
   }>
 }
