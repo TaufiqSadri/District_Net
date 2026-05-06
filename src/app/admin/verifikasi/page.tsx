@@ -1,11 +1,13 @@
 import { Suspense } from 'react'
-import { getPendingPembayaran, getVerificationStats } from '@/lib/data/pembayaran'
+import { getPembayaranList, getVerificationStats } from '@/lib/data/pembayaran'
 import VerificationStats from '@/components/admin/verification/verificationStats'
 import VerificationFilters from '@/components/admin/verification/verificationFilters'
 import VerificationTable from '@/components/admin/verification/verificationTable'
 
 interface SearchParams {
+  pelanggan?: string
   search?: string
+  status?: string
   sort?: string
   page?: string
 }
@@ -79,8 +81,17 @@ async function StatsSection() {
 // ─── Table section ────────────────────────────────────────────────────────────
 async function TableSection({ searchParams }: { searchParams: SearchParams }) {
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
-  const result = await getPendingPembayaran({
+  const status =
+    searchParams.status === 'menunggu' ||
+    searchParams.status === 'diterima' ||
+    searchParams.status === 'ditolak'
+      ? searchParams.status
+      : 'semua'
+
+  const result = await getPembayaranList({
+    pelangganId: searchParams.pelanggan,
     search: searchParams.search ?? '',
+    status,
     sort: searchParams.sort === 'terlama' ? 'terlama' : 'terbaru',
     page,
     pageSize: 10,
@@ -109,7 +120,7 @@ export default async function AdminVerifikasiPage({
       <div>
         <h1 className="font-display text-2xl font-bold text-gray-900">Verifikasi Pembayaran</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Pengajuan pembayaran pelanggan yang menunggu verifikasi
+          Semua pembayaran pelanggan ditampilkan di sini, diurutkan terbaru secara default.
         </p>
       </div>
 

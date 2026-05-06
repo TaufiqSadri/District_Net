@@ -16,22 +16,22 @@ const cards = [
     sub: 'Perlu ditindaklanjuti',
   },
   {
-    key: 'approvedHariIni' as const,
-    label: 'Approve Hari Ini',
+    key: 'approvedCount' as const,
+    label: 'Total Diterima',
     icon: CheckCircle,
     iconBg: 'bg-green-100',
     iconColor: 'text-green-600',
     valueColor: 'text-green-600',
-    sub: 'Berhasil diverifikasi',
+    sub: 'Pembayaran disetujui',
   },
   {
-    key: 'rejectedHariIni' as const,
-    label: 'Reject Hari Ini',
+    key: 'rejectedCount' as const,
+    label: 'Total Ditolak',
     icon: XCircle,
     iconBg: 'bg-red-100',
     iconColor: 'text-red-500',
     valueColor: 'text-red-500',
-    sub: 'Ditolak hari ini',
+    sub: 'Pembayaran ditolak',
   },
 ]
 

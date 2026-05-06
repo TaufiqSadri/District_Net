@@ -141,6 +141,22 @@ return (
             </div>
       </div>
 
+      <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            Tanggal Bergabung
+            </label>
+            <input
+            name="tanggal_bergabung"
+            type="date"
+            defaultValue={
+              pelanggan.tanggal_bergabung
+                ? new Date(pelanggan.tanggal_bergabung).toISOString().slice(0, 10)
+                : ''
+            }
+            className={inputCls}
+            />
+      </div>
+
       <div className="flex flex-col gap-3 pt-2 sm:flex-row">
             <button
             type="submit"

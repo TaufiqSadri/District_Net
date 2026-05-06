@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export type TagihanStatus = 'unpaid' | 'pending_verification' | 'paid' | 'overdue'
+export type TagihanStatus = 'belum_bayar' | 'menunggu_verifikasi' | 'lunas' | 'overdue'
 
 export interface TagihanWithRelations {
   id: string
@@ -30,9 +30,9 @@ export interface TagihanWithRelations {
 
 export interface TagihanStats {
   total: number
-  unpaid: number
-  pending_verification: number
-  paid: number
+  belum_bayar: number
+  menunggu_verifikasi: number
+  lunas: number
   overdue: number
 }
 
@@ -44,28 +44,49 @@ export interface TagihanListResult {
   totalPages: number
 }
 
+function isOverdue(tagihan: {
+  jatuh_tempo: string | null
+  status_tagihan: string
+}) {
+  if (!tagihan.jatuh_tempo) return false
+
+  const dueDate = new Date(tagihan.jatuh_tempo)
+  dueDate.setHours(23, 59, 59, 999)
+
+  return tagihan.status_tagihan !== 'lunas' && dueDate.getTime() < Date.now()
+}
+
+function normalizeStatus(tagihan: {
+  jatuh_tempo: string | null
+  status_tagihan: string
+}): TagihanStatus {
+  if (isOverdue(tagihan)) return 'overdue'
+  if (tagihan.status_tagihan === 'belum_bayar') return 'belum_bayar'
+  if (tagihan.status_tagihan === 'menunggu_verifikasi') return 'menunggu_verifikasi'
+  return 'lunas'
+}
+
 export async function getTagihanStats(): Promise<TagihanStats> {
   const admin = createAdminClient()
 
-  const [total, unpaid, pending_verification, paid, overdue] = await Promise.all([
-    admin.from('tagihan').select('*', { count: 'exact', head: true }),
-    admin.from('tagihan').select('*', { count: 'exact', head: true }).eq('status_pembayaran', 'unpaid'),
-    admin.from('tagihan').select('*', { count: 'exact', head: true }).eq('status_pembayaran', 'pending_verification'),
-    admin.from('tagihan').select('*', { count: 'exact', head: true }).eq('status_pembayaran', 'paid'),
-    admin.from('tagihan').select('*', { count: 'exact', head: true }).eq('status_pembayaran', 'overdue'),
-  ])
+  const { data, count } = await admin
+    .from('tagihan')
+    .select('status_tagihan, jatuh_tempo', { count: 'exact' })
+
+  const rows = data ?? []
 
   return {
-    total: total.count ?? 0,
-    unpaid: unpaid.count ?? 0,
-    pending_verification: pending_verification.count ?? 0,
-    paid: paid.count ?? 0,
-    overdue: overdue.count ?? 0,
+    total: count ?? rows.length,
+    belum_bayar: rows.filter((item) => item.status_tagihan === 'belum_bayar' && !isOverdue(item)).length,
+    menunggu_verifikasi: rows.filter((item) => item.status_tagihan === 'menunggu_verifikasi').length,
+    lunas: rows.filter((item) => item.status_tagihan === 'lunas').length,
+    overdue: rows.filter((item) => isOverdue(item)).length,
   }
 }
 
 export async function getAllTagihan({
   search = '',
+  pelangganId,
   bulan = 'semua',
   tahun = 'semua',
   status = 'semua',
@@ -74,6 +95,7 @@ export async function getAllTagihan({
   pageSize = 10,
 }: {
   search?: string
+  pelangganId?: string
   bulan?: string
   tahun?: string
   status?: TagihanStatus | 'semua'
@@ -84,9 +106,10 @@ export async function getAllTagihan({
   const admin = createAdminClient()
   const empty = { data: [], total: 0, page, pageSize, totalPages: 0 }
 
-  // ── Step 1: filter pelanggan IDs when searching ───────────────────────────
   let pelangganIds: string[] | null = null
-  if (search.trim()) {
+  if (pelangganId) {
+    pelangganIds = [pelangganId]
+  } else if (search.trim()) {
     const { data: matched, error: searchErr } = await admin
       .from('pelanggan')
       .select('id')
@@ -96,43 +119,58 @@ export async function getAllTagihan({
       console.error('getAllTagihan search error:', searchErr)
       return empty
     }
+
     pelangganIds = (matched ?? []).map((p) => p.id)
     if (pelangganIds.length === 0) return empty
   }
 
-  // ── Step 2: fetch tagihan rows (no relation join yet) ─────────────────────
-  let tagihanQuery = admin
-    .from('tagihan')
-    .select('*', { count: 'exact' })
+  let baseQuery = admin.from('tagihan').select('*', { count: 'exact' })
 
   if (pelangganIds) {
-    tagihanQuery = tagihanQuery.in('pelanggan_id', pelangganIds)
+    baseQuery = baseQuery.in('pelanggan_id', pelangganIds)
   }
-  if (bulan !== 'semua') tagihanQuery = tagihanQuery.eq('bulan', Number(bulan))
-  if (tahun !== 'semua') tagihanQuery = tagihanQuery.eq('tahun', Number(tahun))
-  if (status !== 'semua') tagihanQuery = tagihanQuery.eq('status_pembayaran', status)
+  if (bulan !== 'semua') baseQuery = baseQuery.eq('bulan', Number(bulan))
+  if (tahun !== 'semua') baseQuery = baseQuery.eq('tahun', Number(tahun))
 
-  tagihanQuery = tagihanQuery.order('created_at', { ascending: sort === 'terlama' })
+  if (status === 'belum_bayar') {
+    baseQuery = baseQuery.eq('status_tagihan', 'belum_bayar')
+  } else if (status === 'menunggu_verifikasi') {
+    baseQuery = baseQuery.eq('status_tagihan', 'menunggu_verifikasi')
+  } else if (status === 'lunas') {
+    baseQuery = baseQuery.eq('status_tagihan', 'lunas')
+  }
 
-  const from = (page - 1) * pageSize
-  tagihanQuery = tagihanQuery.range(from, from + pageSize - 1)
+  baseQuery = baseQuery
+    .order('tahun', { ascending: sort === 'terlama' })
+    .order('bulan', { ascending: sort === 'terlama' })
+    .order('created_at', { ascending: sort === 'terlama' })
 
-  const { data: tagihanRows, count, error: tagihanErr } = await tagihanQuery
+  const { data: allRows, count, error: tagihanErr } = await baseQuery
 
   if (tagihanErr) {
     console.error('getAllTagihan tagihan error:', tagihanErr)
     return empty
   }
 
-  const rows = tagihanRows ?? []
-  const total = count ?? 0
+  let rows = (allRows ?? []).map((row) => ({
+    ...row,
+    status_tagihan: normalizeStatus(row),
+  })) as TagihanWithRelations[]
 
-  if (rows.length === 0) {
-    return { data: [], total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+  if (status === 'overdue') {
+    rows = rows.filter((row) => row.status_tagihan === 'overdue')
   }
 
-  // ── Step 3: enrich with pelanggan ─────────────────────────────────────────
-  const uniquePelangganIds = Array.from(new Set(rows.map((r) => r.pelanggan_id).filter(Boolean)))
+  const total = rows.length
+  if (rows.length === 0) {
+    return { data: [], total, page, pageSize, totalPages: 0 }
+  }
+
+  const paginatedRows = rows.slice((page - 1) * pageSize, page * pageSize)
+
+  const uniquePelangganIds = Array.from(
+    new Set(paginatedRows.map((r) => r.pelanggan_id).filter(Boolean)),
+  )
   const { data: pelangganRows, error: pelangganErr } = await admin
     .from('pelanggan')
     .select('id, nama_lengkap, email, no_hp, paket_id')
@@ -142,34 +180,30 @@ export async function getAllTagihan({
     console.error('getAllTagihan pelanggan enrich error:', pelangganErr)
   }
 
-  const pelangganMap = Object.fromEntries(
-    (pelangganRows ?? []).map((p) => [p.id, p]),
-  )
+  const pelangganMap = Object.fromEntries((pelangganRows ?? []).map((p) => [p.id, p]))
 
-  // ── Step 4: enrich with pembayaran ────────────────────────────────────────
-  const tagihanIds = rows.map((r) => r.id)
+  const tagihanIds = paginatedRows.map((r) => r.id)
   const { data: pembayaranRows, error: pembayaranErr } = await admin
     .from('pembayaran')
-    .select('id, tagihan_id, bukti_pembayaran_url, status_verifikasi, tanggal_upload, created_at')
+    .select('id, tagihan_id, bukti_pembayaran, status_verifikasi, tanggal_pembayaran, created_at')
     .in('tagihan_id', tagihanIds)
 
   if (pembayaranErr) {
     console.error('getAllTagihan pembayaran enrich error:', pembayaranErr)
   }
 
-  // Group pembayaran by tagihan_id
-  const pembayaranByTagihan: Record<string, typeof pembayaranRows> = {}
-  for (const p of pembayaranRows ?? []) {
-    if (!pembayaranByTagihan[p.tagihan_id]) pembayaranByTagihan[p.tagihan_id] = []
-    pembayaranByTagihan[p.tagihan_id]!.push(p)
+  const pembayaranByTagihan: Record<string, NonNullable<typeof pembayaranRows>> = {}
+  for (const pembayaran of pembayaranRows ?? []) {
+    if (!pembayaranByTagihan[pembayaran.tagihan_id]) {
+      pembayaranByTagihan[pembayaran.tagihan_id] = []
+    }
+    pembayaranByTagihan[pembayaran.tagihan_id]!.push(pembayaran)
   }
 
-  // ── Step 5: assemble final result ─────────────────────────────────────────
-  const enriched: TagihanWithRelations[] = rows.map((t) => ({
-    ...t,
-    status_pembayaran: t.status_pembayaran as TagihanStatus,
-    pelanggan: pelangganMap[t.pelanggan_id] ?? null,
-    pembayaran: pembayaranByTagihan[t.id] ?? [],
+  const enriched: TagihanWithRelations[] = paginatedRows.map((tagihan) => ({
+    ...tagihan,
+    pelanggan: pelangganMap[tagihan.pelanggan_id] ?? null,
+    pembayaran: pembayaranByTagihan[tagihan.id] ?? [],
   }))
 
   return {
@@ -181,6 +215,33 @@ export async function getAllTagihan({
   }
 }
 
+export async function getTagihanById(tagihanId: string): Promise<TagihanWithRelations | null> {
+  const admin = createAdminClient()
+  const { data: row, error } = await admin.from('tagihan').select('*').eq('id', tagihanId).single()
+
+  if (error || !row) return null
+
+  const [{ data: pelanggan }, { data: pembayaran }] = await Promise.all([
+    admin
+      .from('pelanggan')
+      .select('id, nama_lengkap, email, no_hp, paket_id')
+      .eq('id', row.pelanggan_id)
+      .single(),
+    admin
+      .from('pembayaran')
+      .select('id, tagihan_id, bukti_pembayaran, status_verifikasi, tanggal_pembayaran, created_at')
+      .eq('tagihan_id', tagihanId)
+      .order('created_at', { ascending: false }),
+  ])
+
+  return {
+    ...row,
+    status_tagihan: normalizeStatus(row),
+    pelanggan: pelanggan ?? null,
+    pembayaran: pembayaran ?? [],
+  }
+}
+
 export async function searchTagihan(query: string): Promise<TagihanWithRelations[]> {
   const result = await getAllTagihan({ search: query, pageSize: 20 })
   return result.data
@@ -188,10 +249,31 @@ export async function searchTagihan(query: string): Promise<TagihanWithRelations
 
 export async function markAsPaid(tagihanId: string): Promise<void> {
   const admin = createAdminClient()
+  const { error } = await admin.from('tagihan').update({ status_tagihan: 'lunas' }).eq('id', tagihanId)
+  if (error) throw new Error(error.message)
+}
+
+export async function updateTagihanByAdmin({
+  tagihanId,
+  jumlahTagihan,
+  jatuhTempo,
+  statusTagihan,
+}: {
+  tagihanId: string
+  jumlahTagihan: number
+  jatuhTempo: string | null
+  statusTagihan: 'belum_bayar' | 'menunggu_verifikasi' | 'lunas'
+}) {
+  const admin = createAdminClient()
   const { error } = await admin
     .from('tagihan')
-    .update({ status_pembayaran: 'paid' })
+    .update({
+      jumlah_tagihan: jumlahTagihan,
+      jatuh_tempo: jatuhTempo,
+      status_tagihan: statusTagihan,
+    })
     .eq('id', tagihanId)
+
   if (error) throw new Error(error.message)
 }
 

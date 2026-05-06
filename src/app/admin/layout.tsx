@@ -12,9 +12,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const admin = createAdminClient()
   const { count: pendingCount } = await admin
-    .from('pelanggan')
+    .from('komplain')
     .select('*', { count: 'exact', head: true })
-    .eq('status_langganan', 'pending')
+    .eq('status', false)
   const { count: paymentPendingCount } = await admin
     .from('pembayaran')
     .select('*', { count: 'exact', head: true })

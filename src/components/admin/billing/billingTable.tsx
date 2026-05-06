@@ -18,17 +18,17 @@ const STATUS_CONFIG: Record<
   TagihanStatus,
   { label: string; cls: string; dot: string }
 > = {
-  unpaid: {
+  belum_bayar: {
     label: 'Belum Dibayar',
     cls: 'bg-red-100 text-red-700 border-red-200',
     dot: 'bg-red-500',
   },
-  pending_verification: {
+  menunggu_verifikasi: {
     label: 'Menunggu Verifikasi',
     cls: 'bg-yellow-100 text-yellow-700 border-yellow-200',
     dot: 'bg-yellow-500',
   },
-  paid: {
+  lunas: {
     label: 'Lunas',
     cls: 'bg-green-100 text-green-700 border-green-200',
     dot: 'bg-green-500',
@@ -147,7 +147,7 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
           </thead>
           <tbody>
             {visibleRows.map((t) => {
-              const status: TagihanStatus = paidIds.has(t.id) ? 'paid' : t.status_tagihan
+              const status: TagihanStatus = paidIds.has(t.id) ? 'lunas' : t.status_tagihan
               const buktiUrl = t.pembayaran?.[0]?.bukti_pembayaran ?? null
 
               return (
@@ -223,7 +223,7 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
       {/* Mobile cards */}
       <div className="divide-y divide-gray-100 lg:hidden">
         {visibleRows.map((t) => {
-          const status: TagihanStatus = paidIds.has(t.id) ? 'paid' : t.status_tagihan
+          const status: TagihanStatus = paidIds.has(t.id) ? 'lunas' : t.status_tagihan
           return (
             <div key={t.id} className="flex items-start gap-3 px-4 py-4">
               <Avatar name={t.pelanggan?.nama_lengkap ?? '?'} />

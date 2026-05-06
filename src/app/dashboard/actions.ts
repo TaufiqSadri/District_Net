@@ -36,13 +36,13 @@ export async function submitPembayaran(formData: FormData) {
   const jumlahBayar = Number(formData.get('jumlah_bayar') ?? 0)
 
   if (!tagihanId || !buktiPembayaran || !jumlahBayar) {
-    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', 'Semua field pembayaran wajib diisi.')
+    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', 'Jumlah bayar dan file bukti pembayaran wajib diisi.')
   }
 
   try {
     new URL(buktiPembayaran)
   } catch {
-    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', 'Link bukti pembayaran tidak valid.')
+    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', 'File bukti pembayaran belum berhasil diunggah.')
   }
 
   const { data: tagihan } = await supabase
