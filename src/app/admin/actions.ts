@@ -303,3 +303,21 @@ export async function deletePelangganByAdmin(pelangganId: string, userId: string
   revalidatePath('/admin/pelanggan')
   redirect('/admin/pelanggan')
 }
+
+/*
+---------------------------------
+  Function untuk manage Tagihan
+---------------------------------
+*/
+import { markAsPaid, deleteTagihan } from '@/lib/data/tagihan'
+ 
+export async function markAsPaidAction(tagihanId: string): Promise<void> {
+  await markAsPaid(tagihanId)
+  revalidatePath('/admin/tagihan')
+}
+ 
+export async function deleteTagihanAction(tagihanId: string): Promise<void> {
+  await deleteTagihan(tagihanId)
+  revalidatePath('/admin/tagihan')
+}
+ 
