@@ -106,12 +106,12 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
                       {p.tagihan ? fmt(p.tagihan.jumlah_tagihan) : '—'}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-gray-500">{fmtDate(p.tanggal_upload)}</td>
+                  <td className="px-5 py-4 text-gray-500">{fmtDate(p.tanggal_pembayaran)}</td>
                   <td className="px-5 py-4">
-                    {p.bukti_pembayaran_url ? (
+                    {p.bukti_pembayaran ? (
                       <button
                         type="button"
-                        onClick={() => setProofModal({ url: p.bukti_pembayaran_url, name: p.tagihan?.pelanggan?.nama_lengkap ?? '' })}
+                        onClick={() => setProofModal({ url: p.bukti_pembayaran, name: p.tagihan?.pelanggan?.nama_lengkap ?? '' })}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-brand-purple/30 px-2.5 py-1 text-xs font-semibold text-brand-purple transition hover:bg-brand-purple/5"
                       >
                         <ImageIcon size={11} />
@@ -168,17 +168,17 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
                     <span className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
                     Pending
                   </span>
-                  {p.bukti_pembayaran_url ? (
+                  {p.bukti_pembayaran ? (
                     <button
                       type="button"
-                      onClick={() => setProofModal({ url: p.bukti_pembayaran_url, name: p.tagihan?.pelanggan?.nama_lengkap ?? '' })}
+                      onClick={() => setProofModal({ url: p.bukti_pembayaran, name: p.tagihan?.pelanggan?.nama_lengkap ?? '' })}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-brand-purple/30 px-2 py-0.5 text-xs font-semibold text-brand-purple"
                     >
                       <ImageIcon size={10} />
                       Bukti
                     </button>
                   ) : null}
-                  <span className="text-xs text-gray-400">{fmtDate(p.tanggal_upload)}</span>
+                  <span className="text-xs text-gray-400">{fmtDate(p.tanggal_pembayaran)}</span>
                 </div>
               </div>
             </div>

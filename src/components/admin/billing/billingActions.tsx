@@ -87,7 +87,7 @@ export default function BillingActions({ tagihan, onMarkPaid, onDelete }: Props)
     })
   }
 
-  const buktiUrl = tagihan.pembayaran?.[0]?.bukti_pembayaran_url ?? null
+  const buktiUrl = tagihan.pembayaran?.[0]?.bukti_pembayaran ?? null
 
   const dropdown = (
     <div
@@ -123,7 +123,7 @@ export default function BillingActions({ tagihan, onMarkPaid, onDelete }: Props)
         </button>
       ) : null}
 
-      {tagihan.status_pembayaran !== 'paid' ? (
+      {tagihan.status_tagihan !== 'paid' ? (
         <button
           type="button"
           onClick={handleMarkPaid}

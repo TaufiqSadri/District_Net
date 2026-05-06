@@ -27,7 +27,6 @@ export default async function AdminPaketPage() {
 
   return (
     <div>
-      <div className="rounded-2xl bg-white p-4 md:p-8 shadow-card">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
           <div>
@@ -44,11 +43,11 @@ export default async function AdminPaketPage() {
             href="/admin/paket/createPaket"
             className="rounded-xl bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900"
           >
-            + Create Paket
+            + Tambah Paket
           </Link>
 
         </div>
-      </div>
+
 
       <br />
 
