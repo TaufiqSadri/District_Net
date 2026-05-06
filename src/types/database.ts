@@ -48,6 +48,7 @@ export interface TagihanRow {
   tahun: number
   jumlah_tagihan: number
   status_tagihan: StatusTagihan
+  jatuh_tempo?: string | null
   created_at: string
 }
 
@@ -58,7 +59,18 @@ export interface PembayaranRow {
   tanggal_pembayaran: string
   status_verifikasi: StatusVerifikasi
   created_at: string
+  bukti_pembayaran?: string | null
   catatan_admin?: string | null
+}
+
+export interface KomplainRow {
+  id: string
+  pelanggan_id: string | null
+  tanggal: string | null
+  isi_komplain: string
+  status: boolean | null
+  respon_admin: string | null
+  created_at: string | null
 }
 
 // ── New types for admin customer management ──────────────────────────────────

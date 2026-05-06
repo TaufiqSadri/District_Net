@@ -92,7 +92,7 @@ export default function CustomerTable({
   }
 
   function handleDelete(id: string) {
-    setDeletedIds((prev) => new Set([...prev, id]))
+    setDeletedIds((prev) => new Set([...Array.from(prev), id]))
   }
 
   function goToPage(p: number) {

@@ -99,11 +99,11 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
 
   function handleMarkPaid(id: string) {
-    setPaidIds((prev) => new Set([...prev, id]))
+    setPaidIds((prev) => new Set([...Array.from(prev), id]))
   }
 
   function handleDelete(id: string) {
-    setDeletedIds((prev) => new Set([...prev, id]))
+    setDeletedIds((prev) => new Set([...Array.from(prev), id]))
   }
 
   function goToPage(p: number) {
