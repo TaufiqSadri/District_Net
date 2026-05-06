@@ -33,12 +33,43 @@ function Avatar({ name }: { name: string }) {
   )
 }
 
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; className: string; dot: string }> = {
+    menunggu: {
+      label: 'Menunggu',
+      className: 'border-yellow-200 bg-yellow-100 text-yellow-700',
+      dot: 'bg-yellow-500',
+    },
+    diterima: {
+      label: 'Diterima',
+      className: 'border-green-200 bg-green-100 text-green-700',
+      dot: 'bg-green-500',
+    },
+    ditolak: {
+      label: 'Ditolak',
+      className: 'border-red-200 bg-red-100 text-red-700',
+      dot: 'bg-red-500',
+    },
+  }
+
+  const cfg = map[status] ?? {
+    label: status,
+    className: 'border-gray-200 bg-gray-100 text-gray-600',
+    dot: 'bg-gray-400',
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${cfg.className}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+      {cfg.label}
+    </span>
+  )
+}
+
 export default function VerificationTable({ rows, total, page, pageSize, totalPages }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-
-  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
   const [proofModal, setProofModal] = useState<{ url: string | null; name: string } | null>(null)
 
   function goToPage(p: number) {
@@ -47,16 +78,14 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
     router.push(`${pathname}?${params.toString()}`)
   }
 
-  const visibleRows = rows.filter((r) => !removedIds.has(r.id))
-
-  if (visibleRows.length === 0 && total === 0) {
+  if (rows.length === 0 && total === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-20 shadow-card">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <span className="text-3xl">✅</span>
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+          <span className="text-3xl">📄</span>
         </div>
-        <p className="font-display font-semibold text-gray-600">Tidak ada pembayaran yang menunggu verifikasi</p>
-        <p className="mt-1 text-sm text-gray-400">Semua pengajuan sudah diproses.</p>
+        <p className="font-display font-semibold text-gray-600">Belum ada data pembayaran</p>
+        <p className="mt-1 text-sm text-gray-400">Pembayaran pelanggan akan muncul di sini mulai dari yang terbaru.</p>
       </div>
     )
   }
@@ -72,7 +101,6 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
       ) : null}
 
       <div className="rounded-2xl bg-white shadow-card">
-        {/* Desktop table */}
         <div className="hidden overflow-x-auto lg:block">
           <table className="w-full text-sm">
             <thead>
@@ -85,7 +113,7 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
               </tr>
             </thead>
             <tbody>
-              {visibleRows.map((p) => (
+              {rows.map((p) => (
                 <tr key={p.id} className="border-b border-gray-50 transition hover:bg-gray-50/50 last:border-0">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
@@ -122,16 +150,11 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
                     )}
                   </td>
                   <td className="px-5 py-4">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-700">
-                      <span className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-                      Pending
-                    </span>
+                    <StatusBadge status={p.status_verifikasi} />
                   </td>
                   <td className="px-5 py-4 text-right">
                     <VerificationActions
                       pembayaran={p}
-                      onApprove={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
-                      onReject={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
                       onViewProof={(url, name) => setProofModal({ url, name })}
                     />
                   </td>
@@ -141,9 +164,8 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
           </table>
         </div>
 
-        {/* Mobile cards */}
         <div className="divide-y divide-gray-100 lg:hidden">
-          {visibleRows.map((p) => (
+          {rows.map((p) => (
             <div key={p.id} className="flex items-start gap-3 px-4 py-4">
               <Avatar name={p.tagihan?.pelanggan?.nama_lengkap ?? '?'} />
               <div className="min-w-0 flex-1">
@@ -158,16 +180,11 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
                   </div>
                   <VerificationActions
                     pembayaran={p}
-                    onApprove={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
-                    onReject={(id) => setRemovedIds((prev) => new Set([...Array.from(prev), id]))}
                     onViewProof={(url, name) => setProofModal({ url, name })}
                   />
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-                    Pending
-                  </span>
+                  <StatusBadge status={p.status_verifikasi} />
                   {p.bukti_pembayaran ? (
                     <button
                       type="button"
@@ -185,11 +202,10 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
           ))}
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 ? (
           <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
             <p className="text-xs text-gray-500">
-              Menampilkan {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} dari {total} pengajuan
+              Menampilkan {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} dari {total} pembayaran
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -233,7 +249,7 @@ export default function VerificationTable({ rows, total, page, pageSize, totalPa
           </div>
         ) : (
           <div className="border-t border-gray-100 px-6 py-3">
-            <p className="text-xs text-gray-400">Total {total} pengajuan</p>
+            <p className="text-xs text-gray-400">Total {total} pembayaran</p>
           </div>
         )}
       </div>

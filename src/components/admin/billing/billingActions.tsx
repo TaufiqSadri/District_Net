@@ -123,7 +123,7 @@ export default function BillingActions({ tagihan, onMarkPaid, onDelete }: Props)
         </button>
       ) : null}
 
-      {tagihan.status_tagihan !== 'paid' ? (
+      {tagihan.status_tagihan !== 'lunas' ? (
         <button
           type="button"
           onClick={handleMarkPaid}

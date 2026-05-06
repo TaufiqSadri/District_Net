@@ -28,19 +28,6 @@ export default function CreatePaketPage() {
             action={addPaket}
             className="space-y-6"
             >
-                  <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                              Gambar Paket
-                        </label>
-
-                        <input
-                              type="file"
-                              name="gambar"
-                              accept="image/*"
-                              className="w-full rounded-xl border px-4 py-3"
-                        />
-                  </div>
-
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div>
                               <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -91,6 +78,11 @@ export default function CreatePaketPage() {
                               rows={4}
                               className="w-full rounded-xl border px-4 py-3"
                         />
+                  </div>
+
+                  <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+                        Upload gambar paket belum diaktifkan dari panel admin. Jika nanti ingin saya sambungkan ke Supabase Storage,
+                        saya bisa lanjutkan sebagai fitur terpisah.
                   </div>
 
                   <div className="flex flex-col gap-3 md:flex-row">

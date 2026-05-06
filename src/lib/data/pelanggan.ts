@@ -94,8 +94,10 @@ export async function getPelangganList({
     query = query.eq('paket_id', paket_id)
   }
 
-  // Sort
-  query = query.order('created_at', { ascending: sort === 'terlama' })
+  // Sort berdasarkan tanggal bergabung agar konsisten dengan kolom "Bergabung"
+  query = query
+    .order('tanggal_bergabung', { ascending: sort === 'terlama' })
+    .order('created_at', { ascending: sort === 'terlama' })
 
   // Pagination
   const from = (page - 1) * pageSize

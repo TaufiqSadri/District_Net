@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ArrowLeft, MapPin, Phone, Mail, Wifi, Calendar, CreditCard, MessageSquare } from 'lucide-react'
+import { ArrowLeft, MapPin, Phone, Mail, Wifi, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import DeletePelangganButton from './deletePelangganButton'
@@ -16,6 +16,7 @@ const TAGIHAN_STATUS = {
   belum_bayar: { label: 'Belum Bayar', cls: 'bg-red-100 text-red-700' },
   menunggu_verifikasi: { label: 'Menunggu Verifikasi', cls: 'bg-yellow-100 text-yellow-700' },
   lunas: { label: 'Lunas', cls: 'bg-green-100 text-green-700' },
+  overdue: { label: 'Overdue', cls: 'bg-gray-200 text-gray-700' },
 }
 
 const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
@@ -41,14 +42,6 @@ export default async function DetailPelangganPage({ params }: Props) {
     .order('tahun', { ascending: false })
     .order('bulan', { ascending: false })
     .limit(12)
-
-  const { data: komplain } = await admin
-    .from('komplain')
-    .select('*')
-    .eq('pelanggan_id', params.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
-    .maybeSingle()
 
   const status = STATUS_MAP[pelanggan.status_langganan as keyof typeof STATUS_MAP]
   const initials = pelanggan.nama_lengkap
@@ -114,7 +107,7 @@ export default async function DetailPelangganPage({ params }: Props) {
                 value={pelanggan.alamat_pemasangan}
                 colSpan
               />
-              {pelanggan.latitude && pelanggan.longitude ? (
+              {pelanggan.latitude !== null && pelanggan.latitude !== undefined && pelanggan.longitude !== null && pelanggan.longitude !== undefined ? (
                 <div className="sm:col-span-2 lg:col-span-1">
                   <a
                     href={`https://www.google.com/maps?q=${pelanggan.latitude},${pelanggan.longitude}`}

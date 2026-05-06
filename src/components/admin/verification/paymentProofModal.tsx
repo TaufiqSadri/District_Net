@@ -10,6 +10,15 @@ interface Props {
 }
 
 export default function PaymentProofModal({ url, pelangganName, onClose }: Props) {
+  const normalizedUrl = url?.toLowerCase() ?? ''
+  const isPdf = normalizedUrl.includes('.pdf')
+  const isImage =
+    normalizedUrl.includes('.jpg') ||
+    normalizedUrl.includes('.jpeg') ||
+    normalizedUrl.includes('.png') ||
+    normalizedUrl.includes('.webp') ||
+    normalizedUrl.includes('.gif')
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
@@ -63,19 +72,40 @@ export default function PaymentProofModal({ url, pelangganName, onClose }: Props
         <div className="p-6">
           {url ? (
             <div className="overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
-              <img
-                src={url}
-                alt={`Bukti pembayaran ${pelangganName}`}
-                className="max-h-[60vh] w-full object-contain"
-                onError={(e) => {
-                  const target = e.currentTarget
-                  target.style.display = 'none'
-                  const parent = target.parentElement
-                  if (parent) {
-                    parent.innerHTML = `<div class="flex flex-col items-center justify-center py-16 text-gray-400"><span class="text-4xl mb-3">📄</span><p class="text-sm font-medium">File tidak dapat ditampilkan</p><a href="${url}" target="_blank" class="mt-3 text-xs text-brand-purple hover:underline">Buka di tab baru</a></div>`
-                  }
-                }}
-              />
+              {isPdf ? (
+                <iframe
+                  src={url}
+                  title={`Bukti pembayaran ${pelangganName}`}
+                  className="h-[70vh] w-full bg-white"
+                />
+              ) : isImage ? (
+                <img
+                  src={url}
+                  alt={`Bukti pembayaran ${pelangganName}`}
+                  className="max-h-[60vh] w-full object-contain"
+                  onError={(e) => {
+                    const target = e.currentTarget
+                    target.style.display = 'none'
+                    const parent = target.parentElement
+                    if (parent) {
+                      parent.innerHTML = `<div class="flex flex-col items-center justify-center py-16 text-gray-400"><span class="text-4xl mb-3">📄</span><p class="text-sm font-medium">File tidak dapat ditampilkan</p><a href="${url}" target="_blank" class="mt-3 text-xs text-brand-purple hover:underline">Buka di tab baru</a></div>`
+                    }
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                  <span className="mb-3 text-4xl">📄</span>
+                  <p className="text-sm font-medium">File tidak dapat dipreview langsung</p>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 text-xs font-semibold text-brand-purple hover:underline"
+                  >
+                    Buka di tab baru
+                  </a>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400">

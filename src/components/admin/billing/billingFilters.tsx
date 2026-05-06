@@ -6,9 +6,9 @@ import { Search, SlidersHorizontal, X } from 'lucide-react'
 
 const STATUS_OPTIONS = [
   { value: 'semua', label: 'Semua Status' },
-  { value: 'unpaid', label: 'Belum Dibayar' },
-  { value: 'pending_verification', label: 'Menunggu Verifikasi' },
-  { value: 'paid', label: 'Sudah Dibayar' },
+  { value: 'belum_bayar', label: 'Belum Dibayar' },
+  { value: 'menunggu_verifikasi', label: 'Menunggu Verifikasi' },
+  { value: 'lunas', label: 'Sudah Dibayar' },
   { value: 'overdue', label: 'Overdue' },
 ]
 

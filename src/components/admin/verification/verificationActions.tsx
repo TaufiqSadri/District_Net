@@ -51,6 +51,7 @@ export default function VerificationActions({ pembayaran, onApprove, onReject, o
   }, [open])
 
   function handleApprove() {
+    if (pembayaran.status_verifikasi !== 'menunggu') return
     setOpen(false)
     if (!confirm(`Approve pembayaran dari ${pembayaran.tagihan?.pelanggan?.nama_lengkap}?`)) return
     startTransition(async () => {
@@ -62,6 +63,7 @@ export default function VerificationActions({ pembayaran, onApprove, onReject, o
   }
 
   function handleReject() {
+    if (pembayaran.status_verifikasi !== 'menunggu') return
     setOpen(false)
     if (!confirm(`Tolak pembayaran dari ${pembayaran.tagihan?.pelanggan?.nama_lengkap}?`)) return
     startTransition(async () => {
@@ -101,23 +103,27 @@ export default function VerificationActions({ pembayaran, onApprove, onReject, o
 
       <div className="my-1 border-t border-gray-100" />
 
-      <button
-        type="button"
-        onClick={handleApprove}
-        className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-green-600 transition hover:bg-green-50"
-      >
-        <CheckCircle2 size={14} />
-        Approve Pembayaran
-      </button>
+      {pembayaran.status_verifikasi === 'menunggu' ? (
+        <>
+          <button
+            type="button"
+            onClick={handleApprove}
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-green-600 transition hover:bg-green-50"
+          >
+            <CheckCircle2 size={14} />
+            Approve Pembayaran
+          </button>
 
-      <button
-        type="button"
-        onClick={handleReject}
-        className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-      >
-        <XCircle size={14} />
-        Reject Pembayaran
-      </button>
+          <button
+            type="button"
+            onClick={handleReject}
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+          >
+            <XCircle size={14} />
+            Reject Pembayaran
+          </button>
+        </>
+      ) : null}
     </div>
   )
 

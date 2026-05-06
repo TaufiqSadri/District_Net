@@ -9,6 +9,7 @@ import { CustomerStatsSkeleton, CustomerTableSkeleton } from '@/components/admin
 import type { TagihanStatus } from '@/lib/data/tagihan'
  
 interface SearchParams {
+  pelanggan?: string
   search?: string
   bulan?: string
   tahun?: string
@@ -26,12 +27,13 @@ async function StatsSection() {
 // ─── Table section ────────────────────────────────────────────────────────────
 async function TableSection({ searchParams }: { searchParams: SearchParams }) {
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
-  const validStatuses: TagihanStatus[] = ['unpaid', 'pending_verification', 'paid', 'overdue']
+  const validStatuses: TagihanStatus[] = ['belum_bayar', 'menunggu_verifikasi', 'lunas', 'overdue']
   const status = validStatuses.includes(searchParams.status as TagihanStatus)
     ? (searchParams.status as TagihanStatus)
     : 'semua'
  
   const result = await getAllTagihan({
+    pelangganId: searchParams.pelanggan,
     search: searchParams.search ?? '',
     bulan: searchParams.bulan ?? 'semua',
     tahun: searchParams.tahun ?? 'semua',

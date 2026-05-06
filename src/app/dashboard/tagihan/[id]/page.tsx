@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, CircleAlert, FileText, ReceiptText } from 'lucide-react'
-import { submitPembayaran } from '@/app/dashboard/actions'
 import { formatPeriode, formatRupiah, getStatusTagihanMeta, getStatusVerifikasiMeta, getTagihanDetailForCurrentPelanggan } from '@/lib/data/dashboardPelanggan'
+import PaymentUploadForm from './PaymentUploadForm'
 
 export default async function TagihanDetailPage({
   params,
@@ -127,43 +127,11 @@ export default async function TagihanDetailPage({
           </div>
 
           {canSubmitPayment ? (
-            <form action={submitPembayaran} className="space-y-4">
-              <input type="hidden" name="tagihan_id" value={tagihan.id} />
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Jumlah Bayar</label>
-                <input
-                  name="jumlah_bayar"
-                  type="number"
-                  min={0}
-                  defaultValue={tagihan.jumlah_tagihan}
-                  required
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Link Bukti Pembayaran</label>
-                <input
-                  name="bukti_pembayaran"
-                  type="url"
-                  required
-                  placeholder="https://drive.google.com/..."
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
-                />
-              </div>
-
-              <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-                Pastikan link file dapat dibuka oleh admin agar verifikasi tidak tertunda.
-              </div>
-
-              <button
-                type="submit"
-                className="w-full rounded-xl bg-brand-pink px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-pink-dark"
-              >
-                Kirim Pembayaran
-              </button>
-            </form>
+            <PaymentUploadForm
+              userId={detail.pelanggan.user_id}
+              tagihanId={tagihan.id}
+              defaultAmount={tagihan.jumlah_tagihan}
+            />
           ) : (
             <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-4 text-sm text-gray-600">
               <div className="mb-2 flex items-center gap-2 font-semibold text-gray-800">

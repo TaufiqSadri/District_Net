@@ -16,7 +16,7 @@ const cards = [
     sub: 'Semua tagihan',
   },
   {
-    key: 'unpaid' as const,
+    key: 'belum_bayar' as const,
     label: 'Belum Dibayar',
     icon: XCircle,
     iconBg: 'bg-red-100',
@@ -25,7 +25,7 @@ const cards = [
     sub: 'Menunggu pembayaran',
   },
   {
-    key: 'pending_verification' as const,
+    key: 'menunggu_verifikasi' as const,
     label: 'Menunggu Verifikasi',
     icon: Clock,
     iconBg: 'bg-yellow-100',
@@ -34,7 +34,7 @@ const cards = [
     sub: 'Bukti dikirim',
   },
   {
-    key: 'paid' as const,
+    key: 'lunas' as const,
     label: 'Sudah Dibayar',
     icon: CheckCircle,
     iconBg: 'bg-green-100',

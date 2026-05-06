@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { deleteTagihan, markAsPaid, updateTagihanByAdmin } from '@/lib/data/tagihan'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -142,7 +143,7 @@ export async function addPaket(
 
   if (createAnother) {
     redirect(
-      `/admin/paket/create?reset=${Date.now()}`
+      `/admin/paket/createPaket?reset=${Date.now()}`
     )
   }
 
@@ -272,6 +273,11 @@ export async function updatePelangganByAdmin(pelangganId: string, formData: Form
   const status_langganan = formData.get('status_langganan') as string
   const latRaw = formData.get('latitude') as string
   const lngRaw = formData.get('longitude') as string
+  const tanggalRaw = formData.get('tanggal_bergabung') as string
+
+  const tanggal_bergabung = tanggalRaw
+    ? new Date(tanggalRaw).toISOString()
+    : undefined
  
   const { error } = await admin
     .from('pelanggan')
@@ -283,6 +289,7 @@ export async function updatePelangganByAdmin(pelangganId: string, formData: Form
       status_langganan,
       latitude: latRaw ? Number(latRaw) : null,
       longitude: lngRaw ? Number(lngRaw) : null,
+      ...(tanggal_bergabung ? { tanggal_bergabung } : {}),
     })
     .eq('id', pelangganId)
  
@@ -309,8 +316,6 @@ export async function deletePelangganByAdmin(pelangganId: string, userId: string
   Function untuk manage Tagihan
 ---------------------------------
 */
-import { markAsPaid, deleteTagihan } from '@/lib/data/tagihan'
- 
 export async function markAsPaidAction(tagihanId: string): Promise<void> {
   await markAsPaid(tagihanId)
   revalidatePath('/admin/tagihan')
@@ -319,5 +324,117 @@ export async function markAsPaidAction(tagihanId: string): Promise<void> {
 export async function deleteTagihanAction(tagihanId: string): Promise<void> {
   await deleteTagihan(tagihanId)
   revalidatePath('/admin/tagihan')
+}
+
+function getMonthDateRange(month: number, year: number, dueDay = 10) {
+  const createdAt = new Date(Date.UTC(year, month - 1, 1))
+  const dueDate = new Date(Date.UTC(year, month - 1, dueDay))
+
+  return {
+    createdAt: createdAt.toISOString(),
+    dueDate: dueDate.toISOString().slice(0, 10),
+  }
+}
+
+export async function generateTagihanBulanan(formData: FormData) {
+  const admin = createAdminClient()
+  const month = Number(formData.get('bulan'))
+  const year = Number(formData.get('tahun'))
+  const dueDay = Number(formData.get('jatuh_tempo_hari') ?? 10)
+
+  if (!month || !year) {
+    redirect('/admin/tagihan/generate?error=Periode%20tagihan%20tidak%20valid.')
+  }
+
+  const { createdAt, dueDate } = getMonthDateRange(month, year, dueDay)
+
+  const { data: pelangganRows, error: pelangganError } = await admin
+    .from('pelanggan')
+    .select('id, paket_id, paket_internet(harga)')
+    .eq('status_langganan', 'aktif')
+
+  if (pelangganError) {
+    redirect(`/admin/tagihan/generate?error=${encodeURIComponent(pelangganError.message)}`)
+  }
+
+  const pelangganAktif = (pelangganRows ?? []).filter((item) => item.paket_id && item.paket_internet)
+
+  const { data: existingRows, error: existingError } = await admin
+    .from('tagihan')
+    .select('pelanggan_id')
+    .eq('bulan', month)
+    .eq('tahun', year)
+
+  if (existingError) {
+    redirect(`/admin/tagihan/generate?error=${encodeURIComponent(existingError.message)}`)
+  }
+
+  const existingPelangganIds = new Set((existingRows ?? []).map((item) => item.pelanggan_id))
+
+  const inserts = pelangganAktif
+    .filter((item) => !existingPelangganIds.has(item.id))
+    .map((item) => {
+      const paket = Array.isArray(item.paket_internet) ? item.paket_internet[0] : item.paket_internet
+      return {
+        pelanggan_id: item.id,
+        bulan: month,
+        tahun: year,
+        jumlah_tagihan: paket?.harga ?? 0,
+        status_tagihan: 'belum_bayar',
+        jatuh_tempo: dueDate,
+        created_at: createdAt,
+      }
+    })
+
+  if (inserts.length > 0) {
+    const { error: insertError } = await admin.from('tagihan').insert(inserts)
+    if (insertError) {
+      redirect(`/admin/tagihan/generate?error=${encodeURIComponent(insertError.message)}`)
+    }
+  }
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/tagihan')
+  redirect(
+    `/admin/tagihan/generate?success=${encodeURIComponent(
+      `${inserts.length} tagihan berhasil dibuat untuk periode ${month}/${year}.`,
+    )}`,
+  )
+}
+
+export async function updateTagihanAction(tagihanId: string, formData: FormData) {
+  const jumlahTagihan = Number(formData.get('jumlah_tagihan') ?? 0)
+  const jatuhTempo = String(formData.get('jatuh_tempo') ?? '').trim() || null
+  const statusTagihan = String(formData.get('status_tagihan') ?? 'belum_bayar') as
+    | 'belum_bayar'
+    | 'menunggu_verifikasi'
+    | 'lunas'
+
+  await updateTagihanByAdmin({ tagihanId, jumlahTagihan, jatuhTempo, statusTagihan })
+  revalidatePath('/admin/tagihan')
+  revalidatePath(`/admin/tagihan/${tagihanId}`)
+  redirect(`/admin/tagihan/${tagihanId}`)
+}
+
+export async function respondKomplainAction(komplainId: string, formData: FormData) {
+  const admin = createAdminClient()
+  const responAdmin = String(formData.get('respon_admin') ?? '').trim()
+  const selesai = formData.get('selesai') === 'true'
+
+  const { error } = await admin
+    .from('komplain')
+    .update({
+      respon_admin: responAdmin || null,
+      status: selesai,
+    })
+    .eq('id', komplainId)
+
+  if (error) {
+    redirect(`/admin/komplain?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath('/admin/komplain')
+  revalidatePath('/dashboard/komplain')
+  redirect('/admin/komplain?success=Komplain%20berhasil%20diperbarui.')
 }
  

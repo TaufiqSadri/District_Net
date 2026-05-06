@@ -29,17 +29,21 @@ export interface PembayaranWithRelations {
 
 export interface VerificationStats {
   menunggu: number
-  approvedHariIni: number
-  rejectedHariIni: number
+  approvedCount: number
+  rejectedCount: number
 }
 
-export async function getPendingPembayaran({
+export async function getPembayaranList({
   search = '',
+  pelangganId,
+  status = 'semua',
   sort = 'terbaru',
   page = 1,
   pageSize = 10,
 }: {
   search?: string
+  pelangganId?: string
+  status?: 'semua' | 'menunggu' | 'diterima' | 'ditolak'
   sort?: 'terbaru' | 'terlama'
   page?: number
   pageSize?: number
@@ -48,7 +52,14 @@ export async function getPendingPembayaran({
   const empty = { data: [], total: 0, page, pageSize, totalPages: 0 }
 
   let tagihanIds: string[] | null = null
-  if (search.trim()) {
+  if (pelangganId) {
+    const { data: tagihanMatched } = await admin
+      .from('tagihan')
+      .select('id')
+      .eq('pelanggan_id', pelangganId)
+    tagihanIds = (tagihanMatched ?? []).map((t) => t.id)
+    if (tagihanIds.length === 0) return empty
+  } else if (search.trim()) {
     const { data: matched } = await admin
       .from('pelanggan')
       .select('id')
@@ -67,13 +78,18 @@ export async function getPendingPembayaran({
   let query = admin
     .from('pembayaran')
     .select('*', { count: 'exact' })
-    .eq('status_verifikasi', 'menunggu')
 
   if (tagihanIds) {
     query = query.in('tagihan_id', tagihanIds)
   }
 
-  query = query.order('created_at', { ascending: sort === 'terlama' })
+  if (status !== 'semua') {
+    query = query.eq('status_verifikasi', status)
+  }
+
+  query = query
+    .order('tanggal_pembayaran', { ascending: sort === 'terlama' })
+    .order('created_at', { ascending: sort === 'terlama' })
 
   const from = (page - 1) * pageSize
   query = query.range(from, from + pageSize - 1)
@@ -123,23 +139,28 @@ export async function getPendingPembayaran({
   return { data: enriched, total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
 }
 
+export async function getPendingPembayaran(args: {
+  search?: string
+  sort?: 'terbaru' | 'terlama'
+  page?: number
+  pageSize?: number
+} = {}) {
+  return getPembayaranList({ ...args, status: 'menunggu' })
+}
+
 export async function getVerificationStats(): Promise<VerificationStats> {
   const admin = createAdminClient()
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayISO = today.toISOString()
-
   const [menunggu, approved, rejected] = await Promise.allSettled([
     admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'menunggu'),
-    admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'diterima').gte('created_at', todayISO),
-    admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'ditolak').gte('created_at', todayISO),
+    admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'diterima'),
+    admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'ditolak'),
   ])
 
   return {
     menunggu: menunggu.status === 'fulfilled' ? (menunggu.value.count ?? 0) : 0,
-    approvedHariIni: approved.status === 'fulfilled' ? (approved.value.count ?? 0) : 0,
-    rejectedHariIni: rejected.status === 'fulfilled' ? (rejected.value.count ?? 0) : 0,
+    approvedCount: approved.status === 'fulfilled' ? (approved.value.count ?? 0) : 0,
+    rejectedCount: rejected.status === 'fulfilled' ? (rejected.value.count ?? 0) : 0,
   }
 }
 

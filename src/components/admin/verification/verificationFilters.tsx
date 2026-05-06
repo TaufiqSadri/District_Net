@@ -9,6 +9,13 @@ const SORT_OPTIONS = [
   { value: 'terlama', label: 'Terlama' },
 ]
 
+const STATUS_OPTIONS = [
+  { value: 'semua', label: 'Semua Status' },
+  { value: 'menunggu', label: 'Menunggu' },
+  { value: 'diterima', label: 'Diterima' },
+  { value: 'ditolak', label: 'Ditolak' },
+]
+
 export default function VerificationFilters() {
   const router = useRouter()
   const pathname = usePathname()
@@ -44,7 +51,12 @@ export default function VerificationFilters() {
     startTransition(() => { router.push(`${pathname}?${qs}`) })
   }
 
-  const hasActive = searchParams.get('search') || searchParams.get('sort')
+  function handleStatus(value: string) {
+    const qs = createQueryString({ status: value === 'semua' ? null : value })
+    startTransition(() => { router.push(`${pathname}?${qs}`) })
+  }
+
+  const hasActive = searchParams.get('search') || searchParams.get('sort') || searchParams.get('status')
 
   function clearAll() {
     setSearch('')
@@ -69,6 +81,16 @@ export default function VerificationFilters() {
             </button>
           ) : null}
         </div>
+
+        <select
+          value={searchParams.get('status') ?? 'semua'}
+          onChange={(e) => handleStatus(e.target.value)}
+          className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm font-medium text-gray-700 transition focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
+        >
+          {STATUS_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
 
         <select
           value={searchParams.get('sort') ?? 'terbaru'}
