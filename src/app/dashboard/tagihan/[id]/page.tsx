@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, CircleAlert, FileText, ReceiptText } from 'lucide-react'
 import { formatPeriode, formatRupiah, getStatusTagihanMeta, getStatusVerifikasiMeta, getTagihanDetailForCurrentPelanggan } from '@/lib/data/dashboardPelanggan'
 import PaymentUploadForm from './PaymentUploadForm'
+import PaymentMethod from './paymentMethod'
 
 export default async function TagihanDetailPage({
   params,
@@ -116,6 +117,7 @@ export default async function TagihanDetailPage({
               </div>
             </div>
           ) : null}
+          <PaymentMethod />
         </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-card">
