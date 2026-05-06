@@ -91,7 +91,7 @@ export default async function AdminTagihanPage({
           className="inline-flex items-center gap-2 rounded-xl bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 active:scale-95"
         >
           <Plus size={15} />
-          Generate Tagihan
+          Buat Tagihan
         </Link>
       </div>
  
