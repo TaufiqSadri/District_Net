@@ -30,8 +30,7 @@ export async function middleware(request: NextRequest) {
       },
     },
   )
-  
-  
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -59,18 +58,7 @@ export async function middleware(request: NextRequest) {
     const redirectTo = request.nextUrl.searchParams.get('redirect')
     const isAdmin = user.user_metadata?.role === 'admin'
 
-    if (!isAdmin) {
-      const { data: pelanggan } = await supabase
-        .from('pelanggan')
-        .select('status_langganan')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (!pelanggan) {
-        return supabaseResponse
-      }
-    }
-    
+    // Tidak query DB di sini — status langganan dicek di page level
     if (redirectTo && redirectTo.startsWith('/')) {
       // Validasi redirect param - jangan redirect ke /admin kalau bukan admin
       if (redirectTo.startsWith('/admin') && !isAdmin) {
@@ -88,6 +76,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Hanya jalankan middleware di route yang butuh auth
+    '/dashboard/:path*',
+    '/admin/:path*',
+    '/login',
+    '/register/:path*',
+    '/auth/:path*',
   ],
 }

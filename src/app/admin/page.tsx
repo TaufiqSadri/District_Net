@@ -26,30 +26,33 @@ type PembayaranVerifikasi = {
 export default async function AdminDashboardPage() {
   const admin = createAdminClient()
 
-  const [r1, r2, r3, r4] = await Promise.all([
+  const [
+    r1,
+    r2,
+    r3,
+    r4,
+    { data: pelangganBaru },
+    { data: pembayaranPerluVerifikasi }
+  ] = await Promise.all([
     admin.from('pelanggan').select('*', { count: 'exact', head: true }),
     admin.from('pelanggan').select('*', { count: 'exact', head: true }).eq('status_langganan', 'aktif'),
     admin.from('pelanggan').select('*', { count: 'exact', head: true }).eq('status_langganan', 'pending'),
     admin.from('pembayaran').select('*', { count: 'exact', head: true }).eq('status_verifikasi', 'menunggu'),
+    admin.from('pelanggan')
+      .select('*, paket_internet(nama_paket, kecepatan_mbps)')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    admin.from('pembayaran')
+      .select('*, tagihan(id, bulan, tahun, pelanggan(nama_lengkap))')
+      .eq('status_verifikasi', 'menunggu')
+      .order('created_at', { ascending: false })
+      .limit(5)
   ])
 
   const totalPelanggan = r1.count ?? 0
   const pelangganAktif = r2.count ?? 0
   const pelangganPending = r3.count ?? 0
   const pembayaranPending = r4.count ?? 0
-
-  const { data: pelangganBaru } = await admin
-    .from('pelanggan')
-    .select('*, paket_internet(nama_paket, kecepatan_mbps)')
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  const { data: pembayaranPerluVerifikasi } = await admin
-    .from('pembayaran')
-    .select('*, tagihan(id, bulan, tahun, pelanggan(nama_lengkap))')
-    .eq('status_verifikasi', 'menunggu')
-    .order('created_at', { ascending: false })
-    .limit(5)
 
   const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
   const bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']

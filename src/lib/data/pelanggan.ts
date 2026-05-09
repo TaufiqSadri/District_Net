@@ -7,8 +7,9 @@ import type {
 } from '@/types/database'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { unstable_cache } from 'next/cache'
+import { cache } from 'react'
 
-export async function getCurrentPelanggan(): Promise<PelangganWithPaket | null> {
+export const getCurrentPelanggan = cache(async (): Promise<PelangganWithPaket | null> => {
   const supabase = await createClient()
 
   const {
@@ -25,7 +26,7 @@ export async function getCurrentPelanggan(): Promise<PelangganWithPaket | null> 
 
   if (error) return null
   return data as PelangganWithPaket
-}
+})
 
 // Cache stats for 30 seconds — stats shown on the listing page header
 export const getPelangganStats = unstable_cache(
