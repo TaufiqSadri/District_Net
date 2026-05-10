@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Menu, X, MapPin } from 'lucide-react'
 import Image from "next/image";
 import { useState } from 'react'
@@ -15,7 +15,20 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+
+  function handleCekLokasi() {
+    if (pathname === '/') {
+      // Sudah di homepage — scroll langsung ke input cek lokasi
+      const el = document.getElementById('location-search')
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setTimeout(() => el?.focus(), 400)
+    } else {
+      // Halaman lain — navigate ke homepage dengan hash
+      router.push('/#location-search')
+    }
+  }
 
   return (
     <header className="sticky mt-2 top-0 z-50 border-2 border-gray-100 bg-white/95 shadow-sm backdrop-blur">
@@ -43,9 +56,13 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <button className="flex items-center gap-2 rounded border border-gray-300 px-3 py-[7px] text-sm font-bold text-black hover:bg-gray-200">
+          <button
+            type="button"
+            onClick={handleCekLokasi}
+            className="flex items-center gap-2 rounded border border-gray-300 px-3 py-[7px] text-sm font-bold text-black hover:bg-gray-200"
+          >
             <MapPin className="h-3.5 w-3.5" />
-            Check your location here
+            Cek Lokasi Saya
           </button>
 
           <Link href="/register" className="rounded bg-brand-yellow px-4 py-2 text-sm font-extrabold text-black hover:bg-yellow-500">
