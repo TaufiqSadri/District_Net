@@ -249,7 +249,7 @@ export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[]
         <p className="text-sm text-gray-500">{areas.length} nagari di {Object.keys(grouped).length} kecamatan</p>
         <button type="button" onClick={() => setShowForm(!showForm)}
           className="inline-flex items-center gap-2 rounded-lg bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900">
-          <Plus size={15} /> Tambah Nagari
+          <Plus size={15} /> Tambah Area
         </button>
       </div>
 

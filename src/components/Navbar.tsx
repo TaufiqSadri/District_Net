@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Menu, X, MapPin } from 'lucide-react'
 import Image from "next/image";
 import { useState } from 'react'
@@ -15,18 +15,17 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname()
-  const router = useRouter()
   const [open, setOpen] = useState(false)
 
   function handleCekLokasi() {
     if (pathname === '/') {
-      // Sudah di homepage — scroll langsung ke input cek lokasi
+      // Sudah di homepage — scroll ke input cek lokasi
       const el = document.getElementById('location-search')
       el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => el?.focus(), 400)
     } else {
-      // Halaman lain — navigate ke homepage dengan hash
-      router.push('/#location-search')
+      // Halaman lain — langsung ke homepage saja
+      window.location.href = '/'
     }
   }
 
