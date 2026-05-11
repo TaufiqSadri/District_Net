@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { deleteKomplainAction, respondKomplainAction } from '@/app/admin/actions'
 import { getAllKomplain, getKomplainStats } from '@/lib/data/komplain'
+import { MessagesSquare } from 'lucide-react'
 
 interface SearchParams {
   pelanggan?: string
@@ -149,7 +150,10 @@ export default async function AdminKomplainPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-gray-900">Kelola Komplain</h1>
+        <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <MessagesSquare size={20} className='text-brand-purple' />
+          Kelola Komplain
+        </h1>
         <p className="mt-1 text-sm text-gray-500">Pantau keluhan pelanggan dan berikan respons langsung dari panel admin.</p>
       </div>
 

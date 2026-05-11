@@ -1,7 +1,7 @@
 import { approvePelanggan, approvePembayaran, rejectPembayaran } from '@/app/admin/actions'
 import StatCard from '@/components/StatCard'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Clock, CreditCard, UserCheck, Users } from 'lucide-react'
+import { Clock, CreditCard, UserCheck, Users, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
 
 type PelangganBaru = {
@@ -75,8 +75,11 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="font-display text-2xl font-bold text-gray-900">Dashboard Admin</h1>
+      <div className="mb-6">
+        <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <LayoutDashboard size={20} className="text-brand-purple"/>
+          Dashboard Admin
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
           {new Date().toLocaleDateString('id-ID', {
             weekday: 'long',

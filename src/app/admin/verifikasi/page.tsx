@@ -3,6 +3,7 @@ import { getPembayaranList, getVerificationStats } from '@/lib/data/pembayaran'
 import VerificationStats from '@/components/admin/verification/verificationStats'
 import VerificationFilters from '@/components/admin/verification/verificationFilters'
 import VerificationTable from '@/components/admin/verification/verificationTable'
+import { CheckCircle } from 'lucide-react'
 
 interface SearchParams {
   pelanggan?: string
@@ -118,7 +119,10 @@ export default async function AdminVerifikasiPage({
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-display text-2xl font-bold text-gray-900">Verifikasi Pembayaran</h1>
+        <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <CheckCircle size={20} className='text-brand-purple'/>
+          Verifikasi Pembayaran
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
           Semua pembayaran pelanggan ditampilkan di sini, diurutkan terbaru secara default.
         </p>

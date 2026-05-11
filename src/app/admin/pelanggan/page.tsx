@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Users } from 'lucide-react'
 import { getPelangganStats, getPelangganList, getPaketList } from '@/lib/data/pelanggan'
 import CustomerStats from '@/components/admin/customers/customerStats'
 import CustomerFilters from '@/components/admin/customers/customerFilters'
@@ -66,7 +66,8 @@ export default async function AdminPelangganPage({
       {/* ── Header ── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">
+          <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Users size={20} className='text-brand-purple'/>
             Kelola Pelanggan
           </h1>
           <p className="mt-1 text-sm text-gray-500">

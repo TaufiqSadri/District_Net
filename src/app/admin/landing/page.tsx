@@ -48,7 +48,7 @@ export default async function AdminLandingPage({
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Globe size={20} className="text-brand-purple" />
           Kelola Landing Page
         </h1>
