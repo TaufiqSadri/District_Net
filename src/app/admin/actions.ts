@@ -5,10 +5,43 @@ import { deleteTagihan, markAsPaid, updateTagihanByAdmin } from '@/lib/data/tagi
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+const BIAYA_INSTALASI = 600_000
+
+// Helper: buat tagihan instalasi Rp 600.000 di tabel tagihan_instalasi
+async function createTagihanInstalasi(admin: ReturnType<typeof createAdminClient>, pelangganId: string) {
+  const now = new Date()
+  // Jatuh tempo = tanggal aktivasi + 2 hari
+  const due = new Date(now)
+  due.setUTCDate(due.getUTCDate() + 2)
+  const jatuh_tempo = due.toISOString().slice(0, 10)
+
+  await admin.from('tagihan_instalasi').insert({
+    pelanggan_id: pelangganId,
+    jumlah_tagihan: BIAYA_INSTALASI,
+    status_tagihan: 'belum_bayar',
+    jatuh_tempo,
+  })
+}
+
 export async function approvePelanggan(pelangganId: string, _formData: FormData) {
   const admin = createAdminClient()
-  const { error } = await admin.from('pelanggan').update({ status_langganan: 'aktif' }).eq('id', pelangganId)
-  if (error) throw new Error(error.message)
+
+  // Cek apakah sudah pernah ada tagihan instalasi (hindari duplikat)
+  const { data: existing } = await admin
+    .from('tagihan_instalasi')
+    .select('id')
+    .eq('pelanggan_id', pelangganId)
+    .maybeSingle()
+
+  await admin
+    .from('pelanggan')
+    .update({ status_langganan: 'aktif', tanggal_bergabung: new Date().toISOString() })
+    .eq('id', pelangganId)
+
+  if (!existing) {
+    await createTagihanInstalasi(admin, pelangganId)
+  }
+
   revalidatePath('/admin')
 }
 
@@ -258,6 +291,18 @@ export async function addPelangganByAdmin(formData: FormData) {
     return { error: 'Gagal menyimpan data pelanggan.' }
   }
 
+  // Jika langsung diaktifkan oleh admin, buat tagihan instalasi 600k
+  if (status_langganan === 'aktif') {
+    const { data: newPelanggan } = await admin
+      .from('pelanggan')
+      .select('id')
+      .eq('user_id', authData.user.id)
+      .maybeSingle()
+    if (newPelanggan?.id) {
+      await createTagihanInstalasi(admin, newPelanggan.id)
+    }
+  }
+
   revalidatePath('/admin/pelanggan')
   return { success: true }
 }
@@ -340,24 +385,36 @@ export async function generateTagihanBulanan(formData: FormData) {
   const admin = createAdminClient()
   const month = Number(formData.get('bulan'))
   const year = Number(formData.get('tahun'))
-  const dueDay = Number(formData.get('jatuh_tempo_hari') ?? 10)
+  const dueDay_input = Number(formData.get('jatuh_tempo_hari') ?? 10)
 
   if (!month || !year) {
     redirect('/admin/tagihan/generate?error=Periode%20tagihan%20tidak%20valid.')
   }
 
-  const { createdAt, dueDate } = getMonthDateRange(month, year, dueDay)
+  const { createdAt } = getMonthDateRange(month, year, dueDay_input)
 
   const { data: pelangganRows, error: pelangganError } = await admin
     .from('pelanggan')
-    .select('id, paket_id, paket_internet(harga)')
+    .select('id, paket_id, tanggal_bergabung, paket_internet(harga)')
     .eq('status_langganan', 'aktif')
 
   if (pelangganError) {
     redirect(`/admin/tagihan/generate?error=${encodeURIComponent(pelangganError.message)}`)
   }
 
-  const pelangganAktif = (pelangganRows ?? []).filter((item) => item.paket_id && item.paket_internet)
+  // Filter pelanggan layak:
+  // - Harus punya paket
+  // - Bulan pertama GRATIS (tanggal_bergabung di bulan/tahun yang sama = skip)
+  const pelangganAktif = (pelangganRows ?? []).filter((item) => {
+    if (!item.paket_id || !item.paket_internet) return false
+    if (item.tanggal_bergabung) {
+      const joinDate = new Date(item.tanggal_bergabung)
+      const joinMonth = joinDate.getUTCMonth() + 1
+      const joinYear = joinDate.getUTCFullYear()
+      if (joinMonth === month && joinYear === year) return false // bulan pertama gratis
+    }
+    return true
+  })
 
   const { data: existingRows, error: existingError } = await admin
     .from('tagihan')
@@ -371,17 +428,28 @@ export async function generateTagihanBulanan(formData: FormData) {
 
   const existingPelangganIds = new Set((existingRows ?? []).map((item) => item.pelanggan_id))
 
+  // Bangun tagihan per-pelanggan dengan jatuh_tempo individual
   const inserts = pelangganAktif
     .filter((item) => !existingPelangganIds.has(item.id))
     .map((item) => {
       const paket = Array.isArray(item.paket_internet) ? item.paket_internet[0] : item.paket_internet
+
+      // Hitung jatuh_tempo: hari join pelanggan di bulan tagihan, capped di hari terakhir bulan
+      let dueDay = dueDay_input
+      if (item.tanggal_bergabung) {
+        const joinDay = new Date(item.tanggal_bergabung).getUTCDate()
+        const lastDayOfMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+        dueDay = Math.min(joinDay, lastDayOfMonth)
+      }
+      const dueDateStr = `${year}-${String(month).padStart(2, '0')}-${String(dueDay).padStart(2, '0')}`
+
       return {
         pelanggan_id: item.id,
         bulan: month,
         tahun: year,
         jumlah_tagihan: paket?.harga ?? 0,
         status_tagihan: 'belum_bayar',
-        jatuh_tempo: dueDate,
+        jatuh_tempo: dueDateStr,
         created_at: createdAt,
       }
     })

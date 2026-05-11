@@ -98,6 +98,48 @@ export async function submitPembayaran(formData: FormData) {
   redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'success', 'Bukti pembayaran berhasil dikirim.')
 }
 
+export async function submitPembayaranInstalasi(formData: FormData) {
+  const { pelanggan } = await getAuthenticatedPelanggan()
+  const admin = createAdminClient()
+
+  const instalasiId = String(formData.get('instalasi_id') ?? '')
+  const buktiPembayaran = String(formData.get('bukti_pembayaran') ?? '').trim()
+  const jumlahBayar = Number(formData.get('jumlah_bayar') ?? 0)
+
+  if (!instalasiId || !buktiPembayaran || !jumlahBayar) {
+    redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', 'Jumlah bayar dan file bukti pembayaran wajib diisi.')
+  }
+
+  try { new URL(buktiPembayaran) } catch {
+    redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', 'File bukti pembayaran belum berhasil diunggah.')
+  }
+
+  // Pastikan tagihan instalasi milik pelanggan ini
+  const { data: instalasi } = await admin
+    .from('tagihan_instalasi')
+    .select('*')
+    .eq('id', instalasiId)
+    .eq('pelanggan_id', pelanggan.id)
+    .single()
+
+  if (!instalasi) redirectWithMessage('/dashboard', 'error', 'Tagihan instalasi tidak ditemukan.')
+  if (instalasi.status_tagihan !== 'belum_bayar') {
+    redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', 'Tagihan instalasi ini sudah dibayar atau sedang diverifikasi.')
+  }
+
+  const { error } = await admin
+    .from('tagihan_instalasi')
+    .update({ status_tagihan: 'menunggu_verifikasi', bukti_pembayaran: buktiPembayaran })
+    .eq('id', instalasiId)
+
+  if (error) redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', error.message)
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/dashboard/tagihan-instalasi/${instalasiId}`)
+  redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'success', 'Bukti pembayaran instalasi berhasil dikirim.')
+}
+
+
 export async function updateProfilPelanggan(formData: FormData) {
   const { supabase, pelanggan } = await getAuthenticatedPelanggan()
 

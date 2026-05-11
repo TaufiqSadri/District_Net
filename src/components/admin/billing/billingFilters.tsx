@@ -51,9 +51,13 @@ export default function BillingFilters() {
   const [search, setSearch] = useState(searchParams.get('search') ?? '')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Gunakan ref agar selalu fresh tapi tidak trigger useEffect saat page berubah
+  const searchParamsRef = useRef(searchParams)
+  searchParamsRef.current = searchParams
+
   const createQueryString = useCallback(
     (updates: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString())
+      const params = new URLSearchParams(searchParamsRef.current.toString())
       Object.entries(updates).forEach(([key, value]) => {
         if (value === null || value === '' || value === 'semua') {
           params.delete(key)
@@ -64,7 +68,7 @@ export default function BillingFilters() {
       params.delete('page')
       return params.toString()
     },
-    [searchParams],
+    [], // sengaja kosong — baca searchParams lewat ref, bukan closure
   )
 
   useEffect(() => {
@@ -78,7 +82,7 @@ export default function BillingFilters() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [search, createQueryString, pathname, router])
+  }, [search, pathname, router]) // createQueryString SENGAJA dihapus dari deps
 
   function handleSelect(key: string, value: string) {
     const qs = createQueryString({ [key]: value === 'semua' ? null : value })

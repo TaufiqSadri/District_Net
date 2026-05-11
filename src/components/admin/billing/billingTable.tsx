@@ -114,7 +114,8 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
 
   const visibleRows = rows.filter((r) => !deletedIds.has(r.id))
 
-  if (visibleRows.length === 0 && total === 0) {
+  // Tidak ada data sama sekali di server
+  if (total === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-20 shadow-card">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
@@ -122,6 +123,22 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
         </div>
         <p className="font-display font-semibold text-gray-600">Belum ada data tagihan</p>
         <p className="mt-1 text-sm text-gray-400">Tagihan yang dibuat akan muncul di sini.</p>
+      </div>
+    )
+  }
+
+  // Halaman out-of-bounds: server return kosong tapi ada data di halaman lain
+  if (rows.length === 0 && total > 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-16 shadow-card">
+        <p className="font-semibold text-gray-600">Halaman ini tidak memiliki data</p>
+        <button
+          type="button"
+          onClick={() => goToPage(1)}
+          className="mt-3 rounded-lg bg-brand-purple px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-900"
+        >
+          Kembali ke Halaman 1
+        </button>
       </div>
     )
   }
@@ -257,7 +274,7 @@ export default function BillingTable({ rows, total, page, pageSize, totalPages }
       {totalPages > 1 ? (
         <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
           <p className="text-xs text-gray-500">
-            Menampilkan {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} dari {total}{' '}
+            Menampilkan {visibleRows.length === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize - deletedIds.size, total)} dari {total}{' '}
             tagihan
           </p>
           <div className="flex items-center gap-1">
