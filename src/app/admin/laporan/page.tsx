@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Download } from 'lucide-react'
+import { Download, BarChart2 } from 'lucide-react'
 import { formatRupiah } from '@/lib/data/dashboardPelanggan'
 import { getLaporanOverview, getLaporanPreview } from '@/lib/data/laporan'
 
@@ -26,7 +26,10 @@ export default async function AdminLaporanPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Laporan</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <BarChart2 size={20} className='text-brand-purple' />
+            Laporan
+          </h1>
           <p className="mt-1 text-sm text-gray-500">Ringkasan operasional, review data terbaru, dan export laporan admin.</p>
         </div>
         <div className="flex flex-wrap gap-2">

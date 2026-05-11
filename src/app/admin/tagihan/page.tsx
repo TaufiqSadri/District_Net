@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, Receipt } from 'lucide-react'
 import { getTagihanStats, getTagihanInstalasiStats, getAllTagihan, getAllTagihanInstalasi } from '@/lib/data/tagihan'
 import BillingStats from '@/components/admin/billing/billingStats'
 import BillingFilters from '@/components/admin/billing/billingFilters'
@@ -110,7 +110,10 @@ export default async function AdminTagihanPage({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900">Kelola Tagihan</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Receipt size={20} className='text-brand-purple'/>
+            Kelola Tagihan
+          </h1>
           <p className="mt-1 text-sm text-gray-500">
             {jenis === 'instalasi'
               ? 'Tagihan biaya instalasi perangkat (pisah dari tagihan bulanan).'
