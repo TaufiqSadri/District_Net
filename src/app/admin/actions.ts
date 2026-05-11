@@ -1,7 +1,14 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { deleteTagihan, markAsPaid, updateTagihanByAdmin } from '@/lib/data/tagihan'
+import { approvePayment } from '@/lib/data/pembayaran'
+import {
+  deleteTagihan,
+  deleteTagihanInstalasi,
+  markAsPaid,
+  markAsPaidInstalasi,
+  updateTagihanByAdmin,
+} from '@/lib/data/tagihan'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -45,24 +52,38 @@ export async function approvePelanggan(pelangganId: string, _formData: FormData)
   revalidatePath('/admin')
 }
 
-export async function approvePembayaran(pembayaranId: string, tagihanId: string, _formData: FormData) {
-  const admin = createAdminClient()
-  await Promise.all([
-    admin.from('pembayaran').update({ status_verifikasi: 'diterima' }).eq('id', pembayaranId),
-    admin.from('tagihan').update({ status_tagihan: 'lunas' }).eq('id', tagihanId),
-  ])
+export async function approvePembayaran(pembayaranId: string, _tagihanId: string | null, _formData: FormData) {
+  await approvePayment(pembayaranId)
   revalidatePath('/admin')
-  revalidatePath('/admin/verifikasi')
 }
 
 export async function rejectPembayaran(pembayaranId: string, catatan: string, _formData: FormData) {
   const admin = createAdminClient()
   await admin
     .from('pembayaran')
-    .update({ status_verifikasi: 'ditolak', catatan_admin: catatan })
+    .update({ status_verifikasi: 'ditolak', catatan_admin: catatan || null })
     .eq('id', pembayaranId)
+
+  const { data: row } = await admin
+    .from('pembayaran')
+    .select('tagihan_id, tagihan_instalasi_id')
+    .eq('id', pembayaranId)
+    .single()
+
+  if (row?.tagihan_id) {
+    await admin.from('tagihan').update({ status_tagihan: 'belum_bayar' }).eq('id', row.tagihan_id)
+  } else if (row?.tagihan_instalasi_id) {
+    await admin
+      .from('tagihan_instalasi')
+      .update({ status_tagihan: 'belum_bayar', bukti_pembayaran: null })
+      .eq('id', row.tagihan_instalasi_id)
+  }
+
   revalidatePath('/admin')
   revalidatePath('/admin/verifikasi')
+  revalidatePath('/admin/tagihan')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/riwayat')
 }
 
 export async function deactivatePelanggan(pelangganId: string, _formData: FormData) {
@@ -368,6 +389,16 @@ export async function markAsPaidAction(tagihanId: string): Promise<void> {
  
 export async function deleteTagihanAction(tagihanId: string): Promise<void> {
   await deleteTagihan(tagihanId)
+  revalidatePath('/admin/tagihan')
+}
+
+export async function markAsPaidInstalasiAction(instalasiId: string): Promise<void> {
+  await markAsPaidInstalasi(instalasiId)
+  revalidatePath('/admin/tagihan')
+}
+
+export async function deleteTagihanInstalasiAction(instalasiId: string): Promise<void> {
+  await deleteTagihanInstalasi(instalasiId)
   revalidatePath('/admin/tagihan')
 }
 

@@ -4,6 +4,11 @@ import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 
+const JENIS_OPTIONS = [
+  { value: 'bulanan', label: 'Tagihan bulanan' },
+  { value: 'instalasi', label: 'Tagihan instalasi' },
+]
+
 const STATUS_OPTIONS = [
   { value: 'semua', label: 'Semua Status' },
   { value: 'belum_bayar', label: 'Belum Dibayar' },
@@ -85,18 +90,35 @@ export default function BillingFilters() {
   }, [search, pathname, router]) // createQueryString SENGAJA dihapus dari deps
 
   function handleSelect(key: string, value: string) {
+    if (key === 'jenis') {
+      const updates: Record<string, string | null> = {
+        jenis: value === 'bulanan' ? null : value,
+      }
+      if (value === 'instalasi') {
+        updates.bulan = null
+        updates.tahun = null
+      }
+      const qs = createQueryString(updates)
+      startTransition(() => {
+        router.push(`${pathname}?${qs}`)
+      })
+      return
+    }
     const qs = createQueryString({ [key]: value === 'semua' ? null : value })
     startTransition(() => {
       router.push(`${pathname}?${qs}`)
     })
   }
 
+  const jenis = searchParams.get('jenis') === 'instalasi' ? 'instalasi' : 'bulanan'
+
   const hasActiveFilters =
     searchParams.get('search') ||
     searchParams.get('status') ||
     searchParams.get('bulan') ||
     searchParams.get('tahun') ||
-    searchParams.get('sort')
+    searchParams.get('sort') ||
+    searchParams.get('jenis')
 
   function clearAll() {
     setSearch('')
@@ -135,31 +157,46 @@ export default function BillingFilters() {
           ) : null}
         </div>
 
-        {/* Bulan Filter */}
         <select
-          value={searchParams.get('bulan') ?? 'semua'}
-          onChange={(e) => handleSelect('bulan', e.target.value)}
+          value={jenis}
+          onChange={(e) => handleSelect('jenis', e.target.value)}
           className={selectCls}
         >
-          {BULAN_OPTIONS.map((o) => (
+          {JENIS_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
             </option>
           ))}
         </select>
 
-        {/* Tahun Filter */}
-        <select
-          value={searchParams.get('tahun') ?? 'semua'}
-          onChange={(e) => handleSelect('tahun', e.target.value)}
-          className={selectCls}
-        >
-          {TAHUN_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        {/* Bulan / tahun hanya relevan untuk tagihan bulanan */}
+        {jenis === 'bulanan' ? (
+          <>
+            <select
+              value={searchParams.get('bulan') ?? 'semua'}
+              onChange={(e) => handleSelect('bulan', e.target.value)}
+              className={selectCls}
+            >
+              {BULAN_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={searchParams.get('tahun') ?? 'semua'}
+              onChange={(e) => handleSelect('tahun', e.target.value)}
+              className={selectCls}
+            >
+              {TAHUN_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </>
+        ) : null}
 
         {/* Status Filter */}
         <select

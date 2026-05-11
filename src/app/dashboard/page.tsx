@@ -41,13 +41,26 @@ export default async function DashboardPelangganPage() {
       .order('created_at', { ascending: false })
       .limit(5)
       .then((r) => (r.data ?? []) as TagihanRow[]),
-    supabase
-      .from('pembayaran')
-      .select('*, tagihan!inner(bulan, tahun, pelanggan_id)')
-      .eq('tagihan.pelanggan_id', pelanggan.id)
-      .order('created_at', { ascending: false })
-      .limit(5)
-      .then((r) => (r.data ?? []) as PembayaranWithTagihan[]),
+    Promise.all([
+      supabase
+        .from('pembayaran')
+        .select('*, tagihan!inner(bulan, tahun, pelanggan_id)')
+        .eq('tagihan.pelanggan_id', pelanggan.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+        .then((r) => (r.data ?? []) as PembayaranWithTagihan[]),
+      supabase
+        .from('pembayaran')
+        .select('*, tagihan_instalasi!inner(id, pelanggan_id)')
+        .eq('tagihan_instalasi.pelanggan_id', pelanggan.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+        .then((r) => (r.data ?? []) as PembayaranWithTagihan[]),
+    ]).then(([bulanan, instalasi]) => {
+      const merged = [...bulanan, ...instalasi]
+      merged.sort((a, b) => new Date(b.tanggal_pembayaran).getTime() - new Date(a.tanggal_pembayaran).getTime())
+      return merged.slice(0, 5)
+    }),
     supabase
       .from('tagihan_instalasi')
       .select('*')
@@ -154,6 +167,7 @@ export default async function DashboardPelangganPage() {
                   <th className="pb-3">Jumlah</th>
                   <th className="pb-3">Jatuh Tempo</th>
                   <th className="pb-3">Status</th>
+                  <th className="pb-3">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -165,13 +179,16 @@ export default async function DashboardPelangganPage() {
                       day: 'numeric', month: 'long', year: 'numeric',
                     })}
                   </td>
+                  <td className="py-3">{statusBadge(tagihanInstalasi.status_tagihan)}</td>
                   <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      {statusBadge(tagihanInstalasi.status_tagihan)}
-                      {tagihanInstalasi.status_tagihan === 'belum_bayar' && (
-                        <span className="text-xs text-gray-400">— Hubungi admin untuk pembayaran</span>
-                      )}
-                    </div>
+                    {tagihanInstalasi.status_tagihan === 'belum_bayar' ? (
+                      <Link
+                        href={`/dashboard/tagihan-instalasi/${tagihanInstalasi.id}`}
+                        className="rounded-lg bg-brand-pink px-3 py-1 text-xs font-semibold text-white transition hover:bg-brand-pink-dark"
+                      >
+                        Upload
+                      </Link>
+                    ) : null}
                   </td>
                 </tr>
               </tbody>

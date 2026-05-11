@@ -94,6 +94,8 @@ export async function submitPembayaran(formData: FormData) {
   revalidatePath('/dashboard/tagihan')
   revalidatePath(`/dashboard/tagihan/${tagihanId}`)
   revalidatePath('/dashboard/riwayat')
+  revalidatePath('/admin/verifikasi')
+  revalidatePath('/admin/tagihan')
 
   redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'success', 'Bukti pembayaran berhasil dikirim.')
 }
@@ -127,15 +129,48 @@ export async function submitPembayaranInstalasi(formData: FormData) {
     redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', 'Tagihan instalasi ini sudah dibayar atau sedang diverifikasi.')
   }
 
-  const { error } = await admin
-    .from('tagihan_instalasi')
-    .update({ status_tagihan: 'menunggu_verifikasi', bukti_pembayaran: buktiPembayaran })
-    .eq('id', instalasiId)
+  const { data: pembayaranAktif } = await admin
+    .from('pembayaran')
+    .select('id, status_verifikasi')
+    .eq('tagihan_instalasi_id', instalasiId)
+    .in('status_verifikasi', ['menunggu', 'diterima'])
 
-  if (error) redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', error.message)
+  if ((pembayaranAktif ?? []).length > 0) {
+    redirectWithMessage(
+      `/dashboard/tagihan-instalasi/${instalasiId}`,
+      'error',
+      'Pembayaran untuk tagihan instalasi ini sudah pernah dikirim.',
+    )
+  }
+
+  const [{ error: insertError }, { error: updateError }] = await Promise.all([
+    admin.from('pembayaran').insert({
+      tagihan_id: null,
+      tagihan_instalasi_id: instalasiId,
+      tanggal_pembayaran: new Date().toISOString(),
+      jumlah_bayar: jumlahBayar,
+      bukti_pembayaran: buktiPembayaran,
+      status_verifikasi: 'menunggu',
+    }),
+    admin
+      .from('tagihan_instalasi')
+      .update({ status_tagihan: 'menunggu_verifikasi', bukti_pembayaran: buktiPembayaran })
+      .eq('id', instalasiId),
+  ])
+
+  if (insertError || updateError) {
+    redirectWithMessage(
+      `/dashboard/tagihan-instalasi/${instalasiId}`,
+      'error',
+      insertError?.message ?? updateError?.message ?? 'Gagal mengirim pembayaran.',
+    )
+  }
 
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/riwayat')
   revalidatePath(`/dashboard/tagihan-instalasi/${instalasiId}`)
+  revalidatePath('/admin/verifikasi')
+  revalidatePath('/admin/tagihan')
   redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'success', 'Bukti pembayaran instalasi berhasil dikirim.')
 }
 
