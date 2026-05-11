@@ -413,4 +413,18 @@ export async function respondKomplainAction(komplainId: string, formData: FormDa
   revalidatePath('/dashboard/komplain')
   redirect('/admin/komplain?success=Komplain%20berhasil%20diperbarui.')
 }
+
+export async function deleteKomplainAction(komplainId: string) {
+  const admin = createAdminClient()
+
+  const { error } = await admin.from('komplain').delete().eq('id', komplainId)
+
+  if (error) {
+    redirect(`/admin/komplain?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath('/admin/komplain')
+  revalidatePath('/dashboard/komplain')
+  redirect('/admin/komplain?success=Komplain%20berhasil%20dihapus.')
+}
  

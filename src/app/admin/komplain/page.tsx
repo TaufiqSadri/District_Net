@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { respondKomplainAction } from '@/app/admin/actions'
+import { deleteKomplainAction, respondKomplainAction } from '@/app/admin/actions'
 import { getAllKomplain, getKomplainStats } from '@/lib/data/komplain'
 
 interface SearchParams {
@@ -72,6 +72,7 @@ async function TableSection({ searchParams }: { searchParams: SearchParams }) {
         <div className="space-y-4 p-4 md:p-6">
           {result.data.map((item) => {
             const action = respondKomplainAction.bind(null, item.id)
+            const deleteAction = deleteKomplainAction.bind(null, item.id)
             return (
               <div key={item.id} className="rounded-2xl border border-gray-100 p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -121,6 +122,13 @@ async function TableSection({ searchParams }: { searchParams: SearchParams }) {
                       className="rounded-xl bg-brand-pink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700"
                     >
                       Simpan Respons
+                    </button>
+
+                    <button
+                      formAction={deleteAction}
+                      className="rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                    >
+                      Hapus Komplain
                     </button>
                   </div>
                 </form>
