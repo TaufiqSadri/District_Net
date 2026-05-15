@@ -26,6 +26,9 @@ function getLoginSuccessMessage(code: string | null) {
   if (code === 'email_confirmed') {
     return 'Verifikasi akun berhasil. Silakan login, lalu tunggu admin menyetujui data pendaftaran Anda.'
   }
+  if (code === 'password_set') {
+    return 'Password berhasil disimpan. Silakan login dengan password baru Anda.'
+  }
   return ''
 }
 

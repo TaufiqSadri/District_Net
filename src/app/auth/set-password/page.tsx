@@ -32,7 +32,9 @@ export default function SetPasswordPage() {
       const refreshToken = params.get('refresh_token')
       const type = params.get('type')
 
-      if (type === 'recovery' && accessToken && refreshToken) {
+      const isPasswordSession = type === 'recovery' || type === 'invite' || type === 'signup'
+
+      if (isPasswordSession && accessToken && refreshToken) {
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -79,7 +81,8 @@ export default function SetPasswordPage() {
       return
     }
 
-    router.push('/dashboard')
+    await supabase.auth.signOut()
+    router.push('/login?success=password_set')
   }
 
   return (

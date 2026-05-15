@@ -14,6 +14,17 @@ import { redirect } from 'next/navigation'
 
 const BIAYA_INSTALASI = 600_000
 
+function getAppOrigin() {
+  const explicitOrigin =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL
+
+  if (explicitOrigin) return explicitOrigin.replace(/\/$/, '')
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return 'http://localhost:3000'
+}
+
 // Helper: buat tagihan instalasi Rp 600.000 di tabel tagihan_instalasi
 async function createTagihanInstalasi(admin: ReturnType<typeof createAdminClient>, pelangganId: string) {
   const now = new Date()
@@ -130,75 +141,84 @@ export async function togglePelangganStatus(
 export async function addPelangganByAdmin(formData: FormData) {
   const admin = createAdminClient()
 
-  const password = formData.get('password') as string
-  const confirmPassword = formData.get('confirm_password') as string
+  const nama_lengkap = String(formData.get('nama_lengkap') ?? '').trim()
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const no_hp = String(formData.get('no_hp') ?? '').trim()
+  const paket_id = String(formData.get('paket_id') ?? '').trim()
+  const bulanMasuk = Number(formData.get('bulan_masuk'))
+  const tahunMasuk = Number(formData.get('tahun_masuk'))
 
-  if (password !== confirmPassword) return { error: 'Password tidak cocok.' }
-  if (password.length < 8) return { error: 'Password minimal 8 karakter.' }
-
-  const nama_lengkap = formData.get('nama_lengkap') as string
-  const email = formData.get('email') as string
-  const no_hp = formData.get('no_hp') as string
-  const alamat_pemasangan = formData.get('alamat_pemasangan') as string
-  const paket_id = formData.get('paket_id') as string
-  const status_langganan = (formData.get('status_langganan') as string) || 'aktif'
-  const latRaw = formData.get('latitude') as string
-  const lngRaw = formData.get('longitude') as string
-  const tanggalRaw = formData.get('tanggal_bergabung') as string
-
-  if (!nama_lengkap || !email || !no_hp || !alamat_pemasangan || !paket_id) {
+  if (!nama_lengkap || !email || !no_hp || !paket_id || !bulanMasuk || !tahunMasuk) {
     return { error: 'Semua field wajib diisi.' }
   }
+  if (bulanMasuk < 1 || bulanMasuk > 12 || tahunMasuk < 2000) {
+    return { error: 'Bulan atau tahun masuk tidak valid.' }
+  }
 
-  // Buat akun auth via admin API (tanpa email confirmation)
-  const { data: authData, error: authError } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { nama_lengkap },
+  const today = new Date()
+  const lastDayOfSelectedMonth = new Date(Date.UTC(tahunMasuk, bulanMasuk, 0)).getUTCDate()
+  const joinDay = Math.min(today.getDate(), lastDayOfSelectedMonth)
+  const tanggal_bergabung = new Date(Date.UTC(tahunMasuk, bulanMasuk - 1, joinDay)).toISOString()
+
+  const { data: authData, error: authError } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${getAppOrigin()}/auth/set-password`,
+    data: {
+      nama_lengkap,
+      no_hp,
+      role: 'pelanggan',
+      created_by_admin: true,
+    },
   })
 
   if (authError) {
-    if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
+    const message = authError.message.toLowerCase()
+    if (message.includes('already registered') || message.includes('already been registered') || message.includes('already exists')) {
       return { error: 'Email ini sudah terdaftar.' }
     }
     return { error: authError.message }
   }
 
-  if (!authData.user) return { error: 'Gagal membuat akun.' }
+  if (!authData.user) return { error: 'Gagal membuat undangan akun.' }
 
-  const tanggal_bergabung = tanggalRaw
-    ? new Date(tanggalRaw).toISOString()
-    : new Date().toISOString()
-
-  const { error: pelangganError } = await admin.from('pelanggan').insert({
-    user_id: authData.user.id,
-    nama_lengkap,
+  const { error: updateError } = await admin.auth.admin.updateUserById(authData.user.id, {
     email,
-    no_hp,
-    alamat_pemasangan,
-    latitude: latRaw ? Number(latRaw) : null,
-    longitude: lngRaw ? Number(lngRaw) : null,
-    paket_id,
-    status_langganan,
-    tanggal_bergabung,
+    user_metadata: {
+      nama_lengkap,
+      no_hp,
+      role: 'pelanggan',
+      created_by_admin: true,
+    },
   })
+
+  if (updateError) {
+    await admin.auth.admin.deleteUser(authData.user.id)
+    return { error: updateError.message }
+  }
+
+  const { data: pelangganBaru, error: pelangganError } = await admin
+    .from('pelanggan')
+    .insert({
+      user_id: authData.user.id,
+      nama_lengkap,
+      email,
+      no_hp,
+      alamat_pemasangan: 'Belum diisi',
+      latitude: null,
+      longitude: null,
+      paket_id,
+      status_langganan: 'aktif',
+      tanggal_bergabung,
+    })
+    .select('id')
+    .single()
 
   if (pelangganError) {
     await admin.auth.admin.deleteUser(authData.user.id)
     return { error: 'Gagal menyimpan data pelanggan.' }
   }
 
-  // Jika langsung diaktifkan oleh admin, buat tagihan instalasi 600k
-  if (status_langganan === 'aktif') {
-    const { data: newPelanggan } = await admin
-      .from('pelanggan')
-      .select('id')
-      .eq('user_id', authData.user.id)
-      .maybeSingle()
-    if (newPelanggan?.id) {
-      await createTagihanInstalasi(admin, newPelanggan.id)
-    }
+  if (pelangganBaru?.id) {
+    await createTagihanInstalasi(admin, pelangganBaru.id)
   }
 
   revalidatePath('/admin/pelanggan')

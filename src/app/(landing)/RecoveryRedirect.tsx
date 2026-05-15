@@ -7,7 +7,12 @@ export default function RecoveryRedirect() {
     if (typeof window === 'undefined') return
 
     const hash = window.location.hash
-    if (!hash.includes('access_token=') || !hash.includes('type=recovery')) return
+    const isPasswordFlow =
+      hash.includes('type=recovery') ||
+      hash.includes('type=invite') ||
+      hash.includes('type=signup')
+
+    if (!hash.includes('access_token=') || !isPasswordFlow) return
 
     window.location.replace(`/auth/set-password${hash}`)
   }, [])
