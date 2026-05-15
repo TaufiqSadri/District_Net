@@ -1,12 +1,77 @@
 import Link from 'next/link'
-import { Download, BarChart2 } from 'lucide-react'
+import { Download, BarChart2, Filter, X } from 'lucide-react'
 import { formatRupiah } from '@/lib/data/dashboardPelanggan'
 import { getLaporanOverview, getLaporanPreview } from '@/lib/data/laporan'
 
 const bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+const bulanOptions = [
+  { value: 'semua', label: 'Semua Bulan' },
+  { value: '1', label: 'Januari' },
+  { value: '2', label: 'Februari' },
+  { value: '3', label: 'Maret' },
+  { value: '4', label: 'April' },
+  { value: '5', label: 'Mei' },
+  { value: '6', label: 'Juni' },
+  { value: '7', label: 'Juli' },
+  { value: '8', label: 'Agustus' },
+  { value: '9', label: 'September' },
+  { value: '10', label: 'Oktober' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'Desember' },
+]
+const currentYear = new Date().getFullYear()
+const tahunOptions = [
+  { value: 'semua', label: 'Semua Tahun' },
+  ...Array.from({ length: 5 }, (_, index) => {
+    const year = currentYear - index
+    return { value: String(year), label: String(year) }
+  }),
+]
+const statusOptions = [
+  { value: 'semua', label: 'Semua Status' },
+  { value: 'belum_bayar', label: 'Belum Dibayar' },
+  { value: 'menunggu_verifikasi', label: 'Menunggu Verifikasi' },
+  { value: 'lunas', label: 'Lunas' },
+]
+const exportOptions = [
+  { label: 'Tagihan', type: 'tagihan' },
+  { label: 'Pembayaran', type: 'pembayaran' },
+  { label: 'Pelanggan', type: 'pelanggan' },
+  { label: 'Komplain', type: 'komplain' },
+]
 
-export default async function AdminLaporanPage() {
-  const [overview, preview] = await Promise.all([getLaporanOverview(), getLaporanPreview()])
+interface SearchParams {
+  bulan?: string
+  tahun?: string
+  status?: string
+}
+
+function parseMonth(value?: string) {
+  const month = Number(value)
+  return Number.isInteger(month) && month >= 1 && month <= 12 ? month : null
+}
+
+function parseYear(value?: string) {
+  const year = Number(value)
+  return Number.isInteger(year) && year >= 2000 && year <= 2100 ? year : null
+}
+
+export default async function AdminLaporanPage({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}) {
+  const filters = {
+    bulan: parseMonth(searchParams.bulan),
+    tahun: parseYear(searchParams.tahun),
+    status: statusOptions.some((item) => item.value === searchParams.status && item.value !== 'semua')
+      ? searchParams.status
+      : null,
+  }
+  const [overview, preview] = await Promise.all([
+    getLaporanOverview(filters),
+    getLaporanPreview(filters),
+  ])
 
   const cards = [
     { label: 'Pelanggan Aktif', value: overview.pelangganAktif, sub: `${overview.totalPelanggan} total pelanggan` },
@@ -15,12 +80,7 @@ export default async function AdminLaporanPage() {
     { label: 'Komplain Menunggu', value: overview.komplainMenunggu, sub: `${overview.totalKomplain} total komplain` },
   ]
 
-  const exportLinks = [
-    { label: 'Export Pelanggan', type: 'pelanggan' },
-    { label: 'Export Tagihan', type: 'tagihan' },
-    { label: 'Export Pembayaran', type: 'pembayaran' },
-    { label: 'Export Komplain', type: 'komplain' },
-  ]
+  const hasActiveFilters = filters.bulan || filters.tahun || filters.status
 
   return (
     <div className="space-y-6">
@@ -32,17 +92,88 @@ export default async function AdminLaporanPage() {
           </h1>
           <p className="mt-1 text-sm text-gray-500">Ringkasan operasional, review data terbaru, dan export laporan admin.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {exportLinks.map((item) => (
-            <a
-              key={item.type}
-              href={`/admin/laporan/export?type=${item.type}`}
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+      </div>
+
+      <div className="rounded-2xl bg-white p-4 shadow-card">
+        <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center">
+          <form action="/admin/laporan" className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <Filter size={15} className="text-brand-purple" />
+            Filter Laporan
+          </div>
+          <select
+            name="bulan"
+            defaultValue={filters.bulan ? String(filters.bulan) : 'semua'}
+            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm font-medium text-gray-700 outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20 sm:w-48"
+          >
+            {bulanOptions.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <select
+            name="tahun"
+            defaultValue={filters.tahun ? String(filters.tahun) : 'semua'}
+            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm font-medium text-gray-700 outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20 sm:w-48"
+          >
+            {tahunOptions.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <select
+            name="status"
+            defaultValue={filters.status ?? 'semua'}
+            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm font-medium text-gray-700 outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20 sm:w-64"
+          >
+            {statusOptions.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="h-10 w-full rounded-xl bg-brand-purple px-4 text-sm font-semibold text-white transition hover:bg-brand-purple/90 sm:w-auto"
+          >
+            Terapkan
+          </button>
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/laporan"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-red-200 px-3 text-sm font-medium text-red-500 transition hover:bg-red-50"
+            >
+              <X size={14} />
+              Reset
+            </Link>
+          ) : null}
+          </form>
+
+          <form action="/admin/laporan/export" method="get" className="flex w-full flex-col gap-2 sm:flex-row lg:ml-auto lg:w-auto">
+            {filters.bulan ? <input type="hidden" name="bulan" value={filters.bulan} /> : null}
+            {filters.tahun ? <input type="hidden" name="tahun" value={filters.tahun} /> : null}
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            <select
+              name="type"
+              className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20 sm:w-48"
+              defaultValue="tagihan"
+            >
+              {exportOptions.map((item) => (
+                <option key={item.type} value={item.type}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 sm:w-auto"
             >
               <Download size={14} />
-              {item.label}
-            </a>
-          ))}
+              Export Excel
+            </button>
+          </form>
         </div>
       </div>
 

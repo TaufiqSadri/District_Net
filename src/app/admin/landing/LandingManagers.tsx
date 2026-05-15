@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { Pencil, Trash2, Plus, X, ToggleLeft, ToggleRight, Loader2, ImageIcon, UploadCloud, Link2, CheckCircle2 } from 'lucide-react'
+import { Pencil, Trash2, Plus, X, ToggleLeft, ToggleRight, Loader2, ImageIcon, UploadCloud, Link2, CheckCircle2, Search } from 'lucide-react'
 import Image from 'next/image'
 import type { Promo, Faq, AreaLayanan, Iklan, PaketInternet } from '@/types/database'
 import {
@@ -877,11 +877,19 @@ export function FaqManager({ faqs }: { faqs: Faq[] }) {
 // ── AREA LAYANAN TAB ──────────────────────────────────────────────────────────
 export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[] }) {
   const [showForm, setShowForm] = useState(false)
+  const [search, setSearch] = useState('')
   const [pending, start] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
   const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20'
 
-  const grouped = areas.reduce<Record<string, (AreaLayanan & { id: string })[]>>((acc, a) => {
+  const normalizedSearch = search.toLowerCase().trim()
+  const filteredAreas = normalizedSearch
+    ? areas.filter((area) =>
+        `${area.kecamatan} ${area.nagari}`.toLowerCase().includes(normalizedSearch),
+      )
+    : areas
+
+  const grouped = filteredAreas.reduce<Record<string, (AreaLayanan & { id: string })[]>>((acc, a) => {
     if (!acc[a.kecamatan]) acc[a.kecamatan] = []
     acc[a.kecamatan].push(a)
     return acc
@@ -893,12 +901,38 @@ export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[]
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">{areas.length} nagari di {Object.keys(grouped).length} kecamatan</p>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-gray-500">
+          {filteredAreas.length} dari {areas.length} nagari di {Object.keys(grouped).length} kecamatan
+        </p>
         <button type="button" onClick={() => setShowForm(!showForm)}
           className="inline-flex items-center gap-2 rounded-lg bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900">
           <Plus size={15} /> Tambah Area
         </button>
+      </div>
+
+      <div className="relative mb-5">
+        <Search
+          size={15}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        />
+        <input
+          type="text"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Cari kecamatan atau nagari..."
+          className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-10 text-sm outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20"
+        />
+        {search ? (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            aria-label="Hapus pencarian area"
+          >
+            <X size={14} />
+          </button>
+        ) : null}
       </div>
 
       {showForm && (
@@ -918,7 +952,7 @@ export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[]
       )}
 
       <div className="space-y-4">
-        {Object.entries(grouped).map(([kec, nagariList]) => (
+        {Object.entries(grouped).length > 0 ? Object.entries(grouped).map(([kec, nagariList]) => (
           <div key={kec} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <p className="mb-3 text-sm font-bold text-brand-purple">Kec. {kec}</p>
             <div className="flex flex-wrap gap-2">
@@ -934,7 +968,11 @@ export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[]
               ))}
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-10 text-center text-sm text-gray-400">
+            Area layanan tidak ditemukan.
+          </div>
+        )}
       </div>
     </>
   )

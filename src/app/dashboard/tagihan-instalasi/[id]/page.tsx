@@ -9,7 +9,7 @@ import {
 } from '@/lib/data/dashboardPelanggan'
 import type { TagihanInstalasi } from '@/types/database'
 import PaymentUploadFormInstalasi from './PaymentUploadFormInstalasi'
-import PaymentMethod from '../../tagihan/[id]/paymentMethod'
+import PaymentMethod from '../../tagihan/[id]/PaymentMethod'
 
 export default async function TagihanInstalasiDetailPage({
   params,
