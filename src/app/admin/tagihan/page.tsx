@@ -146,11 +146,11 @@ export default async function AdminTagihanPage({
           </p>
         </div>
         <Link
-          href="/admin/tagihan/generate"
+          href={jenis === 'instalasi' ? '/admin/tagihan/generate?jenis=instalasi' : '/admin/tagihan/generate'}
           className="inline-flex items-center gap-2 rounded-xl bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 active:scale-95"
         >
           <Plus size={15} />
-          Buat Tagihan
+          {jenis === 'instalasi' ? 'Generate Tagihan Instalasi' : 'Generate Tagihan Bulanan'}
         </Link>
       </div>
 

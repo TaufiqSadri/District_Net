@@ -313,6 +313,7 @@ export async function generateTagihanBulanan(formData: FormData) {
   const admin = createAdminClient()
   const month = Number(formData.get('bulan'))
   const year = Number(formData.get('tahun'))
+  const pelangganId = String(formData.get('pelanggan_id') ?? 'semua').trim()
   const dueDay_input = Number(formData.get('jatuh_tempo_hari') ?? 10)
 
   if (!month || !year) {
@@ -321,10 +322,16 @@ export async function generateTagihanBulanan(formData: FormData) {
 
   const { createdAt } = getMonthDateRange(month, year, dueDay_input)
 
-  const { data: pelangganRows, error: pelangganError } = await admin
+  let pelangganQuery = admin
     .from('pelanggan')
     .select('id, paket_id, tanggal_bergabung, paket_internet(harga)')
     .eq('status_langganan', 'aktif')
+
+  if (pelangganId && pelangganId !== 'semua') {
+    pelangganQuery = pelangganQuery.eq('id', pelangganId)
+  }
+
+  const { data: pelangganRows, error: pelangganError } = await pelangganQuery
 
   if (pelangganError) {
     redirect(`/admin/tagihan/generate?error=${encodeURIComponent(pelangganError.message)}`)
@@ -344,11 +351,17 @@ export async function generateTagihanBulanan(formData: FormData) {
     return true
   })
 
-  const { data: existingRows, error: existingError } = await admin
+  let existingQuery = admin
     .from('tagihan')
     .select('pelanggan_id')
     .eq('bulan', month)
     .eq('tahun', year)
+
+  if (pelangganId && pelangganId !== 'semua') {
+    existingQuery = existingQuery.eq('pelanggan_id', pelangganId)
+  }
+
+  const { data: existingRows, error: existingError } = await existingQuery
 
   if (existingError) {
     redirect(`/admin/tagihan/generate?error=${encodeURIComponent(existingError.message)}`)
@@ -393,7 +406,70 @@ export async function generateTagihanBulanan(formData: FormData) {
   revalidatePath('/admin/tagihan')
   redirect(
     `/admin/tagihan/generate?success=${encodeURIComponent(
-      `${inserts.length} tagihan berhasil dibuat untuk periode ${month}/${year}.`,
+      `${inserts.length} tagihan bulanan berhasil dibuat untuk periode ${month}/${year}.`,
+    )}`,
+  )
+}
+
+export async function generateTagihanInstalasiManual(formData: FormData) {
+  const admin = createAdminClient()
+  const pelangganId = String(formData.get('pelanggan_id') ?? 'semua').trim()
+
+  let pelangganQuery = admin
+    .from('pelanggan')
+    .select('id')
+    .eq('status_langganan', 'aktif')
+
+  if (pelangganId && pelangganId !== 'semua') {
+    pelangganQuery = pelangganQuery.eq('id', pelangganId)
+  }
+
+  const { data: pelangganRows, error: pelangganError } = await pelangganQuery
+
+  if (pelangganError) {
+    redirect(`/admin/tagihan/generate?jenis=instalasi&error=${encodeURIComponent(pelangganError.message)}`)
+  }
+
+  let existingQuery = admin
+    .from('tagihan_instalasi')
+    .select('pelanggan_id')
+
+  if (pelangganId && pelangganId !== 'semua') {
+    existingQuery = existingQuery.eq('pelanggan_id', pelangganId)
+  }
+
+  const { data: existingRows, error: existingError } = await existingQuery
+
+  if (existingError) {
+    redirect(`/admin/tagihan/generate?jenis=instalasi&error=${encodeURIComponent(existingError.message)}`)
+  }
+
+  const existingPelangganIds = new Set((existingRows ?? []).map((item) => item.pelanggan_id))
+  const due = new Date()
+  due.setUTCDate(due.getUTCDate() + 2)
+  const jatuh_tempo = due.toISOString().slice(0, 10)
+
+  const inserts = (pelangganRows ?? [])
+    .filter((item) => !existingPelangganIds.has(item.id))
+    .map((item) => ({
+      pelanggan_id: item.id,
+      jumlah_tagihan: BIAYA_INSTALASI,
+      status_tagihan: 'belum_bayar',
+      jatuh_tempo,
+    }))
+
+  if (inserts.length > 0) {
+    const { error: insertError } = await admin.from('tagihan_instalasi').insert(inserts)
+    if (insertError) {
+      redirect(`/admin/tagihan/generate?jenis=instalasi&error=${encodeURIComponent(insertError.message)}`)
+    }
+  }
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/tagihan')
+  redirect(
+    `/admin/tagihan/generate?jenis=instalasi&success=${encodeURIComponent(
+      `${inserts.length} tagihan instalasi berhasil dibuat.`,
     )}`,
   )
 }
