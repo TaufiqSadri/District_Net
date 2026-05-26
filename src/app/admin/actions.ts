@@ -309,14 +309,42 @@ export async function updatePelangganByAdmin(pelangganId: string, formData: Form
 }
 
 // ── Delete pelanggan ──────────────────────────────────────────────────────────
-export async function deletePelangganByAdmin(pelangganId: string, userId: string) {
+export async function deletePelangganByAdmin(pelangganId: string) {
   const admin = createAdminClient()
 
-  await admin.from('pelanggan').delete().eq('id', pelangganId)
-  await admin.auth.admin.deleteUser(userId)
+  const { data: pelanggan, error: fetchError } = await admin
+    .from('pelanggan')
+    .select('user_id, nama_lengkap')
+    .eq('id', pelangganId)
+    .maybeSingle()
+
+  if (fetchError) {
+    redirect(`/admin/pelanggan?error=${encodeURIComponent(`Gagal mengambil data pelanggan: ${fetchError.message}`)}`)
+  }
+  if (!pelanggan) {
+    redirect('/admin/pelanggan?error=Data%20pelanggan%20tidak%20ditemukan.')
+  }
+  if (!pelanggan.user_id) {
+    redirect('/admin/pelanggan?error=User%20ID%20akun%20pelanggan%20tidak%20ditemukan.')
+  }
+
+  const { error: authError } = await admin.auth.admin.deleteUser(pelanggan.user_id)
+  const authUserAlreadyMissing = authError && /not found|not exist/i.test(authError.message)
+  if (authError && !authUserAlreadyMissing) {
+    redirect(`/admin/pelanggan?error=${encodeURIComponent(`Gagal menghapus akun login pelanggan: ${authError.message}`)}`)
+  }
+
+  const { error: deleteError } = await admin
+    .from('pelanggan')
+    .delete()
+    .eq('id', pelangganId)
+
+  if (deleteError) {
+    redirect(`/admin/pelanggan?error=${encodeURIComponent(`Akun login sudah dihapus, tetapi data pelanggan gagal dihapus: ${deleteError.message}`)}`)
+  }
 
   revalidatePath('/admin/pelanggan')
-  redirect('/admin/pelanggan')
+  redirect(`/admin/pelanggan?success=${encodeURIComponent('Pelanggan dan akun login terkait berhasil dihapus.')}`)
 }
 
 /*

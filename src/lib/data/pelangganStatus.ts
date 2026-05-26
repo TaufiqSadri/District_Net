@@ -6,6 +6,20 @@ type SyncSuspendedOptions = {
   restoreCleared?: boolean
 }
 
+type SyncSuspendedResult = {
+  suspendedIds: string[]
+  inactiveIds: string[]
+  restoredIds: string[]
+}
+
+const FULL_SYNC_TTL_MS = 60_000
+let lastFullSyncAt = 0
+let fullSyncPromise: Promise<SyncSuspendedResult> | null = null
+
+function emptySyncResult(): SyncSuspendedResult {
+  return { suspendedIds: [], inactiveIds: [], restoredIds: [] }
+}
+
 function todayDateOnly() {
   const jakartaOffsetMs = 7 * 60 * 60 * 1000
   return new Date(Date.now() + jakartaOffsetMs).toISOString().slice(0, 10)
@@ -26,6 +40,47 @@ async function getStatusBlockerPelangganIds(admin: AdminClient, pelangganIds?: s
   const scopedIds = uniqueIds(pelangganIds)
   const today = todayDateOnly()
   const thirtyDaysAgo = dateOnlyDaysAgo(30)
+
+  if (scopedIds.length === 1) {
+    const pelangganId = scopedIds[0]
+    const [
+      { data: instalasiRows, error: instalasiError },
+      { data: bulananRows, error: bulananError },
+    ] = await Promise.all([
+      admin
+        .from('tagihan_instalasi')
+        .select('pelanggan_id, jatuh_tempo')
+        .eq('pelanggan_id', pelangganId)
+        .neq('status_tagihan', 'lunas'),
+      admin
+        .from('tagihan')
+        .select('pelanggan_id, jatuh_tempo')
+        .eq('pelanggan_id', pelangganId)
+        .neq('status_tagihan', 'lunas'),
+    ])
+
+    if (instalasiError) throw new Error(instalasiError.message)
+    if (bulananError) throw new Error(bulananError.message)
+
+    const hasInactive = [
+      ...(instalasiRows ?? []),
+      ...(bulananRows ?? []),
+    ].some((row) => row.jatuh_tempo && row.jatuh_tempo < thirtyDaysAgo)
+
+    if (hasInactive) return { suspendedIds: [], inactiveIds: [pelangganId] }
+
+    const hasSuspendedInstalasi = (instalasiRows ?? []).some(
+      (row) => row.jatuh_tempo && row.jatuh_tempo >= thirtyDaysAgo,
+    )
+    const hasSuspendedBulanan = (bulananRows ?? []).some(
+      (row) => row.jatuh_tempo && row.jatuh_tempo < today && row.jatuh_tempo >= thirtyDaysAgo,
+    )
+
+    return {
+      suspendedIds: hasSuspendedInstalasi || hasSuspendedBulanan ? [pelangganId] : [],
+      inactiveIds: [],
+    }
+  }
 
   let instalasiSuspendedQuery = admin
     .from('tagihan_instalasi')
@@ -92,13 +147,37 @@ async function getStatusBlockerPelangganIds(admin: AdminClient, pelangganIds?: s
 export async function syncSuspendedPelangganStatuses(
   pelangganIds?: string[],
   options: SyncSuspendedOptions = {},
-) {
+): Promise<SyncSuspendedResult> {
+  const scopedIds = uniqueIds(pelangganIds)
+  const isFullReadSync = scopedIds.length === 0 && !options.restoreCleared
+
+  if (isFullReadSync) {
+    const now = Date.now()
+    if (fullSyncPromise) return fullSyncPromise
+    if (now - lastFullSyncAt < FULL_SYNC_TTL_MS) return emptySyncResult()
+
+    fullSyncPromise = runSyncSuspendedPelangganStatuses(scopedIds, options)
+      .finally(() => {
+        lastFullSyncAt = Date.now()
+        fullSyncPromise = null
+      })
+
+    return fullSyncPromise
+  }
+
+  return runSyncSuspendedPelangganStatuses(scopedIds, options)
+}
+
+async function runSyncSuspendedPelangganStatuses(
+  scopedIds: string[],
+  options: SyncSuspendedOptions,
+): Promise<SyncSuspendedResult> {
   try {
     const admin = createAdminClient()
-    const scopedIds = uniqueIds(pelangganIds)
     const { suspendedIds, inactiveIds } = await getStatusBlockerPelangganIds(admin, scopedIds)
     const suspendedIdSet = new Set(suspendedIds)
     const restoreCleared = options.restoreCleared ?? false
+    const restoredIds: string[] = []
 
     if (inactiveIds.length > 0) {
       let inactiveQuery = admin
@@ -130,7 +209,7 @@ export async function syncSuspendedPelangganStatuses(
       if (error) throw new Error(error.message)
     }
 
-    if (!restoreCleared) return suspendedIds
+    if (!restoreCleared) return { suspendedIds, inactiveIds, restoredIds }
 
     if (scopedIds.length > 0) {
       const inactiveIdSet = new Set(inactiveIds)
@@ -143,6 +222,7 @@ export async function syncSuspendedPelangganStatuses(
           .eq('status_langganan', 'ditangguhkan')
 
         if (error) throw new Error(error.message)
+        restoredIds.push(...restoreIds)
       }
     } else {
       let restoreQuery = admin
@@ -161,9 +241,9 @@ export async function syncSuspendedPelangganStatuses(
       if (error) throw new Error(error.message)
     }
 
-    return suspendedIds
+    return { suspendedIds, inactiveIds, restoredIds }
   } catch (error) {
     console.error('syncSuspendedPelangganStatuses error:', error)
-    return []
+    return emptySyncResult()
   }
 }

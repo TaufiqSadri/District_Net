@@ -7,17 +7,16 @@ import { useState, useTransition } from 'react'
 
 type Props = {
   pelangganId: string
-  userId: string
   namaLengkap: string
 }
 
-export default function DeletePelangganButton({ pelangganId, userId, namaLengkap }: Props) {
+export default function DeletePelangganButton({ pelangganId, namaLengkap }: Props) {
   const [isPending, startTransition] = useTransition()
   const [showConfirm, setShowConfirm] = useState(false)
 
   function handleDelete() {
     startTransition(async () => {
-      await deletePelangganByAdmin(pelangganId, userId)
+      await deletePelangganByAdmin(pelangganId)
       setShowConfirm(false)
     })
   }

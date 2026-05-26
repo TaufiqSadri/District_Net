@@ -77,7 +77,7 @@ export default async function DetailPelangganPage({ params }: Props) {
           >
             Edit Data
           </Link>
-          <DeletePelangganButton pelangganId={params.id} userId={pelanggan.user_id} namaLengkap={pelanggan.nama_lengkap} />
+          <DeletePelangganButton pelangganId={params.id} namaLengkap={pelanggan.nama_lengkap} />
         </div>
       </div>
 

@@ -26,15 +26,19 @@ export const getCurrentPelanggan = cache(async (): Promise<PelangganWithPaket | 
 
   if (error || !data) return null
 
-  await syncSuspendedPelangganStatuses([data.id])
+  const syncableStatuses = ['aktif', 'ditangguhkan', 'proses_instalasi']
+  if (syncableStatuses.includes(data.status_langganan)) {
+    const syncResult = await syncSuspendedPelangganStatuses([data.id])
+    const status_langganan = syncResult.inactiveIds.includes(data.id)
+      ? 'nonaktif'
+      : syncResult.suspendedIds.includes(data.id)
+      ? 'ditangguhkan'
+      : data.status_langganan
 
-  const { data: refreshed } = await supabase
-    .from('pelanggan')
-    .select('*, paket_internet(*)')
-    .eq('user_id', user.id)
-    .single()
+    return { ...data, status_langganan } as PelangganWithPaket
+  }
 
-  return (refreshed ?? data) as PelangganWithPaket
+  return data as PelangganWithPaket
 })
 
 export async function getPelangganStats(): Promise<PelangganStats> {
