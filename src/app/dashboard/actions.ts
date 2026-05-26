@@ -178,13 +178,16 @@ export async function submitPembayaranInstalasi(formData: FormData) {
 export async function updateProfilPelanggan(formData: FormData) {
   const { supabase, pelanggan } = await getAuthenticatedPelanggan()
 
-  const noHp = String(formData.get('no_hp') ?? '').trim()
+  const noHp = String(formData.get('no_hp') ?? '').trim().replace(/\D/g, '')
   const alamat = String(formData.get('alamat_pemasangan') ?? '').trim()
   const latitudeRaw = String(formData.get('latitude') ?? '').trim()
   const longitudeRaw = String(formData.get('longitude') ?? '').trim()
 
   if (!noHp || !alamat) {
     redirectWithMessage('/dashboard/profil', 'error', 'Nomor HP dan alamat pemasangan wajib diisi.')
+  }
+  if (noHp.length > 12) {
+    redirectWithMessage('/dashboard/profil', 'error', 'Nomor HP maksimal 12 digit.')
   }
 
   const { error } = await supabase

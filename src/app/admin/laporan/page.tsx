@@ -171,7 +171,7 @@ export default async function AdminLaporanPage({
               className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 sm:w-auto"
             >
               <Download size={14} />
-              Export Excel
+              Export PDF
             </button>
           </form>
         </div>

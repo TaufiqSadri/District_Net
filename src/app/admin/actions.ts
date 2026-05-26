@@ -184,13 +184,16 @@ export async function addPelangganByAdmin(formData: FormData) {
 
   const nama_lengkap = String(formData.get('nama_lengkap') ?? '').trim()
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
-  const no_hp = String(formData.get('no_hp') ?? '').trim()
+  const no_hp = String(formData.get('no_hp') ?? '').trim().replace(/\D/g, '')
   const paket_id = String(formData.get('paket_id') ?? '').trim()
   const bulanMasuk = Number(formData.get('bulan_masuk'))
   const tahunMasuk = Number(formData.get('tahun_masuk'))
 
   if (!nama_lengkap || !email || !no_hp || !paket_id || !bulanMasuk || !tahunMasuk) {
     return { error: 'Semua field wajib diisi.' }
+  }
+  if (no_hp.length > 12) {
+    return { error: 'Nomor HP maksimal 12 digit.' }
   }
   if (bulanMasuk < 1 || bulanMasuk > 12 || tahunMasuk < 2000) {
     return { error: 'Bulan atau tahun masuk tidak valid.' }
@@ -267,7 +270,7 @@ export async function updatePelangganByAdmin(pelangganId: string, formData: Form
   const admin = createAdminClient()
  
   const nama_lengkap = formData.get('nama_lengkap') as string
-  const no_hp = formData.get('no_hp') as string
+  const no_hp = String(formData.get('no_hp') ?? '').trim().replace(/\D/g, '')
   const alamat_pemasangan = formData.get('alamat_pemasangan') as string
   const paket_id = formData.get('paket_id') as string
   const status_langganan = formData.get('status_langganan') as string
@@ -278,6 +281,10 @@ export async function updatePelangganByAdmin(pelangganId: string, formData: Form
   const tanggal_bergabung = tanggalRaw
     ? new Date(tanggalRaw).toISOString()
     : undefined
+
+  if (!no_hp || no_hp.length > 12) {
+    throw new Error('Nomor HP maksimal 12 digit.')
+  }
  
   const { error } = await admin
     .from('pelanggan')

@@ -362,10 +362,11 @@ export default function RegisterForm({ paketList, areaList }: RegisterFormProps)
                     type="tel"
                     inputMode="numeric"
                     pattern="[0-9]+"
+                    maxLength={12}
                     placeholder="Contoh: 08123456789"
                     onInput={(e) => {
                       const el = e.currentTarget
-                      el.value = el.value.replace(/\D/g, '')
+                      el.value = el.value.replace(/\D/g, '').slice(0, 12)
                     }}
                     required
                     className={inputCls}

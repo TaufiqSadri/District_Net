@@ -81,7 +81,20 @@ return (
             </div>
             <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">No. HP</label>
-            <input name="no_hp" type="tel" defaultValue={pelanggan.no_hp} required className={inputCls} />
+            <input
+              name="no_hp"
+              type="tel"
+              inputMode="numeric"
+              pattern="[0-9]+"
+              maxLength={12}
+              defaultValue={pelanggan.no_hp}
+              onInput={(event) => {
+                const input = event.currentTarget
+                input.value = input.value.replace(/\D/g, '').slice(0, 12)
+              }}
+              required
+              className={inputCls}
+            />
             </div>
       </div>
 

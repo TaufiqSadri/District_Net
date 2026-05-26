@@ -222,11 +222,12 @@ export default function ProfilForm({
           type="tel"
           inputMode="numeric"
           pattern="[0-9]+"
+          maxLength={12}
           placeholder="Contoh: 08123456789"
           defaultValue={noHp}
           onInput={(e) => {
             const el = e.currentTarget
-            el.value = el.value.replace(/\D/g, '')
+            el.value = el.value.replace(/\D/g, '').slice(0, 12)
           }}
           required
           className={inputCls}

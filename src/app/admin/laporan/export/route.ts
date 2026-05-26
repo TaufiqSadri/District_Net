@@ -1,4 +1,13 @@
+import React from 'react'
 import { NextResponse } from 'next/server'
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  renderToBuffer,
+} from '@react-pdf/renderer'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
@@ -6,11 +15,26 @@ import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 export const runtime = 'nodejs'
 
 const bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+const bulanLengkap = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+]
 const TAGIHAN_STATUSES = ['belum_bayar', 'menunggu_verifikasi', 'lunas']
 const PELANGGAN_STATUSES = ['aktif', 'ditangguhkan', 'proses_instalasi', 'pending', 'nonaktif']
 const PEMBAYARAN_STATUSES = ['menunggu', 'diterima', 'ditolak']
 
-type ExcelValue = string | number | boolean | null | undefined
+type PdfValue = string | number | boolean | null | undefined
+type PdfRow = Record<string, PdfValue>
 
 function parseMonth(value: string | null) {
   const month = Number(value)
@@ -60,173 +84,23 @@ function formatDateTime(value: string | null | undefined) {
   return date.toLocaleString('id-ID')
 }
 
-function escapeXml(value: string) {
+function formatRupiah(value: number) {
+  return 'Rp ' + value.toLocaleString('id-ID')
+}
+
+function statusLabel(value: string | null | undefined) {
+  if (!value) return 'Semua'
   return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&apos;')
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
-function colName(index: number) {
-  let name = ''
-  let n = index + 1
-  while (n > 0) {
-    const rem = (n - 1) % 26
-    name = String.fromCharCode(65 + rem) + name
-    n = Math.floor((n - 1) / 26)
-  }
-  return name
-}
-
-function sheetXml(headers: string[], rows: Record<string, ExcelValue>[]) {
-  const allRows: ExcelValue[][] = [
-    headers,
-    ...rows.map((row) => headers.map((header) => row[header] ?? '')),
-  ]
-  const lastCell = `${colName(Math.max(headers.length - 1, 0))}${Math.max(allRows.length, 1)}`
-
-  const body = allRows
-    .map((row, rowIndex) => {
-      const cells = row
-        .map((value, colIndex) => {
-          const ref = `${colName(colIndex)}${rowIndex + 1}`
-          if (typeof value === 'number' && Number.isFinite(value)) {
-            return `<c r="${ref}"><v>${value}</v></c>`
-          }
-          return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(String(value ?? ''))}</t></is></c>`
-        })
-        .join('')
-      return `<row r="${rowIndex + 1}">${cells}</row>`
-    })
-    .join('')
-
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <dimension ref="A1:${lastCell}"/>
-  <sheetData>${body}</sheetData>
-</worksheet>`
-}
-
-const crcTable = Array.from({ length: 256 }, (_, index) => {
-  let c = index
-  for (let k = 0; k < 8; k += 1) {
-    c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
-  }
-  return c >>> 0
-})
-
-function crc32(buffer: Buffer) {
-  let crc = 0xffffffff
-  for (const byte of buffer) {
-    crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8)
-  }
-  return (crc ^ 0xffffffff) >>> 0
-}
-
-function zip(files: { path: string; content: string }[]) {
-  const localParts: Buffer[] = []
-  const centralParts: Buffer[] = []
-  let offset = 0
-
-  for (const file of files) {
-    const name = Buffer.from(file.path)
-    const data = Buffer.from(file.content, 'utf8')
-    const crc = crc32(data)
-
-    const localHeader = Buffer.alloc(30)
-    localHeader.writeUInt32LE(0x04034b50, 0)
-    localHeader.writeUInt16LE(20, 4)
-    localHeader.writeUInt16LE(0, 6)
-    localHeader.writeUInt16LE(0, 8)
-    localHeader.writeUInt16LE(0, 10)
-    localHeader.writeUInt16LE(0, 12)
-    localHeader.writeUInt32LE(crc, 14)
-    localHeader.writeUInt32LE(data.length, 18)
-    localHeader.writeUInt32LE(data.length, 22)
-    localHeader.writeUInt16LE(name.length, 26)
-    localHeader.writeUInt16LE(0, 28)
-
-    localParts.push(localHeader, name, data)
-
-    const centralHeader = Buffer.alloc(46)
-    centralHeader.writeUInt32LE(0x02014b50, 0)
-    centralHeader.writeUInt16LE(20, 4)
-    centralHeader.writeUInt16LE(20, 6)
-    centralHeader.writeUInt16LE(0, 8)
-    centralHeader.writeUInt16LE(0, 10)
-    centralHeader.writeUInt16LE(0, 12)
-    centralHeader.writeUInt16LE(0, 14)
-    centralHeader.writeUInt32LE(crc, 16)
-    centralHeader.writeUInt32LE(data.length, 20)
-    centralHeader.writeUInt32LE(data.length, 24)
-    centralHeader.writeUInt16LE(name.length, 28)
-    centralHeader.writeUInt16LE(0, 30)
-    centralHeader.writeUInt16LE(0, 32)
-    centralHeader.writeUInt16LE(0, 34)
-    centralHeader.writeUInt16LE(0, 36)
-    centralHeader.writeUInt32LE(0, 38)
-    centralHeader.writeUInt32LE(offset, 42)
-    centralParts.push(centralHeader, name)
-
-    offset += localHeader.length + name.length + data.length
-  }
-
-  const centralDir = Buffer.concat(centralParts)
-  const localDir = Buffer.concat(localParts)
-  const end = Buffer.alloc(22)
-  end.writeUInt32LE(0x06054b50, 0)
-  end.writeUInt16LE(0, 4)
-  end.writeUInt16LE(0, 6)
-  end.writeUInt16LE(files.length, 8)
-  end.writeUInt16LE(files.length, 10)
-  end.writeUInt32LE(centralDir.length, 12)
-  end.writeUInt32LE(localDir.length, 16)
-  end.writeUInt16LE(0, 20)
-
-  return Buffer.concat([localDir, centralDir, end])
-}
-
-function toXlsx(headers: string[], rows: Record<string, ExcelValue>[], sheetName: string) {
-  const safeSheetName = escapeXml(sheetName.slice(0, 31) || 'Laporan')
-  return zip([
-    {
-      path: '[Content_Types].xml',
-      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-  <Default Extension="xml" ContentType="application/xml"/>
-  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-</Types>`,
-    },
-    {
-      path: '_rels/.rels',
-      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-</Relationships>`,
-    },
-    {
-      path: 'xl/workbook.xml',
-      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-  <sheets><sheet name="${safeSheetName}" sheetId="1" r:id="rId1"/></sheets>
-</workbook>`,
-    },
-    {
-      path: 'xl/_rels/workbook.xml.rels',
-      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-</Relationships>`,
-    },
-    {
-      path: 'xl/worksheets/sheet1.xml',
-      content: sheetXml(headers, rows),
-    },
-  ])
+function reportTitle(type: string) {
+  if (type === 'pelanggan') return 'Laporan Pelanggan'
+  if (type === 'pembayaran') return 'Laporan Pembayaran'
+  if (type === 'komplain') return 'Laporan Komplain'
+  return 'Laporan Tagihan'
 }
 
 function applyDateRange<T extends {
@@ -236,6 +110,177 @@ function applyDateRange<T extends {
   const range = getDateRange(month, year)
   if (!range) return query
   return query.gte(column, range.from).lt(column, range.to)
+}
+
+function normalizeCell(header: string, value: PdfValue) {
+  if (typeof value === 'number' && header.toLowerCase().includes('jumlah')) {
+    return formatRupiah(value)
+  }
+  if (typeof value === 'boolean') return value ? 'Ya' : 'Tidak'
+  return String(value ?? '-')
+}
+
+const s = StyleSheet.create({
+  page: { fontFamily: 'Helvetica', backgroundColor: '#ffffff', padding: 28 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
+  brand: { fontSize: 19, fontFamily: 'Helvetica-Bold', color: '#68247B' },
+  brandSub: { fontSize: 8, color: '#777', marginTop: 3 },
+  titleWrap: { alignItems: 'flex-end' },
+  reportLabel: { fontSize: 8, color: '#888', textAlign: 'right' },
+  title: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1a0a2e', textAlign: 'right', marginTop: 3 },
+  generatedAt: { fontSize: 8, color: '#555', textAlign: 'right', marginTop: 3 },
+  divider: { height: 1.5, backgroundColor: '#68247B', marginBottom: 14 },
+  filterBox: { flexDirection: 'row', backgroundColor: '#f9f7ff', borderRadius: 4, padding: 9, marginBottom: 14 },
+  filterItem: { flex: 1 },
+  filterLabel: { fontSize: 7, color: '#7c6b8e', textTransform: 'uppercase' },
+  filterValue: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1a0a2e', marginTop: 2 },
+  summary: { fontSize: 9, color: '#4b5563', marginBottom: 10 },
+  table: { borderWidth: 0.5, borderColor: '#e5e7eb' },
+  tableHeader: { flexDirection: 'row', backgroundColor: '#f3f0f9', borderBottomWidth: 0.5, borderBottomColor: '#d8cfe8' },
+  headerCell: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#68247B', padding: 5 },
+  row: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#edf0f4', minHeight: 22 },
+  rowAlt: { backgroundColor: '#fbfbfd' },
+  cell: { fontSize: 7, color: '#374151', padding: 5 },
+  empty: { padding: 18, fontSize: 9, color: '#6b7280', textAlign: 'center' },
+  footer: { position: 'absolute', left: 28, right: 28, bottom: 18, borderTopWidth: 0.5, borderTopColor: '#e5e7eb', paddingTop: 7 },
+  footerText: { fontSize: 7, color: '#9ca3af', textAlign: 'center' },
+  pageNumber: { position: 'absolute', right: 28, bottom: 18, fontSize: 7, color: '#9ca3af' },
+})
+
+function LaporanDocument({
+  type,
+  headers,
+  rows,
+  month,
+  year,
+  status,
+}: {
+  type: string
+  headers: string[]
+  rows: PdfRow[]
+  month: number | null
+  year: number | null
+  status: string | null
+}) {
+  const title = reportTitle(type)
+  const generatedAt = new Date().toLocaleString('id-ID')
+  const colFlex = headers.map((header) => {
+    if (['Email', 'Alamat', 'Isi Komplain', 'Respon Admin', 'Bukti Pembayaran', 'Catatan Admin'].includes(header)) return 1.6
+    if (['Nama', 'Nama Pelanggan', 'Paket'].includes(header)) return 1.25
+    return 1
+  })
+
+  return React.createElement(
+    Document,
+    {
+      title: title,
+      author: 'Distric Net',
+      subject: title,
+    },
+    React.createElement(
+      Page,
+      { size: 'A4', orientation: 'landscape', style: s.page },
+      React.createElement(
+        View,
+        { style: s.header },
+        React.createElement(
+          View,
+          null,
+          React.createElement(Text, { style: s.brand }, 'Distric Net'),
+          React.createElement(Text, { style: s.brandSub }, 'Penyedia Internet Broadband Unlimited'),
+          React.createElement(Text, { style: s.brandSub }, 'Kab. Padang Pariaman, Sumatera Barat'),
+          React.createElement(Text, { style: s.brandSub }, '+62 812 5600 2100  ·  @distric_net'),
+        ),
+        React.createElement(
+          View,
+          { style: s.titleWrap },
+          React.createElement(Text, { style: s.reportLabel }, 'LAPORAN ADMIN'),
+          React.createElement(Text, { style: s.title }, title),
+          React.createElement(Text, { style: s.generatedAt }, `Dicetak: ${generatedAt}`),
+        ),
+      ),
+      React.createElement(View, { style: s.divider }),
+      React.createElement(
+        View,
+        { style: s.filterBox },
+        React.createElement(
+          View,
+          { style: s.filterItem },
+          React.createElement(Text, { style: s.filterLabel }, 'Bulan'),
+          React.createElement(Text, { style: s.filterValue }, month ? bulanLengkap[month - 1] : 'Semua Bulan'),
+        ),
+        React.createElement(
+          View,
+          { style: s.filterItem },
+          React.createElement(Text, { style: s.filterLabel }, 'Tahun'),
+          React.createElement(Text, { style: s.filterValue }, year ? String(year) : 'Semua Tahun'),
+        ),
+        React.createElement(
+          View,
+          { style: s.filterItem },
+          React.createElement(Text, { style: s.filterLabel }, 'Status'),
+          React.createElement(Text, { style: s.filterValue }, statusLabel(status)),
+        ),
+        React.createElement(
+          View,
+          { style: s.filterItem },
+          React.createElement(Text, { style: s.filterLabel }, 'Total Data'),
+          React.createElement(Text, { style: s.filterValue }, `${rows.length} baris`),
+        ),
+      ),
+      React.createElement(Text, { style: s.summary }, `Ringkasan data ${title.toLowerCase()} berdasarkan filter yang dipilih admin.`),
+      React.createElement(
+        View,
+        { style: s.table },
+        React.createElement(
+          View,
+          { style: s.tableHeader, fixed: true },
+          headers.map((header, index) => React.createElement(
+            Text,
+            { key: header, style: [s.headerCell, { flex: colFlex[index] }] },
+            header,
+          )),
+        ),
+        rows.length > 0
+          ? rows.map((row, rowIndex) => React.createElement(
+              View,
+              {
+                key: rowIndex,
+                style: rowIndex % 2 === 1 ? [s.row, s.rowAlt] : s.row,
+                wrap: false,
+              },
+              headers.map((header, index) => React.createElement(
+                Text,
+                { key: header, style: [s.cell, { flex: colFlex[index] }] },
+                normalizeCell(header, row[header]),
+              )),
+            ))
+          : React.createElement(Text, { style: s.empty }, 'Tidak ada data untuk filter ini.'),
+      ),
+      React.createElement(
+        View,
+        { style: s.footer, fixed: true },
+        React.createElement(Text, { style: s.footerText }, 'Dokumen ini digenerate otomatis dari sistem admin Distric Net.'),
+      ),
+      React.createElement(Text, {
+        style: s.pageNumber,
+        fixed: true,
+        render: ({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`,
+      }),
+    ),
+  )
+}
+
+async function renderLaporanPdf(args: {
+  type: string
+  headers: string[]
+  rows: PdfRow[]
+  month: number | null
+  year: number | null
+  status: string | null
+}) {
+  const element = React.createElement(LaporanDocument, args)
+  return await renderToBuffer(element as any)
 }
 
 export async function GET(request: Request) {
@@ -257,12 +302,10 @@ export async function GET(request: Request) {
   await syncSuspendedPelangganStatuses()
 
   let headers: string[] = []
-  let rows: Record<string, ExcelValue>[] = []
-  let sheetName = 'Laporan'
+  let rows: PdfRow[] = []
 
   if (type === 'pelanggan') {
     headers = ['Nama', 'Email', 'No HP', 'Paket', 'Kecepatan Mbps', 'Status', 'Tanggal Bergabung', 'Alamat']
-    sheetName = 'Pelanggan'
     let query = admin
       .from('pelanggan')
       .select('*, paket_internet(nama_paket, kecepatan_mbps, harga)')
@@ -289,7 +332,6 @@ export async function GET(request: Request) {
     })
   } else if (type === 'pembayaran') {
     headers = ['Tanggal Bayar', 'Nama Pelanggan', 'Email', 'Periode', 'Jumlah Bayar', 'Status Verifikasi', 'Status Tagihan', 'Bukti Pembayaran', 'Catatan Admin']
-    sheetName = 'Pembayaran'
     const hasTagihanFilter = !!month || !!year || isTagihanStatus(status)
     let query = hasTagihanFilter
       ? admin
@@ -347,7 +389,6 @@ export async function GET(request: Request) {
     })
   } else if (type === 'komplain') {
     headers = ['Tanggal', 'Nama Pelanggan', 'Email', 'Isi Komplain', 'Status', 'Respon Admin']
-    sheetName = 'Komplain'
     let query = admin
       .from('komplain')
       .select('*, pelanggan(nama_lengkap, email)')
@@ -373,7 +414,6 @@ export async function GET(request: Request) {
     })
   } else {
     headers = ['Periode', 'Nama Pelanggan', 'Email', 'No HP', 'Jumlah Tagihan', 'Status', 'Jatuh Tempo', 'Tanggal Dibuat']
-    sheetName = 'Tagihan'
     let query = admin
       .from('tagihan')
       .select('*, pelanggan(nama_lengkap, email, no_hp)')
@@ -402,18 +442,18 @@ export async function GET(request: Request) {
     })
   }
 
-  const file = toXlsx(headers, rows, sheetName)
+  const file = await renderLaporanPdf({ type, headers, rows, month, year, status })
   const suffix = [
     year ? String(year) : null,
     month ? String(month).padStart(2, '0') : null,
     status && status !== 'semua' ? status : null,
   ].filter(Boolean).join('-')
-  const filename = `laporan-${type}${suffix ? `-${suffix}` : ''}.xlsx`
+  const filename = `laporan-${type}${suffix ? `-${suffix}` : ''}.pdf`
 
-  return new NextResponse(file, {
+  return new NextResponse(new Uint8Array(file), {
     status: 200,
     headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${filename}"`,
       'Cache-Control': 'no-store',
     },

@@ -141,11 +141,14 @@ export default function TambahPelangganPage() {
               <input
                 name="no_hp"
                 type="tel"
+                inputMode="numeric"
+                pattern="[0-9]+"
+                maxLength={12}
                 required
                 placeholder="08xxxxxxxxxx"
                 onInput={(event) => {
                   const input = event.currentTarget
-                  input.value = input.value.replace(/\D/g, '')
+                  input.value = input.value.replace(/\D/g, '').slice(0, 12)
                 }}
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
               />

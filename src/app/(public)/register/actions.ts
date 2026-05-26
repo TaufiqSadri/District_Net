@@ -21,7 +21,7 @@ export async function registerAction(formData: FormData) {
   const data: RegisterFormData = {
     nama_lengkap: formData.get('nama_lengkap') as string,
     email: formData.get('email') as string,
-    no_hp: formData.get('no_hp') as string,
+    no_hp: String(formData.get('no_hp') ?? '').trim().replace(/\D/g, ''),
     alamat_pemasangan: formData.get('alamat_pemasangan') as string,
     latitude: formData.get('latitude') ? Number(formData.get('latitude')) : null,
     longitude: formData.get('longitude') ? Number(formData.get('longitude')) : null,
@@ -36,6 +36,9 @@ export async function registerAction(formData: FormData) {
     !data.paket_id
   ) {
     return { error: 'Semua field wajib diisi.' }
+  }
+  if (data.no_hp.length > 12) {
+    return { error: 'Nomor HP maksimal 12 digit.' }
   }
 
   const origin =
