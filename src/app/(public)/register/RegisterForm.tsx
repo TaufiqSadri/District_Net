@@ -2,9 +2,10 @@
 
 import { registerAction } from '@/app/(public)/register/actions'
 import type { AreaLayanan, PaketInternet } from '@/types/database'
-import { CheckCircle2, Eye, EyeOff, Loader2, MapPin, ShoppingCart, X } from 'lucide-react'
+import { CheckCircle2, ChevronDown, Eye, EyeOff, Loader2, MapPin, Search, ShoppingCart, X } from 'lucide-react'
 import Link from 'next/link'
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 type Coords = { lat: number; lng: number }
 
@@ -20,6 +21,22 @@ type ReviewData = {
   kecamatan: string
   nagari: string
   detailAlamat: string
+}
+
+type DropdownCoords = {
+  top: number
+  left: number
+  width: number
+}
+
+type AreaComboboxProps = {
+  id: string
+  label: string
+  placeholder: string
+  options: string[]
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
 }
 
 const BIAYA_INSTALASI = 600_000
@@ -64,6 +81,237 @@ function injectLeafletCss() {
 
 function formatRupiah(value: number) {
   return `Rp ${value.toLocaleString('id-ID')}`
+}
+
+function AreaCombobox({
+  id,
+  label,
+  placeholder,
+  options,
+  value,
+  onChange,
+  disabled = false,
+}: AreaComboboxProps) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const [coords, setCoords] = useState<DropdownCoords>({ top: 0, left: 0, width: 0 })
+  const [mounted, setMounted] = useState(false)
+
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const filtered = query.trim()
+    ? options.filter((option) => option.toLowerCase().includes(query.toLowerCase().trim()))
+    : options
+
+  function updateCoords() {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    setCoords({
+      top: rect.bottom + window.scrollY + 6,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    })
+  }
+
+  useEffect(() => {
+    if (!open) return
+
+    function handleOutside(event: MouseEvent) {
+      const target = event.target as Node
+      if (triggerRef.current?.contains(target)) return
+      const dropdown = document.getElementById(`${id}-dropdown`)
+      if (dropdown?.contains(target)) return
+      setOpen(false)
+      setQuery('')
+      setActiveIndex(-1)
+    }
+
+    document.addEventListener('mousedown', handleOutside)
+    window.addEventListener('scroll', updateCoords, true)
+    window.addEventListener('resize', updateCoords)
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutside)
+      window.removeEventListener('scroll', updateCoords, true)
+      window.removeEventListener('resize', updateCoords)
+    }
+  }, [open, id])
+
+  useEffect(() => {
+    if (activeIndex < 0 || !listRef.current) return
+    const item = listRef.current.children[activeIndex] as HTMLElement | null
+    item?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex])
+
+  function openDropdown() {
+    if (disabled) return
+    updateCoords()
+    setOpen(true)
+    setQuery('')
+    setActiveIndex(-1)
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  function selectOption(option: string) {
+    onChange(option)
+    setOpen(false)
+    setQuery('')
+    setActiveIndex(-1)
+  }
+
+  function clearOption(event: React.MouseEvent) {
+    event.stopPropagation()
+    onChange('')
+    setOpen(false)
+    setQuery('')
+    setActiveIndex(-1)
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setActiveIndex((current) => Math.min(current + 1, filtered.length - 1))
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActiveIndex((current) => Math.max(current - 1, 0))
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      if (activeIndex >= 0 && filtered[activeIndex]) selectOption(filtered[activeIndex])
+    }
+    if (event.key === 'Escape') {
+      setOpen(false)
+      setQuery('')
+      setActiveIndex(-1)
+    }
+  }
+
+  const dropdown = (
+    <div
+      id={`${id}-dropdown`}
+      style={{
+        position: 'absolute',
+        top: coords.top,
+        left: coords.left,
+        width: coords.width,
+        zIndex: 9999,
+      }}
+      className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
+    >
+      <div className="border-b border-gray-100 p-2">
+        <div className="relative">
+          <Search size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value)
+              setActiveIndex(-1)
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder={`Cari ${label.toLowerCase()}...`}
+            className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 pl-7 pr-3 text-sm outline-none transition focus:border-brand-purple focus:bg-white focus:ring-1 focus:ring-brand-purple/20"
+          />
+        </div>
+      </div>
+
+      <ul ref={listRef} role="listbox" aria-label={label} className="max-h-[180px] overflow-y-auto py-1">
+        {filtered.length === 0 ? (
+          <li className="px-4 py-3 text-center text-sm text-gray-400">
+            {query ? `Tidak ditemukan "${query}"` : 'Tidak ada pilihan tersedia'}
+          </li>
+        ) : (
+          filtered.map((option, index) => {
+            const isActive = index === activeIndex
+            const isSelected = option === value
+            return (
+              <li
+                key={option}
+                role="option"
+                aria-selected={isSelected}
+                onMouseDown={() => selectOption(option)}
+                onMouseEnter={() => setActiveIndex(index)}
+                className={[
+                  'flex cursor-pointer items-center justify-between px-3 py-2.5 text-sm transition-colors',
+                  isActive || isSelected
+                    ? 'bg-purple-50 text-brand-purple'
+                    : 'text-gray-700 hover:bg-purple-50 hover:text-brand-purple',
+                  isSelected ? 'font-semibold' : '',
+                ].join(' ')}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <MapPin size={12} className="shrink-0 text-gray-400" />
+                  <span className="truncate">{option}</span>
+                </span>
+                {isSelected ? <CheckCircle2 size={13} className="shrink-0 text-brand-purple" /> : null}
+              </li>
+            )
+          })
+        )}
+      </ul>
+    </div>
+  )
+
+  const hasValue = value !== ''
+
+  return (
+    <div className="relative w-full">
+      <button
+        ref={triggerRef}
+        id={id}
+        type="button"
+        onClick={openDropdown}
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={[
+          'flex h-[46px] w-full items-center justify-between gap-2 rounded-xl border px-4 text-sm font-medium transition',
+          'focus:outline-none focus:ring-2 focus:ring-brand-pink/30',
+          disabled
+            ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400'
+            : hasValue
+            ? 'cursor-pointer border-brand-purple bg-white text-gray-900 hover:border-brand-purple/80'
+            : 'cursor-pointer border-gray-200 bg-white text-gray-400 hover:border-brand-purple/50',
+        ].join(' ')}
+      >
+        <span className="flex min-w-0 flex-1 items-center gap-2">
+          <MapPin size={14} className={`shrink-0 ${hasValue ? 'text-brand-purple' : 'text-gray-400'}`} />
+          <span className="truncate">{hasValue ? value : placeholder}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          {hasValue && !disabled ? (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={clearOption}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onChange('')
+                }
+              }}
+              aria-label={`Hapus pilihan ${label}`}
+              className="grid h-5 w-5 place-items-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            >
+              <X size={12} />
+            </span>
+          ) : null}
+          <ChevronDown size={15} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </span>
+      </button>
+
+      {mounted && open ? createPortal(dropdown, document.body) : null}
+    </div>
+  )
 }
 
 export default function RegisterForm({ paketList, areaList }: RegisterFormProps) {
@@ -316,10 +564,9 @@ export default function RegisterForm({ paketList, areaList }: RegisterFormProps)
     }
   }
 
-  const inputCls = 'w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition focus:border-brand-pink focus:outline-none focus:ring-2 focus:ring-brand-pink/30'
-  const selectCls = `${inputCls} bg-white`
-  const sectionTitleCls = 'font-display text-xl font-bold text-gray-900'
-  const sectionHelpCls = 'text-sm text-gray-500'
+	  const inputCls = 'w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition focus:border-brand-pink focus:outline-none focus:ring-2 focus:ring-brand-pink/30'
+	  const sectionTitleCls = 'font-display text-xl font-bold text-gray-900'
+	  const sectionHelpCls = 'text-sm text-gray-500'
 
   return (
     <>
@@ -429,54 +676,85 @@ export default function RegisterForm({ paketList, areaList }: RegisterFormProps)
               <p className={sectionHelpCls}>Pilih titik dan isi detail alamat pemasangan.</p>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Kecamatan</label>
-                  <select
-                    name="kecamatan"
-                    required
-                    value={selectedKecamatan}
-                    onChange={(ev) => {
-                      setSelectedKecamatan(ev.target.value)
-                      setSelectedNagari('')
-                    }}
-                    disabled={!kecamatanOptions.length}
-                    className={selectCls}
-                  >
-                    <option value="">Pilih kecamatan</option>
-                    {kecamatanOptions.map((kecamatan) => (
-                      <option key={kecamatan} value={kecamatan}>
-                        {kecamatan}
-                      </option>
-                    ))}
-                  </select>
-                  {!kecamatanOptions.length ? (
-                    <p className="mt-1 text-xs text-red-600">Data kecamatan belum tersedia.</p>
-                  ) : null}
-                </div>
+	            <div className="space-y-4">
+	              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+	                <div className="mb-3 flex items-center gap-2">
+	                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-purple-100 text-brand-purple">
+	                    <MapPin size={15} />
+	                  </span>
+	                  <div>
+	                    <p className="text-sm font-bold text-gray-900">Area Layanan</p>
+	                    <p className="text-xs text-gray-500">Pilih Kecamatan dan Nagari sesuai jangkauan Distric Net.</p>
+	                  </div>
+	                </div>
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Nagari</label>
-                  <select
-                    name="nagari"
-                    required
-                    value={selectedNagari}
-                    onChange={(ev) => setSelectedNagari(ev.target.value)}
-                    disabled={!selectedKecamatan || !nagariOptions.length}
-                    className={selectCls}
-                  >
-                    <option value="">
-                      {selectedKecamatan ? 'Pilih nagari' : 'Pilih kecamatan dulu'}
-                    </option>
-                    {nagariOptions.map((nagari) => (
-                      <option key={nagari} value={nagari}>
-                        {nagari}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+	                <div className="grid gap-4 sm:grid-cols-2">
+	                  <div>
+	                    <label htmlFor="register-kecamatan" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+	                      Kecamatan
+	                    </label>
+	                    <AreaCombobox
+	                      id="register-kecamatan"
+	                      label="Kecamatan"
+	                      placeholder="Pilih kecamatan..."
+	                      options={kecamatanOptions}
+	                      value={selectedKecamatan}
+	                      onChange={(value) => {
+	                        setSelectedKecamatan(value)
+	                        setSelectedNagari('')
+	                      }}
+	                      disabled={!kecamatanOptions.length}
+	                    />
+	                    {!kecamatanOptions.length ? (
+	                      <p className="mt-1 text-xs text-red-600">Data kecamatan belum tersedia.</p>
+	                    ) : null}
+	                  </div>
+
+	                  <div>
+	                    <label
+	                      htmlFor="register-nagari"
+	                      className={`mb-1 block text-xs font-semibold uppercase tracking-wider ${
+	                        selectedKecamatan ? 'text-gray-400' : 'text-gray-300'
+	                      }`}
+	                    >
+	                      Nagari / Desa
+	                    </label>
+	                    <AreaCombobox
+	                      id="register-nagari"
+	                      label="Nagari"
+	                      placeholder={selectedKecamatan ? 'Pilih nagari...' : 'Pilih kecamatan dulu'}
+	                      options={nagariOptions}
+	                      value={selectedNagari}
+	                      onChange={setSelectedNagari}
+	                      disabled={!selectedKecamatan || !nagariOptions.length}
+	                    />
+	                  </div>
+	                </div>
+
+	                {!selectedKecamatan ? (
+	                  <p className="mt-2 text-xs text-gray-400">
+	                    Contoh area:{' '}
+	                    {areaList.slice(0, 3).map((area, index) => (
+	                      <span key={`${area.kecamatan}-${area.nagari}`}>
+	                        <span className="font-medium text-gray-500">{area.nagari}</span>
+	                        {index < Math.min(areaList.length, 3) - 1 ? ', ' : ''}
+	                      </span>
+	                    ))}
+	                  </p>
+	                ) : null}
+
+	                {selectedKecamatan && selectedNagari ? (
+	                  <div className="mt-3 flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+	                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+	                    <div>
+	                      <p className="text-sm font-bold text-green-800">Area pemasangan tersedia.</p>
+	                      <p className="mt-0.5 text-xs text-green-600">
+	                        Nagari {selectedNagari}, Kecamatan {selectedKecamatan}, Kabupaten Padang Pariaman.
+	                      </p>
+	                    </div>
+	                  </div>
+	                ) : null}
+	              </div>
 
               <div>
                 <p className="mb-2 text-sm font-medium text-gray-700">Lokasi Pemasangan</p>
