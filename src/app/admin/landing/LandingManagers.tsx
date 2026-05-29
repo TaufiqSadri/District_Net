@@ -1,10 +1,30 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { Pencil, Trash2, Plus, X, ToggleLeft, ToggleRight, Loader2, ImageIcon, UploadCloud, Link2, CheckCircle2, Search } from 'lucide-react'
-import Image from 'next/image'
+import {
+  Ban,
+  Check,
+  CheckCircle2,
+  Gauge,
+  Loader2,
+  MapPin,
+  MoreVertical,
+  Pencil,
+  Rocket,
+  Search,
+  Trash2,
+  UploadCloud,
+  X,
+  Zap,
+} from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import type { Promo, Faq, AreaLayanan, Iklan, PaketInternet } from '@/types/database'
+import {
+  ActionButtonGroup,
+  EmptyCreateCard,
+  SectionHeader,
+  StatusBadge,
+} from '@/components/admin/landing/LandingShared'
 import {
   createPromo, updatePromo, deletePromo, togglePromoStatus,
   createFaq, updateFaq, deleteFaq,
@@ -45,6 +65,99 @@ const IKLAN_BUCKET = 'iklan-banners'
 const PAKET_BUCKET = 'paket-images'
 const MAX_SIZE = 5 * 1024 * 1024
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
+function EditButton({ onClick, label = 'Edit' }: { onClick: () => void; label?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-5 text-[15px] font-semibold text-slate-700 transition hover:bg-slate-50"
+    >
+      <Pencil size={15} />
+      {label}
+    </button>
+  )
+}
+
+function ToggleButton({
+  active,
+  onClick,
+  compact = false,
+}: {
+  active: boolean
+  onClick: () => void
+  compact?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 text-[15px] font-semibold text-amber-700 transition hover:bg-amber-100 ${
+        compact ? 'px-4' : 'px-5'
+      }`}
+    >
+      <Ban size={15} />
+      {active ? 'Nonaktifkan' : 'Aktifkan'}
+    </button>
+  )
+}
+
+function DeleteButton({
+  onClick,
+  label = 'Hapus',
+  iconOnly = false,
+}: {
+  onClick: () => void
+  label?: string
+  iconOnly?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 text-[15px] font-semibold text-red-700 transition hover:bg-red-100 ${
+        iconOnly ? 'w-10 px-0' : 'px-5'
+      }`}
+      aria-label={label}
+    >
+      <Trash2 size={15} />
+      {iconOnly ? null : label}
+    </button>
+  )
+}
+
+function getPackageLabel(paket: PaketInternet, index: number) {
+  const name = paket.nama_paket.toLowerCase()
+  if (name.includes('premium') || name.includes('enterprise') || index >= 2) return 'ENTERPRISE'
+  if (name.includes('standar') || name.includes('popular') || index === 1) return 'MOST POPULAR'
+  return 'ENTRY LEVEL'
+}
+
+function getPackageFeatures(paket: PaketInternet) {
+  if (paket.benefits?.length > 0) return paket.benefits
+
+  if (paket.kecepatan_mbps >= 100) {
+    return [
+      `Kecepatan tinggi ${paket.kecepatan_mbps} Mbps`,
+      'Dukungan prioritas 24/7',
+      'Bebas hambatan & Latency rendah',
+    ]
+  }
+
+  if (paket.kecepatan_mbps >= 50) {
+    return [
+      `Kecepatan hingga ${paket.kecepatan_mbps} Mbps`,
+      'Optimal untuk 8-12 perangkat',
+      'Bisa digunakan oleh banyak user',
+    ]
+  }
+
+  return [
+    `Kecepatan hingga ${paket.kecepatan_mbps} Mbps`,
+    'Ideal untuk 1-4 perangkat',
+    'Kuota tidak terbatas',
+  ]
+}
 
 // ── IKLAN IMAGE UPLOADER ───────────────────────────────────────────────────────
 function IklanImageUploader({
@@ -301,86 +414,48 @@ export function IklanManager({ iklans }: { iklans: Iklan[] }) {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          {iklans.length} banner · <span className="text-green-600 font-semibold">{activeCount} aktif</span>
-        </p>
-        <button type="button" onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900">
-          <Plus size={15} /> Tambah Iklan
-        </button>
-      </div>
+      <SectionHeader
+        summary={`${iklans.length} banner`}
+        activeText={`${activeCount} aktif`}
+        buttonLabel="Tambah Iklan"
+        onAdd={openCreate}
+      />
 
       {iklans.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16 text-center">
-          <ImageIcon size={36} className="mb-3 text-gray-300" />
-          <p className="text-sm font-semibold text-gray-500">Belum ada iklan banner</p>
-          <p className="mt-1 text-xs text-gray-400">Tambah iklan untuk ditampilkan di slider halaman utama.</p>
+        <div className="mt-6">
+          <EmptyCreateCard
+            title="Buat Iklan Baru"
+            description="Tambah banner untuk ditampilkan sebagai slider di halaman utama website."
+            onClick={openCreate}
+          />
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
           {iklans.map((iklan) => (
-            <div key={iklan.id} className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-              <div className="relative h-36 w-full bg-gray-100">
+            <div key={iklan.id} className="overflow-hidden rounded-[18px] border border-[#e5e7eb] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+              <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
                 <img
                   src={iklan.image_url}
                   alt={iklan.judul}
                   className="h-full w-full object-cover"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/30 rounded-t-xl">
-                  <ImageIcon size={24} className="text-white" />
-                </div>
-                <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-bold text-white">
+                <span className="absolute left-4 top-4 rounded-full bg-black/70 px-2.5 py-1 text-xs font-bold text-white">
                   #{iklan.urutan}
                 </span>
               </div>
 
-              <div className="p-4">
-                <div className="mb-2 flex items-start justify-between gap-2">
-                  <p className="font-semibold text-gray-900 text-sm leading-tight">{iklan.judul}</p>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${iklan.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                    {iklan.is_active ? 'Aktif' : 'Nonaktif'}
-                  </span>
+              <div className="p-6">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <h3 className="text-[18px] font-bold text-slate-900">{iklan.judul || 'Gambar'}</h3>
+                  <StatusBadge active={iklan.is_active} />
                 </div>
 
-                {iklan.deskripsi ? (
-                  <p className="mb-2 text-xs text-gray-500 line-clamp-2">{iklan.deskripsi}</p>
-                ) : null}
-
-                {iklan.link_url ? (
-                  <a
-                    href={iklan.link_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-brand-purple hover:underline"
-                  >
-                    <Link2 size={11} />
-                    {iklan.link_url.length > 30 ? iklan.link_url.slice(0, 30) + '…' : iklan.link_url}
-                  </a>
-                ) : null}
-
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => openEdit(iklan)}
-                    className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-                    <Pencil size={12} /> Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(iklan)}
-                    className="flex items-center gap-1 rounded-lg border border-yellow-200 px-3 py-1.5 text-xs font-medium text-yellow-700 hover:bg-yellow-50"
-                  >
-                      {iklan.is_active ? <ToggleRight size={12} /> : <ToggleLeft size={12} />}
-                      {iklan.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(iklan)}
-                    className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 size={12} /> Hapus
-                  </button>
-                </div>
+                <ActionButtonGroup>
+                  <EditButton onClick={() => openEdit(iklan)} />
+                  <ToggleButton active={iklan.is_active} onClick={() => handleToggle(iklan)} compact />
+                  <DeleteButton onClick={() => handleDelete(iklan)} iconOnly label="Hapus iklan" />
+                </ActionButtonGroup>
               </div>
             </div>
           ))}
@@ -588,112 +663,78 @@ export function PaketManager({ paketList }: { paketList: PaketInternet[] }) {
     })
   }
 
+  const activeCount = paketList.filter((p) => p.is_active).length
+
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">{paketList.length} paket terdaftar</p>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900"
-        >
-          <Plus size={15} /> Tambah Paket
-        </button>
-      </div>
+      <SectionHeader
+        summary={`${paketList.length} Paket`}
+        activeText={`${activeCount} aktif`}
+        buttonLabel="Tambah Paket"
+        onAdd={openCreate}
+      />
 
       {paketList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16 text-center">
-          <ImageIcon size={36} className="mb-3 text-gray-300" />
-          <p className="text-sm font-semibold text-gray-500">Belum ada paket internet</p>
-          <p className="mt-1 text-xs text-gray-400">Tambah paket untuk ditampilkan di landing page.</p>
+        <div className="mt-6">
+          <EmptyCreateCard
+            title="Buat Paket Baru"
+            description="Tambahkan paket internet yang akan tampil pada halaman package landing page."
+            onClick={openCreate}
+          />
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {paketList.map((p) => (
-            <div key={p.id} className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-              {/* Gambar paket */}
-              <div className="relative h-36 w-full bg-gray-100">
-                {p.image_url ? (
-                  <img
-                    src={p.image_url}
-                    alt={p.nama_paket}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                      const parent = e.currentTarget.parentElement
-                      if (parent) {
-                        const placeholder = parent.querySelector('.img-placeholder') as HTMLElement | null
-                        if (placeholder) placeholder.style.display = 'flex'
-                      }
-                    }}
-                  />
-                ) : null}
-                {/* Placeholder shown when no image or image fails to load */}
-                <div
-                  className="img-placeholder absolute inset-0 flex flex-col items-center justify-center gap-1 bg-gray-50"
-                  style={{ display: p.image_url ? 'none' : 'flex' }}
-                >
-                  <ImageIcon size={28} className="text-gray-300" />
-                  <span className="text-xs text-gray-400">Belum ada gambar</span>
-                </div>
+        <div className="mt-6 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+          {paketList.map((p, index) => {
+            const label = getPackageLabel(p, index)
+            const VisualIcon = label === 'MOST POPULAR' ? Zap : label === 'ENTERPRISE' ? Rocket : Gauge
+            const features = getPackageFeatures(p)
+
+            return (
+            <div
+              key={p.id}
+              className={`overflow-hidden rounded-[18px] border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] ${
+                label === 'MOST POPULAR' ? 'border-violet-300 ring-1 ring-violet-200' : 'border-[#e5e7eb]'
+              }`}
+            >
+              <div className="relative flex h-40 items-center justify-center bg-[#b9b4b3]">
+                <span className="absolute left-5 top-4 rounded-full border border-white/70 bg-white/25 px-3 py-1 text-[11px] font-bold uppercase text-white">
+                  {label}
+                </span>
+                <VisualIcon size={76} className="text-white/25" />
               </div>
 
-              <div className="p-5">
-                <div className="mb-2 flex items-start justify-between gap-2">
+              <div className="p-6">
+                <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{p.nama_paket}</h3>
-                    <p className="text-xs text-gray-500">{p.kecepatan_mbps} Mbps</p>
+                    <h3 className="text-[27px] font-bold leading-tight text-slate-900">{p.nama_paket}</h3>
+                    <p className="mt-1 text-[18px] font-bold text-[#4f2cff]">{p.kecepatan_mbps} Mbps</p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${p.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                    {p.is_active ? 'Aktif' : 'Nonaktif'}
-                  </span>
+                  <StatusBadge active={p.is_active} />
                 </div>
 
-                <p className="mb-2 text-2xl font-bold text-brand-purple">
-                  {rupiah(p.harga)}<span className="text-xs font-normal text-gray-400">/bln</span>
+                <p className="text-[28px] font-bold leading-tight text-slate-900">
+                  {rupiah(p.harga)}<span className="text-sm font-normal text-slate-500">/bln</span>
                 </p>
 
-                {p.deskripsi ? (
-                  <p className="mb-3 text-xs leading-relaxed text-gray-500 line-clamp-2">{p.deskripsi}</p>
-                ) : null}
+                <ul className="mt-6 space-y-4 text-[15px] leading-6 text-slate-600">
+                  {features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3">
+                      <Check size={17} className="mt-0.5 flex-shrink-0 rounded-full border border-[#4f2cff] p-[2px] text-[#4f2cff]" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
 
-                {p.benefits?.length > 0 && (
-                  <ul className="mb-3 space-y-1">
-                    {p.benefits.map((b) => (
-                      <li key={b} className="text-xs text-gray-500">• {b}</li>
-                    ))}
-                  </ul>
-                )}
+                <div className="my-6 border-t border-[#e5e7eb]" />
 
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openEdit(p)}
-                    className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    <Pencil size={12} /> Edit
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(p)}
-                    className="flex items-center gap-1 rounded-lg border border-yellow-200 px-3 py-1.5 text-xs font-medium text-yellow-700 hover:bg-yellow-50"
-                  >
-                      {p.is_active ? <ToggleRight size={12} /> : <ToggleLeft size={12} />}
-                      {p.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(p)}
-                    className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 size={12} /> Hapus
-                  </button>
-                </div>
+                <ActionButtonGroup>
+                  <EditButton onClick={() => openEdit(p)} />
+                  <ToggleButton active={p.is_active} onClick={() => handleToggle(p)} compact />
+                  <DeleteButton onClick={() => handleDelete(p)} iconOnly label="Hapus paket" />
+                </ActionButtonGroup>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
 
@@ -852,51 +893,44 @@ export function PromoManager({ promos }: { promos: Promo[] }) {
   }
 
   const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20'
+  const activeCount = promos.filter((p) => p.is_active).length
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">{promos.length} promo aktif</p>
-        <button type="button" onClick={() => setModal('create')}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900">
-          <Plus size={15} /> Tambah Promo
-        </button>
-      </div>
+      <SectionHeader
+        summary={`${promos.length} Promo`}
+        activeText={`${activeCount} aktif`}
+        buttonLabel="Tambah Promo"
+        onAdd={() => setModal('create')}
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid gap-7 lg:grid-cols-2">
         {promos.map((p) => (
-          <div key={p.id} className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-brand-purple">{p.tag}</span>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${p.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                {p.is_active ? 'Aktif' : 'Nonaktif'}
-              </span>
+          <div key={p.id} className="rounded-[18px] border border-[#e5e7eb] bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+            <div className="mb-7 flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-violet-100 px-3 py-1 text-[11px] font-bold uppercase text-[#5b2fd6]">
+                  {p.tag}
+                </span>
+                <StatusBadge active={p.is_active} />
+              </div>
+              <MoreVertical size={20} className="text-slate-500" />
             </div>
-            <h3 className="mt-2 font-semibold text-gray-900">{p.title}</h3>
-            <p className="mt-1 text-xs leading-relaxed text-gray-500">{p.description}</p>
-            <div className="mt-4 flex gap-2">
-              <button type="button" onClick={() => setModal(p)}
-                className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-                <Pencil size={12} /> Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => handleToggle(p)}
-                className="flex items-center gap-1 rounded-lg border border-yellow-200 px-3 py-1.5 text-xs font-medium text-yellow-700 hover:bg-yellow-50"
-              >
-                  {p.is_active ? <ToggleRight size={12} /> : <ToggleLeft size={12} />}
-                  {p.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(p)}
-                className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-              >
-                <Trash2 size={12} /> Hapus
-              </button>
-            </div>
+            <h3 className="text-[18px] font-semibold text-slate-900">{p.title}</h3>
+            <p className="mt-3 min-h-[84px] text-[17px] leading-7 text-slate-500">{p.description}</p>
+            <div className="my-6 border-t border-[#e5e7eb]" />
+            <ActionButtonGroup>
+              <EditButton onClick={() => setModal(p)} />
+              <ToggleButton active={p.is_active} onClick={() => handleToggle(p)} />
+              <DeleteButton onClick={() => handleDelete(p)} />
+            </ActionButtonGroup>
           </div>
         ))}
+        <EmptyCreateCard
+          title="Buat Promo Baru"
+          description="Tambahkan penawaran menarik untuk menarik lebih banyak pelanggan"
+          onClick={() => setModal('create')}
+        />
       </div>
 
       {modal === 'create' && (
@@ -978,35 +1012,33 @@ export function FaqManager({ faqs }: { faqs: Faq[] }) {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">{faqs.length} pertanyaan</p>
-        <button type="button" onClick={() => setModal('create')}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900">
-          <Plus size={15} /> Tambah FAQ
-        </button>
-      </div>
+      <SectionHeader
+        summary={`${faqs.length} Pertanyaan`}
+        buttonLabel="Tambah Pertanyaan"
+        onAdd={() => setModal('create')}
+      />
 
-      <div className="space-y-3">
+      <div className="mt-6 space-y-5">
         {faqs.map((f, i) => (
-          <div key={f.id} className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <p className="text-xs font-bold text-brand-purple">#{i + 1}</p>
-                <p className="mt-1 font-semibold text-gray-900">{f.question}</p>
-                <p className="mt-1 text-sm leading-relaxed text-gray-500">{f.answer}</p>
-              </div>
-              <div className="flex shrink-0 gap-2">
-                <button type="button" onClick={() => setModal(f)}
-                  className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-                  <Pencil size={12} /> Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirm({ id: f.id, itemName: f.question })}
-                  className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                >
-                  <Trash2 size={12} /> Hapus
-                </button>
+          <div key={f.id} className="rounded-[18px] border border-[#e5e7eb] bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100 text-[26px] font-bold text-[#5b2fd6]">
+                #{i + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[20px] font-bold leading-7 text-slate-900">{f.question}</h3>
+                <p className="mt-2 text-[15px] leading-7 text-slate-600">{f.answer}</p>
+                <div className="mt-7 flex flex-wrap gap-4">
+                  <EditButton onClick={() => setModal(f)} />
+                  <button
+                    type="button"
+                    onClick={() => setConfirm({ id: f.id, itemName: f.question })}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl px-3 text-[16px] font-semibold text-red-700 transition hover:bg-red-50"
+                  >
+                    <Trash2 size={15} />
+                    Hapus
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1063,8 +1095,9 @@ export function FaqManager({ faqs }: { faqs: Faq[] }) {
 // ── AREA LAYANAN TAB ──────────────────────────────────────────────────────────
 export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[] }) {
   const [showForm, setShowForm] = useState(false)
+  const [createDefaults, setCreateDefaults] = useState<{ kecamatan: string; nagari: string }>({ kecamatan: '', nagari: '' })
   const [search, setSearch] = useState('')
-  const [confirm, setConfirm] = useState<{ id: string; itemName: string } | null>(null)
+  const [confirm, setConfirm] = useState<{ ids: string[]; itemName: string; message: string } | null>(null)
   const [pending, start] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
   const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20'
@@ -1083,40 +1116,49 @@ export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[]
   }, {})
 
   function handleCreate(fd: FormData) {
-    start(async () => { await createAreaLayanan(fd); setShowForm(false) })
+    start(async () => {
+      await createAreaLayanan(fd)
+      setShowForm(false)
+      setCreateDefaults({ kecamatan: '', nagari: '' })
+    })
   }
 
   function handleDelete() {
     if (!confirm) return
     start(async () => {
-      await deleteAreaLayanan(confirm.id)
+      for (const id of confirm.ids) {
+        await deleteAreaLayanan(id)
+      }
       setConfirm(null)
     })
   }
 
+  function openCreate(kecamatan = '') {
+    setCreateDefaults({ kecamatan, nagari: '' })
+    setShowForm(true)
+  }
+
+  const totalKecamatan = new Set(areas.map((area) => area.kecamatan)).size
+
   return (
     <>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-gray-500">
-          {filteredAreas.length} dari {areas.length} nagari di {Object.keys(grouped).length} kecamatan
-        </p>
-        <button type="button" onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-pink px-4 py-2 text-sm font-semibold text-white hover:bg-pink-900">
-          <Plus size={15} /> Tambah Area
-        </button>
-      </div>
+      <SectionHeader
+        summary={`${areas.length} Nagari dari ${totalKecamatan} Kecamatan`}
+        buttonLabel="Tambah Area"
+        onAdd={() => openCreate()}
+      />
 
-      <div className="relative mb-5">
+      <div className="relative mt-5">
         <Search
-          size={15}
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          size={20}
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
         />
         <input
           type="text"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cari kecamatan atau nagari..."
-          className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-10 text-sm outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20"
+          className="h-12 w-full rounded-xl border border-slate-700 bg-white pl-12 pr-10 text-[15px] outline-none transition placeholder:text-slate-500 focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20"
         />
         {search ? (
           <button
@@ -1131,43 +1173,87 @@ export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[]
       </div>
 
       {showForm && (
-        <form ref={formRef} action={handleCreate} className="mb-5 rounded-xl border border-dashed border-brand-pink bg-pink-50 p-5">
+        <form ref={formRef} action={handleCreate} className="mt-5 rounded-[18px] border border-dashed border-brand-purple bg-violet-50 p-5">
           <p className="mb-3 text-sm font-semibold text-gray-700">Tambah Nagari Baru</p>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="mb-1 block text-xs font-semibold text-gray-600">Kecamatan</label>
-              <input name="kecamatan" required className={inputCls} placeholder="Batang Anai" /></div>
+              <input name="kecamatan" required defaultValue={createDefaults.kecamatan} className={inputCls} placeholder="Batang Anai" /></div>
             <div><label className="mb-1 block text-xs font-semibold text-gray-600">Nagari / Kelurahan</label>
-              <input name="nagari" required className={inputCls} placeholder="Lubuk Alung" /></div>
+              <input name="nagari" required defaultValue={createDefaults.nagari} className={inputCls} placeholder="Lubuk Alung" /></div>
           </div>
           <div className="mt-3 flex justify-end gap-2">
-            <button type="button" onClick={() => setShowForm(false)} className="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100">Batal</button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(false)
+                setCreateDefaults({ kecamatan: '', nagari: '' })
+              }}
+              className="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100"
+            >
+              Batal
+            </button>
             <SubmitBtn label="Tambah" pending={pending} />
           </div>
         </form>
       )}
 
-      <div className="space-y-4">
+      <div className="mt-6 space-y-6">
         {Object.entries(grouped).length > 0 ? Object.entries(grouped).map(([kec, nagariList]) => (
-          <div key={kec} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p className="mb-3 text-sm font-bold text-brand-purple">Kec. {kec}</p>
-            <div className="flex flex-wrap gap-2">
+          <div key={kec} className="overflow-hidden rounded-[18px] border border-[#e5e7eb] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+            <div className="flex items-center justify-between gap-4 border-b border-[#e5e7eb] bg-[#eef2ff] px-6 py-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-[#e5e7eb] bg-white text-brand-purple">
+                  <MapPin size={15} />
+                </span>
+                <p className="truncate text-[20px] font-bold text-[#4f2cff]">Kec. {kec}</p>
+              </div>
+              <div className="flex items-center gap-4 text-slate-600">
+                <button type="button" onClick={() => openCreate(kec)} className="transition hover:text-brand-purple" aria-label={`Tambah nagari di ${kec}`}>
+                  <Pencil size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirm({
+                    ids: nagariList.map((area) => area.id),
+                    itemName: `Kec. ${kec}`,
+                    message: 'Semua nagari pada kecamatan ini akan dihapus dari daftar jangkauan.',
+                  })}
+                  className="transition hover:text-red-600"
+                  aria-label={`Hapus kecamatan ${kec}`}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3 px-6 py-6">
               {nagariList.map((a) => (
-                <div key={a.id} className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1 text-xs font-medium text-gray-700">
+                <div key={a.id} className="flex items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-4 py-2 text-[16px] font-medium text-slate-600">
                   {a.nagari}
                   <button
                     type="button"
-                    onClick={() => setConfirm({ id: a.id, itemName: `${a.nagari} - Kec. ${a.kecamatan}` })}
-                    className="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-red-100 hover:text-red-600"
+                    onClick={() => setConfirm({
+                      ids: [a.id],
+                      itemName: `${a.nagari} - Kec. ${a.kecamatan}`,
+                      message: 'Area layanan ini akan dihapus permanen dari daftar jangkauan.',
+                    })}
+                    className="rounded-full p-0.5 text-slate-500 hover:bg-red-100 hover:text-red-600"
                     title="Hapus"
                   >
-                    <X size={10} />
+                    <X size={14} />
                   </button>
                 </div>
               ))}
+              <button
+                type="button"
+                onClick={() => openCreate(kec)}
+                className="rounded-xl border border-dashed border-violet-300 px-4 py-2 text-[16px] font-medium text-[#5b2fd6] transition hover:bg-violet-50"
+              >
+                + Tambah Nagari
+              </button>
             </div>
           </div>
         )) : (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-10 text-center text-sm text-gray-400">
+          <div className="rounded-[18px] border border-dashed border-gray-200 bg-white px-4 py-10 text-center text-sm text-gray-400">
             Area layanan tidak ditemukan.
           </div>
         )}
@@ -1176,7 +1262,7 @@ export function AreaManager({ areas }: { areas: (AreaLayanan & { id: string })[]
         open={!!confirm}
         title="Konfirmasi Area Layanan"
         itemName={confirm?.itemName ?? ''}
-        message="Area layanan ini akan dihapus permanen dari daftar jangkauan."
+        message={confirm?.message}
         confirmLabel="Ya, Hapus"
         pending={pending}
         onCancel={() => setConfirm(null)}
