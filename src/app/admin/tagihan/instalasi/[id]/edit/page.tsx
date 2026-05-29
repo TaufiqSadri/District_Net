@@ -24,7 +24,7 @@ export default async function EditTagihanInstalasiPage({ params }: { params: { i
 
       <div className="rounded-2xl bg-white p-6 shadow-card md:p-8">
         <div className="mb-8">
-          <h1 className="font-display text-xl font-bold text-gray-900">Edit Tagihan Instalasi</h1>
+          <h1 className="text-xl font-bold text-gray-900">Edit Tagihan Instalasi</h1>
           <p className="mt-1 text-sm text-gray-500">
             Perbarui nominal, status, dan tanggal jatuh tempo tagihan instalasi.
           </p>

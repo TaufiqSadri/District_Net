@@ -68,7 +68,7 @@ export default function TambahPelangganPage() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <MailCheck size={28} className="text-green-600" />
         </div>
-        <h2 className="font-display text-xl font-bold text-gray-900">Undangan Pelanggan Terkirim!</h2>
+        <h2 className="text-xl font-bold text-gray-900">Undangan Pelanggan Terkirim!</h2>
         <p className="mt-2 text-sm text-gray-500">
           Data pelanggan tersimpan, tagihan instalasi dibuat, dan email aktivasi sudah dikirim untuk membuat password.
         </p>
@@ -108,7 +108,7 @@ export default function TambahPelangganPage() {
 
       <div className="rounded-2xl bg-white p-6 shadow-card md:p-8">
         <div className="mb-8">
-          <h1 className="font-display text-xl font-bold text-gray-900">Tambah Pelanggan Baru</h1>
+          <h1 className="text-xl font-bold text-gray-900">Tambah Pelanggan Baru</h1>
           <p className="mt-1 text-sm text-gray-500">
             Isi data pelanggan, pilih paket, dan tentukan periode awal. Layanan aktif setelah instalasi selesai.
           </p>

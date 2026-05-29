@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Nunito, Poppins } from 'next/font/google'
+import { Nunito, Poppins, Source_Sans_3 } from 'next/font/google'
 import './globals.css'
 
 const nunito = Nunito({
@@ -12,6 +12,13 @@ const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800', '900'],
   variable: '--font-poppins',
+  display: 'swap',
+})
+
+const sourceSansPro = Source_Sans_3({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-source-sans-pro',
   display: 'swap',
 })
 
@@ -32,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="id" className={`${nunito.variable} ${poppins.variable}`}>
+    <html lang="id" className={`${nunito.variable} ${poppins.variable} ${sourceSansPro.variable}`}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   )
