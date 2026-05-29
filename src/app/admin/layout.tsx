@@ -1,4 +1,4 @@
-import SidebarAdmin from '@/components/SidebarAdmin'
+import AdminLayout from '@/components/admin/dashboard/AdminLayout'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -28,7 +28,7 @@ const getBadgeCounts = unstable_cache(
   { revalidate: 30 },
 )
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminRootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -36,11 +36,28 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user || user.user_metadata?.role !== 'admin') redirect('/login')
 
   const { pendingCount, paymentPendingCount } = await getBadgeCounts()
+  const metadata = user.user_metadata as {
+    nama_lengkap?: string
+    full_name?: string
+    avatar_url?: string
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 md:flex">
-      <SidebarAdmin pendingCount={pendingCount} paymentPendingCount={paymentPendingCount} />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
-    </div>
+    <AdminLayout
+      pendingCount={pendingCount}
+      paymentPendingCount={paymentPendingCount}
+      user={{
+        name:
+          metadata.nama_lengkap ??
+          metadata.full_name ??
+          user.email?.split('@')[0] ??
+          'Admin District',
+        email: user.email ?? undefined,
+        roleLabel: 'Super Administrator',
+        avatarUrl: metadata.avatar_url ?? null,
+      }}
+    >
+      {children}
+    </AdminLayout>
   )
 }
