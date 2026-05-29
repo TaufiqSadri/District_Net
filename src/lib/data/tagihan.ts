@@ -82,6 +82,13 @@ type TagihanStatsRow = {
   jatuh_tempo: string | null
 }
 
+type PelangganBillingFilterRow = {
+  id: string
+  nama_lengkap: string | null
+  email: string | null
+  no_hp: string | null
+}
+
 function isOverdue(tagihan: {
   jatuh_tempo: string | null
   status_tagihan: string
@@ -118,6 +125,52 @@ function aggregateTagihanStats(rows: TagihanStatsRow[] | null): TagihanStats {
   }
 
   return stats
+}
+
+function matchesPelangganSearch(row: PelangganBillingFilterRow, searchTerm: string) {
+  if (!searchTerm) return true
+
+  const id = row.id.toLowerCase()
+  const compactId = id.replace(/-/g, '')
+  const displayId = `dn${compactId.slice(0, 6)}`
+  const normalizedSearch = searchTerm
+    .replace(/^#/, '')
+    .replace(/^dn-?/, 'dn')
+    .replace(/[^a-z0-9@.]/g, '')
+
+  return (
+    (row.nama_lengkap ?? '').toLowerCase().includes(searchTerm) ||
+    (row.email ?? '').toLowerCase().includes(searchTerm) ||
+    (row.no_hp ?? '').toLowerCase().includes(searchTerm) ||
+    id.includes(searchTerm) ||
+    compactId.includes(normalizedSearch.replace(/^dn/, '')) ||
+    displayId.includes(normalizedSearch)
+  )
+}
+
+async function resolvePelangganIdsForBilling({
+  admin,
+  search,
+}: {
+  admin: ReturnType<typeof createAdminClient>
+  search: string
+}) {
+  const searchTerm = search.trim().toLowerCase()
+
+  if (!searchTerm) return null
+
+  const { data, error } = await admin
+    .from('pelanggan')
+    .select('id, nama_lengkap, email, no_hp')
+
+  if (error) {
+    console.error('resolvePelangganIdsForBilling error:', error)
+    return []
+  }
+
+  return ((data ?? []) as PelangganBillingFilterRow[])
+    .filter((row) => matchesPelangganSearch(row, searchTerm))
+    .map((row) => row.id)
 }
 
 export async function getTagihanStats(): Promise<TagihanStats> {
@@ -174,19 +227,12 @@ export async function getAllTagihan({
   let pelangganIds: string[] | null = null
   if (pelangganId) {
     pelangganIds = [pelangganId]
-  } else if (search.trim()) {
-    const { data: matched, error: searchErr } = await admin
-      .from('pelanggan')
-      .select('id')
-      .ilike('nama_lengkap', `%${search}%`)
-
-    if (searchErr) {
-      console.error('getAllTagihan search error:', searchErr)
-      return empty
-    }
-
-    pelangganIds = (matched ?? []).map((p) => p.id)
-    if (pelangganIds.length === 0) return empty
+  } else {
+    pelangganIds = await resolvePelangganIdsForBilling({
+      admin,
+      search,
+    })
+    if (pelangganIds && pelangganIds.length === 0) return empty
   }
 
   // Satu query dengan JOIN ke pelanggan dan pembayaran sekaligus
@@ -301,19 +347,12 @@ export async function getAllTagihanInstalasi({
   let pelangganIds: string[] | null = null
   if (pelangganId) {
     pelangganIds = [pelangganId]
-  } else if (search.trim()) {
-    const { data: matched, error: searchErr } = await admin
-      .from('pelanggan')
-      .select('id')
-      .ilike('nama_lengkap', `%${search}%`)
-
-    if (searchErr) {
-      console.error('getAllTagihanInstalasi search error:', searchErr)
-      return empty
-    }
-
-    pelangganIds = (matched ?? []).map((p) => p.id)
-    if (pelangganIds.length === 0) return empty
+  } else {
+    pelangganIds = await resolvePelangganIdsForBilling({
+      admin,
+      search,
+    })
+    if (pelangganIds && pelangganIds.length === 0) return empty
   }
 
   let baseQuery = admin.from('tagihan_instalasi').select(
