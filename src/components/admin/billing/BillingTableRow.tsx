@@ -5,7 +5,7 @@ import type {
 } from '@/lib/data/tagihan'
 import ActionMenuButton from '@/components/admin/billing/ActionMenuButton'
 import ProofButton from '@/components/admin/billing/ProofButton'
-import AdminStatusBadge from '@/components/admin/shared/AdminStatusBadge'
+import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
 import { billingStatusConfig } from '@/constants/admin-status-styles'
 
 export type BillingVariant = 'bulanan' | 'instalasi'
@@ -153,7 +153,7 @@ function BillingStatusBadge({ status }: { status: TagihanStatus }) {
   const config = billingStatusConfig[status]
 
   return (
-    <AdminStatusBadge
+    <PanelStatusBadge
       className={config.className}
       dotClassName={config.dotClassName}
       minWidthClass="min-w-[112px]"
@@ -163,7 +163,7 @@ function BillingStatusBadge({ status }: { status: TagihanStatus }) {
       ring={false}
     >
       {config.label}
-    </AdminStatusBadge>
+    </PanelStatusBadge>
   )
 }
 

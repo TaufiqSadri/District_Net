@@ -11,12 +11,12 @@ import {
   X,
 } from 'lucide-react'
 import { deleteKomplainAction, respondKomplainAction } from '@/app/admin/actions'
-import AdminAvatar from '@/components/admin/shared/AdminAvatar'
-import AdminFilterSelect from '@/components/admin/shared/AdminFilterSelect'
-import AdminMetricCard from '@/components/admin/shared/AdminMetricCard'
-import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
-import AdminPagination from '@/components/admin/shared/AdminPagination'
-import AdminStatusBadge from '@/components/admin/shared/AdminStatusBadge'
+import PanelAvatar from '@/components/panel/shared/PanelAvatar'
+import PanelFilterSelect from '@/components/panel/shared/PanelFilterSelect'
+import PanelMetricCard from '@/components/panel/shared/PanelMetricCard'
+import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
+import PanelPagination from '@/components/panel/shared/PanelPagination'
+import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
 import ConfirmActionForm from '@/components/ConfirmActionForm'
 import type { KomplainListResult, KomplainStats, KomplainWithPelanggan } from '@/lib/data/komplain'
 import {
@@ -51,7 +51,7 @@ export default function ComplaintPageContent({
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PanelPageHeader
         title="Kelola Komplain"
         subtitle="Pantau keluhan pelanggan dan berikan respons langsung dari panel admin."
       />
@@ -93,7 +93,7 @@ export default function ComplaintPageContent({
           </div>
         )}
 
-        <AdminPagination
+        <PanelPagination
           basePath="/admin/komplain"
           itemLabel="Komplain"
           currentCount={result.data.length}
@@ -161,13 +161,13 @@ function ComplaintFilterBar({
           />
         </div>
 
-        <AdminFilterSelect
+        <PanelFilterSelect
           name="status"
           label="Filter status komplain"
           value={status}
           options={complaintStatusOptions}
         />
-        <AdminFilterSelect
+        <PanelFilterSelect
           name="sort"
           label="Urutan komplain"
           value={sort}
@@ -199,28 +199,28 @@ function ComplaintFilterBar({
 function ComplaintStats({ stats }: { stats: KomplainStats }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <AdminMetricCard
+      <PanelMetricCard
         label="Total Komplain"
         value={stats.total}
         sub="Semua laporan"
         icon={<MessageSquareText size={18} />}
         tone="slate"
       />
-      <AdminMetricCard
+      <PanelMetricCard
         label="Menunggu"
         value={stats.menunggu}
         sub="Perlu respons"
         icon={<Clock3 size={18} />}
         tone="amber"
       />
-      <AdminMetricCard
+      <PanelMetricCard
         label="Selesai"
         value={stats.selesai}
         sub="Sudah ditutup"
         icon={<CheckCircle2 size={18} />}
         tone="emerald"
       />
-      <AdminMetricCard
+      <PanelMetricCard
         label="Belum Direspons"
         value={stats.belumDirespons}
         sub="Kotak masuk baru"
@@ -240,7 +240,7 @@ function ComplaintCard({ item }: { item: KomplainWithPelanggan }) {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-3">
-            <AdminAvatar name={item.pelanggan?.nama_lengkap} />
+            <PanelAvatar name={item.pelanggan?.nama_lengkap} />
             <div className="min-w-0">
               <p className="truncate text-[16px] font-semibold text-[#111827]">
                 {item.pelanggan?.nama_lengkap ?? 'Pelanggan tidak diketahui'}
@@ -253,9 +253,9 @@ function ComplaintCard({ item }: { item: KomplainWithPelanggan }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <AdminStatusBadge tone={item.status ? 'emerald' : 'amber'}>
+          <PanelStatusBadge tone={item.status ? 'emerald' : 'amber'}>
             {item.status ? 'Selesai' : 'Menunggu'}
-          </AdminStatusBadge>
+          </PanelStatusBadge>
           <span className="text-[13px] font-normal text-slate-500">
             {item.tanggal ? new Date(item.tanggal).toLocaleString('id-ID') : '-'}
           </span>

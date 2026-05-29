@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 
-export type AdminTone = 'violet' | 'emerald' | 'amber' | 'red' | 'blue' | 'orange' | 'slate'
+export type PanelTone = 'violet' | 'emerald' | 'amber' | 'red' | 'blue' | 'orange' | 'slate'
 
-const toneClasses: Record<AdminTone, string> = {
+const toneClasses: Record<PanelTone, string> = {
   violet: 'bg-[#eee8ff] text-[#6741f5]',
   emerald: 'bg-emerald-50 text-emerald-600',
   amber: 'bg-amber-50 text-amber-600',
@@ -12,36 +12,36 @@ const toneClasses: Record<AdminTone, string> = {
   slate: 'bg-slate-50 text-slate-600',
 }
 
-interface AdminMetricCardProps {
+interface PanelMetricCardProps {
   label: string
   value: string | number
   sub?: string
   icon: ReactNode
-  tone?: AdminTone
+  tone?: PanelTone
 }
 
-export default function AdminMetricCard({
+export default function PanelMetricCard({
   label,
   value,
   sub,
   icon,
   tone = 'violet',
-}: AdminMetricCardProps) {
+}: PanelMetricCardProps) {
   return (
     <div className="rounded-[18px] border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-[12px] font-semibold uppercase tracking-wide text-slate-400">
             {label}
           </p>
-          <p className="mt-3 text-[30px] font-semibold leading-none text-[#111827]">
+          <p className="mt-3 break-words text-[30px] font-semibold leading-none text-[#111827]">
             {value}
           </p>
           {sub ? (
             <p className="mt-2 text-[13px] font-normal text-slate-500">{sub}</p>
           ) : null}
         </div>
-        <div className={`grid h-11 w-11 place-items-center rounded-2xl ${toneClasses[tone]}`}>
+        <div className={`grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl ${toneClasses[tone]}`}>
           {icon}
         </div>
       </div>

@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react'
 
-export type CustomerNotification = {
+export type PanelNotification = {
   id: string
   title: string
   summary: string
@@ -27,10 +27,10 @@ export type CustomerNotification = {
 }
 
 type Props = {
-  notifications: CustomerNotification[]
+  notifications: PanelNotification[]
 }
 
-const toneClass: Record<CustomerNotification['tone'], { icon: string; badge: string; border: string }> = {
+const toneClass: Record<PanelNotification['tone'], { icon: string; badge: string; border: string }> = {
   purple: {
     icon: 'bg-purple-100 text-brand-purple',
     badge: 'bg-purple-50 text-brand-purple',
@@ -68,7 +68,7 @@ const toneClass: Record<CustomerNotification['tone'], { icon: string; badge: str
   },
 }
 
-const iconMap: Record<CustomerNotification['icon'], typeof Wrench> = {
+const iconMap: Record<PanelNotification['icon'], typeof Wrench> = {
   wrench: Wrench,
   receipt: Receipt,
   alert: CircleAlert,
@@ -76,7 +76,7 @@ const iconMap: Record<CustomerNotification['icon'], typeof Wrench> = {
   calendar: CalendarClock,
 }
 
-export default function CustomerNotificationDrawer({ notifications }: Props) {
+export default function PanelNotificationDrawer({ notifications }: Props) {
   const [open, setOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(
     notifications.find((item) => item.href || item.details?.length)?.id ?? null,
@@ -89,17 +89,12 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative inline-flex h-11 items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 text-sm font-semibold text-gray-700 shadow-card transition hover:-translate-y-0.5 hover:shadow-lg"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100"
         aria-label="Buka notifikasi pelanggan"
       >
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-purple-50 text-brand-purple">
-          <Bell size={17} />
-        </span>
-        <span className="hidden sm:inline">Notifikasi</span>
+        <Bell size={21} />
         {count > 0 ? (
-          <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-brand-pink px-1 text-[11px] font-bold text-white">
-            {count}
-          </span>
+          <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-600" />
         ) : null}
       </button>
 
@@ -108,27 +103,27 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
           type="button"
           aria-label="Tutup notifikasi"
           onClick={() => setOpen(false)}
-          className="fixed inset-0 z-[75] bg-gray-900/30 backdrop-blur-[1px]"
+          className="fixed inset-0 z-[75] bg-slate-950/45"
         />
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 right-0 z-[80] flex w-[min(29rem,100vw)] flex-col bg-gray-50 shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-[80] flex w-[min(29rem,100vw)] flex-col bg-[#f7f9fd] shadow-2xl transition-transform duration-300 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="border-b border-gray-100 bg-white px-5 py-5">
+        <div className="border-b border-[#e2e8f0] bg-white px-5 py-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="font-display text-xl font-bold text-gray-900">Pengumuman</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-[22px] font-semibold text-slate-900">Pengumuman</h2>
+              <p className="mt-1 text-sm text-slate-500">
                 {count > 0 ? `${count} informasi layanan Anda` : 'Tidak ada informasi baru'}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="grid h-10 w-10 place-items-center rounded-xl border border-gray-100 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-[#dfe5ef] text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
               aria-label="Tutup notifikasi"
             >
               <X size={18} />
@@ -138,7 +133,7 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
 
         <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
           {count === 0 ? (
-            <div className="rounded-2xl bg-white p-5 text-sm text-gray-500 shadow-card">
+            <div className="rounded-[18px] border border-[#e5e7eb] bg-white p-5 text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
               Belum ada pengumuman penting untuk akun Anda.
             </div>
           ) : null}
@@ -152,7 +147,7 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
             return (
               <div
                 key={item.id}
-                className={`overflow-hidden rounded-2xl border bg-white shadow-card ${tone.border}`}
+                className={`overflow-hidden rounded-[18px] border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] ${tone.border}`}
               >
                 <button
                   type="button"
@@ -160,21 +155,21 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
                     if (canExpand) setExpandedId(expanded ? null : item.id)
                   }}
                   className={`flex w-full items-start gap-3 px-4 py-4 text-left ${
-                    canExpand ? 'transition hover:bg-gray-50' : 'cursor-default'
+                    canExpand ? 'transition hover:bg-slate-50' : 'cursor-default'
                   }`}
                 >
                   <span className={`grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl ${tone.icon}`}>
                     <Icon size={18} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-display text-base font-semibold leading-snug text-gray-900">
+                    <span className="block text-base font-semibold leading-snug text-slate-900">
                       {item.title}
                     </span>
-                    <span className="mt-1 line-clamp-2 block text-sm leading-5 text-gray-500">
+                    <span className="mt-1 line-clamp-2 block text-sm leading-5 text-slate-500">
                       {item.summary}
                     </span>
                     <span className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
                         <Clock size={13} />
                         {item.time}
                       </span>
@@ -188,7 +183,7 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
                   {canExpand ? (
                     <ChevronDown
                       size={17}
-                      className={`mt-1 flex-shrink-0 text-gray-400 transition ${
+                      className={`mt-1 flex-shrink-0 text-slate-400 transition ${
                         expanded ? 'rotate-180' : ''
                       }`}
                     />
@@ -196,13 +191,13 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
                 </button>
 
                 {canExpand && expanded ? (
-                  <div className="border-t border-gray-100 px-4 py-4">
+                  <div className="border-t border-[#e5e7eb] px-4 py-4">
                     {item.details && item.details.length > 0 ? (
                       <div className="grid gap-2">
                         {item.details.map((detail) => (
                           <div
                             key={`${item.id}-${detail.label}`}
-                            className="rounded-xl bg-gray-50 px-3 py-2"
+                            className="rounded-xl bg-[#f8faff] px-3 py-2"
                           >
                             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
                               {detail.label}
@@ -214,14 +209,14 @@ export default function CustomerNotificationDrawer({ notifications }: Props) {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500">{item.summary}</p>
+                      <p className="text-sm text-slate-500">{item.summary}</p>
                     )}
 
                     {item.href ? (
                       <Link
                         href={item.href}
                         onClick={() => setOpen(false)}
-                        className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-brand-purple px-4 text-sm font-semibold text-white transition hover:bg-purple-900"
+                        className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-[#6741f5] px-4 text-sm font-semibold text-white transition hover:bg-[#5b2fd6]"
                       >
                         {item.actionLabel ?? 'Lihat Detail'}
                       </Link>

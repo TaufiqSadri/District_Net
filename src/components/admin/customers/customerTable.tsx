@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { PelangganWithPaket, StatusLangganan } from '@/types/database'
-import AdminPagination from '@/components/admin/shared/AdminPagination'
+import PanelPagination from '@/components/panel/shared/PanelPagination'
 import CustomerTableRow, { CustomerMobileRow } from '@/components/admin/customers/CustomerTableRow'
 
 interface CustomerTableProps {
@@ -112,7 +112,7 @@ export default function CustomerTable({
         )}
       </div>
 
-      <AdminPagination
+      <PanelPagination
         itemLabel="Pelanggan"
         currentCount={visibleRows.length}
         filteredTotal={total}

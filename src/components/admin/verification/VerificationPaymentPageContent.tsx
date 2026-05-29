@@ -4,7 +4,7 @@ import { getPembayaranList } from '@/lib/data/pembayaran'
 import SearchFilterBar from '@/components/admin/verification/SearchFilterBar'
 import VerificationPaymentTable from '@/components/admin/verification/VerificationPaymentTable'
 import type { InvoiceLookup } from '@/components/admin/verification/VerificationPaymentRow'
-import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
+import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
 
 interface SearchParams extends Record<string, string | undefined> {
   pelanggan?: string
@@ -54,7 +54,7 @@ export default function VerificationPaymentPageContent({
 }: VerificationPaymentPageContentProps) {
   return (
     <div className="space-y-6">
-      <AdminPageHeader 
+      <PanelPageHeader 
       title='Verifikasi Pembayaran'
       subtitle='Semua pembayaran pelanggan ditampilkan disini. Diurutkan secara default.'
       />

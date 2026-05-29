@@ -13,13 +13,13 @@ import {
   XCircle,
 } from 'lucide-react'
 import { updateJadwalInstalasiAction } from '@/app/admin/actions'
-import AdminAvatar from '@/components/admin/shared/AdminAvatar'
-import AdminFieldLabel from '@/components/admin/shared/AdminFieldLabel'
-import AdminFilterSelect from '@/components/admin/shared/AdminFilterSelect'
-import AdminInfoTile from '@/components/admin/shared/AdminInfoTile'
-import AdminMetricCard from '@/components/admin/shared/AdminMetricCard'
-import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
-import AdminStatusBadge from '@/components/admin/shared/AdminStatusBadge'
+import PanelAvatar from '@/components/panel/shared/PanelAvatar'
+import PanelFieldLabel from '@/components/panel/shared/PanelFieldLabel'
+import PanelFilterSelect from '@/components/panel/shared/PanelFilterSelect'
+import PanelInfoTile from '@/components/panel/shared/PanelInfoTile'
+import PanelMetricCard from '@/components/panel/shared/PanelMetricCard'
+import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
+import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
 import type { JadwalInstalasiWithRelations } from '@/lib/data/jadwalInstalasi'
 import type { StatusJadwalInstalasi } from '@/types/database'
 import {
@@ -44,35 +44,35 @@ export default function InstallationSchedulePageContent({
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PanelPageHeader
         title="Jadwal Instalasi"
         subtitle="Kelola jadwal pemasangan setelah pembayaran instalasi diverifikasi."
         action={<ScheduleFilter status={status} />}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <AdminMetricCard
+        <PanelMetricCard
           label="Menunggu Jadwal"
           value={menunggu}
           sub="Perlu diatur"
           icon={<Clock size={18} />}
           tone="amber"
         />
-        <AdminMetricCard
+        <PanelMetricCard
           label="Terjadwal"
           value={terjadwal}
           sub="Sudah punya tanggal"
           icon={<CalendarClock size={18} />}
           tone="blue"
         />
-        <AdminMetricCard
+        <PanelMetricCard
           label="Dikerjakan"
           value={dikerjakan}
           sub="Dalam proses"
           icon={<Hammer size={18} />}
           tone="violet"
         />
-        <AdminMetricCard
+        <PanelMetricCard
           label="Selesai"
           value={selesai}
           sub="Pelanggan aktif"
@@ -119,7 +119,7 @@ function ScheduleFilter({ status }: { status: StatusJadwalInstalasi | 'semua' })
       action="/admin/jadwal-instalasi"
       className="flex w-full flex-col gap-3 rounded-[18px] border border-[#e5e7eb] bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)] sm:w-auto sm:min-w-[360px] sm:flex-row"
     >
-      <AdminFilterSelect
+      <PanelFilterSelect
         name="status"
         label="Filter status jadwal"
         value={status}
@@ -151,7 +151,7 @@ function ScheduleRow({ row }: { row: JadwalInstalasiWithRelations }) {
       <div className="grid gap-4 p-4 xl:grid-cols-[minmax(210px,1.15fr)_minmax(170px,0.8fr)_minmax(150px,0.72fr)_minmax(160px,0.8fr)_minmax(300px,1.08fr)_auto] xl:items-center peer-checked:[&_.jadwal-chevron]:rotate-180">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <AdminAvatar name={row.pelanggan?.nama_lengkap} />
+            <PanelAvatar name={row.pelanggan?.nama_lengkap} />
             <div className="min-w-0">
               <p className="truncate text-[16px] font-semibold text-[#111827]">
                 {row.pelanggan?.nama_lengkap ?? '-'}
@@ -167,9 +167,9 @@ function ScheduleRow({ row }: { row: JadwalInstalasiWithRelations }) {
           </div>
         </div>
 
-        <AdminInfoTile label="Kontak Pelanggan" value={row.pelanggan?.no_hp ?? '-'} />
-        <AdminInfoTile label="Teknisi" value={row.teknisi ?? 'Belum ditentukan'} />
-        <AdminInfoTile label="No. HP Teknisi" value={row.no_hp_teknisi ?? 'Belum tersedia'} />
+        <PanelInfoTile label="Kontak Pelanggan" value={row.pelanggan?.no_hp ?? '-'} />
+        <PanelInfoTile label="Teknisi" value={row.teknisi ?? 'Belum ditentukan'} />
+        <PanelInfoTile label="No. HP Teknisi" value={row.no_hp_teknisi ?? 'Belum tersedia'} />
 
         <form action={action} className="rounded-xl bg-[#f8faff] px-4 py-3">
           <input type="hidden" name="tanggal_pemasangan" value={toDateInput(row.tanggal_pemasangan)} />
@@ -238,25 +238,25 @@ function ScheduleRow({ row }: { row: JadwalInstalasiWithRelations }) {
 
             <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <AdminFieldLabel label="Tanggal Pemasangan">
+                <PanelFieldLabel label="Tanggal Pemasangan">
                   <input
                     type="date"
                     name="tanggal_pemasangan"
                     defaultValue={toDateInput(row.tanggal_pemasangan)}
                     className="h-11 w-full rounded-xl border border-[#e5e7eb] bg-white px-3 text-[14px] text-slate-800 outline-none transition focus:border-[#6741f5] focus:ring-2 focus:ring-[#6741f5]/20"
                   />
-                </AdminFieldLabel>
+                </PanelFieldLabel>
 
-                <AdminFieldLabel label="Jam Pemasangan">
+                <PanelFieldLabel label="Jam Pemasangan">
                   <input
                     type="time"
                     name="jam_pemasangan"
                     defaultValue={toTimeInput(row.tanggal_pemasangan)}
                     className="h-11 w-full rounded-xl border border-[#e5e7eb] bg-white px-3 text-[14px] text-slate-800 outline-none transition focus:border-[#6741f5] focus:ring-2 focus:ring-[#6741f5]/20"
                   />
-                </AdminFieldLabel>
+                </PanelFieldLabel>
 
-                <AdminFieldLabel label="Teknisi">
+                <PanelFieldLabel label="Teknisi">
                   <div className="relative">
                     <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
@@ -266,9 +266,9 @@ function ScheduleRow({ row }: { row: JadwalInstalasiWithRelations }) {
                       className="h-11 w-full rounded-xl border border-[#e5e7eb] bg-white py-3 pl-10 pr-3 text-[14px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#6741f5] focus:ring-2 focus:ring-[#6741f5]/20"
                     />
                   </div>
-                </AdminFieldLabel>
+                </PanelFieldLabel>
 
-                <AdminFieldLabel label="No. HP Teknisi">
+                <PanelFieldLabel label="No. HP Teknisi">
                   <div className="relative">
                     <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
@@ -278,9 +278,9 @@ function ScheduleRow({ row }: { row: JadwalInstalasiWithRelations }) {
                       className="h-11 w-full rounded-xl border border-[#e5e7eb] bg-white py-3 pl-10 pr-3 text-[14px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#6741f5] focus:ring-2 focus:ring-[#6741f5]/20"
                     />
                   </div>
-                </AdminFieldLabel>
+                </PanelFieldLabel>
 
-                <AdminFieldLabel label="Catatan" className="sm:col-span-2">
+                <PanelFieldLabel label="Catatan" className="sm:col-span-2">
                   <textarea
                     name="catatan"
                     defaultValue={row.catatan ?? ''}
@@ -288,7 +288,7 @@ function ScheduleRow({ row }: { row: JadwalInstalasiWithRelations }) {
                     placeholder="Contoh: teknisi akan menghubungi sebelum datang, patokan rumah, atau kendala akses."
                     className="w-full resize-none rounded-xl border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#6741f5] focus:ring-2 focus:ring-[#6741f5]/20"
                   />
-                </AdminFieldLabel>
+                </PanelFieldLabel>
               </div>
 
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -313,12 +313,12 @@ function ScheduleRow({ row }: { row: JadwalInstalasiWithRelations }) {
 
 function ScheduleStatusBadge({ status }: { status: StatusJadwalInstalasi }) {
   return (
-    <AdminStatusBadge
+    <PanelStatusBadge
       tone={scheduleStatusTone[status]}
       icon={status === 'dibatalkan' ? <XCircle size={13} /> : undefined}
     >
       {labelScheduleStatus(status)}
-    </AdminStatusBadge>
+    </PanelStatusBadge>
   )
 }
 

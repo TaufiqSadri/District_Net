@@ -13,11 +13,11 @@ import {
   WalletCards,
   X,
 } from 'lucide-react'
-import AdminFilterSelect from '@/components/admin/shared/AdminFilterSelect'
-import AdminMetricCard from '@/components/admin/shared/AdminMetricCard'
-import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
-import AdminPreviewCard from '@/components/admin/shared/AdminPreviewCard'
-import AdminSectionTitle from '@/components/admin/shared/AdminSectionTitle'
+import PanelFilterSelect from '@/components/panel/shared/PanelFilterSelect'
+import PanelMetricCard from '@/components/panel/shared/PanelMetricCard'
+import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
+import PanelPreviewCard from '@/components/panel/shared/PanelPreviewCard'
+import PanelSectionTitle from '@/components/panel/shared/PanelSectionTitle'
 import { formatRupiah } from '@/lib/data/dashboardPelanggan'
 import type { LaporanFilters, LaporanOverview } from '@/lib/data/laporan'
 import {
@@ -50,7 +50,7 @@ export default function ReportPageContent({
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PanelPageHeader
         title="Laporan"
         subtitle="Ringkasan operasional, review data terbaru, dan export laporan admin."
       />
@@ -58,28 +58,28 @@ export default function ReportPageContent({
       <ReportFilterBar filters={filters} hasActiveFilters={hasActiveFilters} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <AdminMetricCard
+        <PanelMetricCard
           label="Pelanggan Aktif"
           value={overview.pelangganAktif}
           sub={`${overview.totalPelanggan} total pelanggan`}
           icon={<Users size={18} />}
           tone="violet"
         />
-        <AdminMetricCard
+        <PanelMetricCard
           label="Tagihan Lunas"
           value={overview.tagihanLunas}
           sub={`${overview.totalTagihan} total tagihan`}
           icon={<CheckCircle2 size={18} />}
           tone="emerald"
         />
-        <AdminMetricCard
+        <PanelMetricCard
           label="Menunggu Verifikasi"
           value={overview.tagihanMenungguVerifikasi}
           sub="Perlu dicek admin"
           icon={<ShieldAlert size={18} />}
           tone="amber"
         />
-        <AdminMetricCard
+        <PanelMetricCard
           label="Komplain Menunggu"
           value={overview.komplainMenunggu}
           sub={`${overview.totalKomplain} total komplain`}
@@ -90,7 +90,7 @@ export default function ReportPageContent({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-[18px] border border-[#e5e7eb] bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
-          <AdminSectionTitle
+          <PanelSectionTitle
             icon={<WalletCards size={19} />}
             title="Review Keuangan"
             subtitle="Ringkasan pendapatan dan tagihan berdasarkan filter aktif."
@@ -106,7 +106,7 @@ export default function ReportPageContent({
         </section>
 
         <section className="rounded-[18px] border border-[#e5e7eb] bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
-          <AdminSectionTitle
+          <PanelSectionTitle
             icon={<TrendingUp size={19} />}
             title="Review Operasional"
             subtitle="Sinyal pekerjaan yang membutuhkan perhatian admin."
@@ -126,7 +126,7 @@ export default function ReportPageContent({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <AdminPreviewCard
+        <PanelPreviewCard
           title="Tagihan Terbaru"
           icon={<ReceiptText size={18} />}
           items={preview.tagihan.map((item) => ({
@@ -137,7 +137,7 @@ export default function ReportPageContent({
           emptyText="Belum ada tagihan terbaru."
         />
 
-        <AdminPreviewCard
+        <PanelPreviewCard
           title="Pembayaran Terbaru"
           icon={<WalletCards size={18} />}
           items={preview.pembayaran.map((item) => ({
@@ -148,7 +148,7 @@ export default function ReportPageContent({
           emptyText="Belum ada pembayaran terbaru."
         />
 
-        <AdminPreviewCard
+        <PanelPreviewCard
           title="Komplain Terbaru"
           icon={<BarChart2 size={18} />}
           items={preview.komplain.map((item) => ({
@@ -185,21 +185,21 @@ function ReportFilterBar({
             Filter Laporan
           </div>
 
-          <AdminFilterSelect
+          <PanelFilterSelect
             name="bulan"
             label="Filter bulan laporan"
             value={filters.bulan ? String(filters.bulan) : 'semua'}
             options={monthOptions}
             widthClass="lg:w-[170px]"
           />
-          <AdminFilterSelect
+          <PanelFilterSelect
             name="tahun"
             label="Filter tahun laporan"
             value={filters.tahun ? String(filters.tahun) : 'semua'}
             options={yearOptions}
             widthClass="lg:w-[150px]"
           />
-          <AdminFilterSelect
+          <PanelFilterSelect
             name="status"
             label="Filter status tagihan"
             value={filters.status ?? 'semua'}
@@ -228,7 +228,7 @@ function ReportFilterBar({
           {hiddenFilters.bulan ? <input type="hidden" name="bulan" value={hiddenFilters.bulan} /> : null}
           {hiddenFilters.tahun ? <input type="hidden" name="tahun" value={hiddenFilters.tahun} /> : null}
           {hiddenFilters.status ? <input type="hidden" name="status" value={hiddenFilters.status} /> : null}
-          <AdminFilterSelect
+          <PanelFilterSelect
             name="type"
             label="Jenis export laporan"
             value="tagihan"

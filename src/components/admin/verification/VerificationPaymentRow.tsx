@@ -3,7 +3,7 @@ import { getPembayaranPelanggan } from '@/lib/pembayaranPelanggan'
 import ApproveRejectActions from '@/components/admin/verification/ApproveRejectActions'
 import InvoiceDownloadButton from '@/components/admin/verification/InvoiceDownloadButton'
 import ProofButton from '@/components/admin/verification/ProofButton'
-import AdminStatusBadge from '@/components/admin/shared/AdminStatusBadge'
+import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
 import { verificationStatusConfig } from '@/constants/admin-status-styles'
 
 export interface InvoiceLookup {
@@ -156,7 +156,7 @@ function VerificationStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <AdminStatusBadge
+    <PanelStatusBadge
       className={config.className}
       dotClassName={config.dotClassName}
       minWidthClass="min-w-[106px]"
@@ -166,7 +166,7 @@ function VerificationStatusBadge({ status }: { status: string }) {
       ring={false}
     >
       {config.label}
-    </AdminStatusBadge>
+    </PanelStatusBadge>
   )
 }
 

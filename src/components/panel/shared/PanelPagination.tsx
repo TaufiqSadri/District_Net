@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-interface AdminPaginationProps {
+interface PanelPaginationProps {
   itemLabel: string
   currentCount: number
   filteredTotal: number
@@ -14,7 +14,7 @@ interface AdminPaginationProps {
   omitParams?: string[]
 }
 
-export default function AdminPagination({
+export default function PanelPagination({
   itemLabel,
   currentCount,
   filteredTotal,
@@ -22,7 +22,7 @@ export default function AdminPagination({
   totalPages,
   basePath,
   omitParams = ['success', 'error'],
-}: AdminPaginationProps) {
+}: PanelPaginationProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()

@@ -1,4 +1,4 @@
-import type { AdminTone } from '@/components/admin/shared/AdminMetricCard'
+import type { PanelTone } from '@/components/panel/shared/PanelMetricCard'
 import type { StatusJadwalInstalasi } from '@/types/database'
 
 export const scheduleStatusOptions: Array<{ value: StatusJadwalInstalasi | 'semua'; label: string }> = [
@@ -10,7 +10,7 @@ export const scheduleStatusOptions: Array<{ value: StatusJadwalInstalasi | 'semu
   { value: 'dibatalkan', label: 'Dibatalkan' },
 ]
 
-export const scheduleStatusTone: Record<StatusJadwalInstalasi, AdminTone> = {
+export const scheduleStatusTone: Record<StatusJadwalInstalasi, PanelTone> = {
   menunggu_jadwal: 'amber',
   terjadwal: 'blue',
   dikerjakan: 'violet',

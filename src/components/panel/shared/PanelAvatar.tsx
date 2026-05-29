@@ -1,8 +1,8 @@
-interface AdminAvatarProps {
+interface PanelAvatarProps {
   name?: string | null
 }
 
-export default function AdminAvatar({ name }: AdminAvatarProps) {
+export default function PanelAvatar({ name }: PanelAvatarProps) {
   const initials = (name ?? '-')
     .split(' ')
     .filter(Boolean)

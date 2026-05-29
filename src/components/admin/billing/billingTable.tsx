@@ -11,7 +11,7 @@ import BillingTableRow, {
   type BillingRow,
   type BillingVariant,
 } from '@/components/admin/billing/BillingTableRow'
-import AdminPagination from '@/components/admin/shared/AdminPagination'
+import PanelPagination from '@/components/panel/shared/PanelPagination'
 
 interface BillingTableProps {
   variant?: BillingVariant
@@ -112,7 +112,7 @@ export default function BillingTable({
         )}
       </div>
 
-      <AdminPagination
+      <PanelPagination
         itemLabel="Tagihan"
         currentCount={visibleRows.length}
         filteredTotal={total}

@@ -1,4 +1,4 @@
-import AdminLayout from '@/components/admin/layout/AdminLayout'
+import PanelLayout from '@/components/panel/layout/PanelLayout'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -43,9 +43,12 @@ export default async function AdminRootLayout({ children }: { children: React.Re
   }
 
   return (
-    <AdminLayout
-      pendingCount={pendingCount}
-      paymentPendingCount={paymentPendingCount}
+    <PanelLayout
+      variant="admin"
+      badgeCounts={{
+        pending: pendingCount,
+        payment: paymentPendingCount,
+      }}
       user={{
         name:
           metadata.nama_lengkap ??
@@ -58,6 +61,6 @@ export default async function AdminRootLayout({ children }: { children: React.Re
       }}
     >
       {children}
-    </AdminLayout>
+    </PanelLayout>
   )
 }

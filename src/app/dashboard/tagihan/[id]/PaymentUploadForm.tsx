@@ -86,25 +86,25 @@ export default function PaymentUploadForm({
       <input type="hidden" name="bukti_pembayaran" value={uploadedUrl} />
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Jumlah Bayar</label>
+        <label className="mb-1.5 block text-[14px] font-medium text-slate-700">Jumlah Bayar</label>
         <input
           name="jumlah_bayar"
           type="number"
           min={0}
           defaultValue={defaultAmount}
           required
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
+          className="w-full rounded-xl border-0 bg-[#f1f4fc] px-4 py-3 text-[15px] font-normal text-slate-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-[#6741f5]/25"
         />
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Upload Bukti Pembayaran</label>
-        <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center transition hover:border-brand-purple/40 hover:bg-white">
-          <UploadCloud size={22} className="text-brand-purple" />
-          <span className="mt-3 text-sm font-semibold text-gray-700">
+        <label className="mb-1.5 block text-[14px] font-medium text-slate-700">Upload Bukti Pembayaran</label>
+        <label className="flex cursor-pointer flex-col items-center justify-center rounded-[18px] border border-dashed border-[#dfe5ef] bg-[#f8faff] px-4 py-8 text-center transition hover:border-[#6741f5]/40 hover:bg-white">
+          <UploadCloud size={22} className="text-[#6741f5]" />
+          <span className="mt-3 text-sm font-semibold text-slate-700">
             Pilih file bukti pembayaran
           </span>
-          <span className="mt-1 text-xs text-gray-400">Format: JPG, PNG, WEBP, PDF · Maks 5 MB</span>
+          <span className="mt-1 text-xs text-slate-400">Format: JPG, PNG, WEBP, PDF - Maks 5 MB</span>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -128,17 +128,17 @@ export default function PaymentUploadForm({
       ) : null}
 
       {uploadedUrl ? (
-        <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
+        <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-green-700">
             <CheckCircle2 size={16} />
             File berhasil diunggah
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-green-100 bg-white">
+          <div className="overflow-hidden rounded-xl border border-emerald-100 bg-white">
             {isPdf ? (
               <div className="space-y-3 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <FileText size={16} className="text-brand-purple" />
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <FileText size={16} className="text-[#6741f5]" />
                   {fileName}
                 </div>
                 {previewUrl ? (
@@ -160,14 +160,14 @@ export default function PaymentUploadForm({
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
         File yang sudah diunggah akan langsung bisa dipreview oleh admin sebelum pembayaran disetujui.
       </div>
 
       <button
         type="submit"
         disabled={!uploadedUrl || uploading}
-        className="w-full rounded-xl bg-brand-pink px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-pink-dark disabled:cursor-not-allowed disabled:opacity-60"
+        className="h-12 w-full rounded-xl bg-[#6741f5] px-5 text-[15px] font-semibold text-white shadow-[0_10px_22px_rgba(103,65,245,0.18)] transition hover:bg-[#5b2fd6] disabled:cursor-not-allowed disabled:opacity-60"
       >
         Kirim Pembayaran
       </button>

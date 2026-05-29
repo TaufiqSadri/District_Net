@@ -1,46 +1,62 @@
 'use client'
 
 import { Bell, Menu, Settings, UserCircle } from 'lucide-react'
-import AdminBreadcrumb from '@/components/admin/layout/AdminBreadcrumb'
+import PanelBreadcrumb, {
+  type PanelVariant,
+} from '@/components/panel/layout/PanelBreadcrumb'
+import PanelNotificationDrawer, {
+  type PanelNotification,
+} from '@/components/panel/layout/PanelNotificationDrawer'
 
-export interface AdminTopbarUser {
+export interface PanelTopbarUser {
   name: string
   roleLabel: string
   email?: string
   avatarUrl?: string | null
 }
 
-interface AdminTopbarProps {
-  user: AdminTopbarUser
+interface PanelTopbarProps {
+  variant: PanelVariant
+  user: PanelTopbarUser
+  notifications?: PanelNotification[]
   onMenuClick: () => void
 }
 
-export default function AdminTopbar({ user, onMenuClick }: AdminTopbarProps) {
+export default function PanelTopbar({
+  variant,
+  user,
+  notifications = [],
+  onMenuClick,
+}: PanelTopbarProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-[#e2e8f0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]">
       <div className="flex h-[72px] items-center gap-3 px-4 sm:px-6 lg:px-9">
         <button
           type="button"
           className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 lg:hidden"
-          aria-label="Buka menu admin"
+          aria-label={variant === 'admin' ? 'Buka menu admin' : 'Buka menu pelanggan'}
           onClick={onMenuClick}
         >
           <Menu size={21} />
         </button>
 
         <div className="min-w-0 flex-1">
-          <AdminBreadcrumb />
+          <PanelBreadcrumb variant={variant} />
         </div>
 
         <div className="ml-auto flex flex-shrink-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100"
-            aria-label="Notifikasi"
-          >
-            <Bell size={21} />
-            <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-600" />
-          </button>
+          {variant === 'customer' ? (
+            <PanelNotificationDrawer notifications={notifications} />
+          ) : (
+            <button
+              type="button"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100"
+              aria-label="Notifikasi"
+            >
+              <Bell size={21} />
+              <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-600" />
+            </button>
+          )}
           <button
             type="button"
             className="hidden h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 sm:inline-flex"

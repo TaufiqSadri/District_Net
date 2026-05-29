@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { PembayaranWithRelations } from '@/lib/data/pembayaran'
-import AdminPagination from '@/components/admin/shared/AdminPagination'
+import PanelPagination from '@/components/panel/shared/PanelPagination'
 import PaymentProofModal from '@/components/admin/verification/paymentProofModal'
 import VerificationPaymentRow, {
   VerificationPaymentMobileRow,
@@ -125,7 +125,7 @@ export default function VerificationPaymentTable({
           )}
         </div>
 
-        <AdminPagination
+        <PanelPagination
           itemLabel="Pembayaran"
           currentCount={rows.length}
           filteredTotal={total}

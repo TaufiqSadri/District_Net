@@ -1,18 +1,18 @@
 import type { ReactNode } from 'react'
 
-interface AdminPageHeaderProps {
+interface PanelPageHeaderProps {
   eyebrow?: string
   title: string
   subtitle: string
   action?: ReactNode
 }
 
-export default function AdminPageHeader({
+export default function PanelPageHeader({
   eyebrow,
   title,
   subtitle,
   action,
-}: AdminPageHeaderProps) {
+}: PanelPageHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>

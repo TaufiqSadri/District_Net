@@ -1,11 +1,9 @@
-import SidebarPelanggan from '@/components/SidebarPelanggan'
+import PanelLayout from '@/components/panel/layout/PanelLayout'
 import { getCurrentPelanggan } from '@/lib/data/pelanggan'
 import { getLatestJadwalInstalasiForPelanggan } from '@/lib/data/jadwalInstalasi'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import CustomerNotificationDrawer, {
-  type CustomerNotification,
-} from './CustomerNotificationDrawer'
+import type { PanelNotification } from '@/components/panel/layout/PanelNotificationDrawer'
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return 'Belum tersedia'
@@ -86,7 +84,7 @@ export default async function DashboardLayout({
     getLatestJadwalInstalasiForPelanggan(pelanggan.id),
   ])
 
-  const notifications: CustomerNotification[] = []
+  const notifications: PanelNotification[] = []
 
   if (pelanggan.status_langganan === 'proses_instalasi') {
     const status = statusJadwalLabel(jadwalInstalasi?.status)
@@ -184,14 +182,16 @@ export default async function DashboardLayout({
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 md:flex">
-      <SidebarPelanggan namaLengkap={pelanggan.nama_lengkap} email={pelanggan.email} />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
-        <div className="mb-4 flex justify-end">
-          <CustomerNotificationDrawer notifications={notifications} />
-        </div>
-        {children}
-      </main>
-    </div>
+    <PanelLayout
+      variant="customer"
+      user={{
+        name: pelanggan.nama_lengkap,
+        email: pelanggan.email,
+        roleLabel: 'Pelanggan District Net',
+      }}
+      notifications={notifications}
+    >
+      {children}
+    </PanelLayout>
   )
 }

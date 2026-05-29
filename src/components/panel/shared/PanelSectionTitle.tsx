@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
 
-interface AdminSectionTitleProps {
+interface PanelSectionTitleProps {
   icon?: ReactNode
   title: string
   subtitle?: string
 }
 
-export default function AdminSectionTitle({
+export default function PanelSectionTitle({
   icon,
   title,
   subtitle,
-}: AdminSectionTitleProps) {
+}: PanelSectionTitleProps) {
   return (
     <div className="flex items-start gap-3">
       {icon ? (

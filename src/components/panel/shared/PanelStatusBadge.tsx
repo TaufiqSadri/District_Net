@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import type { AdminTone } from '@/components/admin/shared/AdminMetricCard'
+import type { PanelTone } from '@/components/panel/shared/PanelMetricCard'
 
-const toneClasses: Record<AdminTone, string> = {
+const toneClasses: Record<PanelTone, string> = {
   violet: 'bg-violet-50 text-violet-700 ring-violet-100',
   emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
   amber: 'bg-amber-50 text-amber-700 ring-amber-100',
@@ -11,9 +11,9 @@ const toneClasses: Record<AdminTone, string> = {
   slate: 'bg-slate-50 text-slate-700 ring-slate-100',
 }
 
-interface AdminStatusBadgeProps {
+interface PanelStatusBadgeProps {
   children: ReactNode
-  tone?: AdminTone
+  tone?: PanelTone
   icon?: ReactNode
   dot?: boolean
   className?: string
@@ -25,7 +25,7 @@ interface AdminStatusBadgeProps {
   ring?: boolean
 }
 
-export default function AdminStatusBadge({
+export default function PanelStatusBadge({
   children,
   tone = 'slate',
   icon,
@@ -37,7 +37,7 @@ export default function AdminStatusBadge({
   uppercase,
   centered,
   ring = true,
-}: AdminStatusBadgeProps) {
+}: PanelStatusBadgeProps) {
   return (
     <span
       className={`inline-flex ${minWidthClass} items-center gap-1.5 rounded-full px-3 py-1 ${textClassName} font-semibold ${

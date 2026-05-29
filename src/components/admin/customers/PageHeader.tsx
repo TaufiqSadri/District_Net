@@ -1,11 +1,11 @@
 import Link from 'next/link'
 import { UserPlus } from 'lucide-react'
-import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
+import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
 
 export default function PageHeader() {
   return (
     <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-      <AdminPageHeader 
+      <PanelPageHeader 
       title='Kelola Pelanggan'
       subtitle='Manajemen data pelanggan dan status layanan internet di seluruh distrik.'
       />

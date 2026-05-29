@@ -1,18 +1,18 @@
 import type { ReactNode } from 'react'
 
-interface AdminPreviewCardProps {
+interface PanelPreviewCardProps {
   title: string
   icon: ReactNode
   items: Array<{ id: string; title: string; description: string }>
   emptyText: string
 }
 
-export default function AdminPreviewCard({
+export default function PanelPreviewCard({
   title,
   icon,
   items,
   emptyText,
-}: AdminPreviewCardProps) {
+}: PanelPreviewCardProps) {
   return (
     <section className="rounded-[18px] border border-[#e5e7eb] bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
       <div className="flex items-center gap-3">

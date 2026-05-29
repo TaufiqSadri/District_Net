@@ -5,13 +5,19 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logoutAction } from '@/app/(public)/login/actions'
 import { LogOut, X } from 'lucide-react'
-import { adminNavGroups, type AdminMenuBadgeKey } from '@/constants/admin-menu'
+import { adminNavGroups } from '@/constants/admin-menu'
+import { customerNavGroups } from '@/constants/customer-menu'
+import type { PanelTopbarUser } from '@/components/panel/layout/PanelTopbar'
+import type { PanelVariant } from '@/components/panel/layout/PanelBreadcrumb'
 
-interface AdminSidebarProps {
+type BadgeCounts = Partial<Record<string, number>>
+
+interface PanelSidebarProps {
   open: boolean
   onClose: () => void
-  pendingCount: number
-  paymentPendingCount: number
+  variant: PanelVariant
+  user: PanelTopbarUser
+  badgeCounts?: BadgeCounts
 }
 
 function formatBadge(count: number) {
@@ -19,26 +25,35 @@ function formatBadge(count: number) {
   return String(count)
 }
 
-export default function AdminSidebar({
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+export default function PanelSidebar({
   open,
   onClose,
-  pendingCount,
-  paymentPendingCount,
-}: AdminSidebarProps) {
+  variant,
+  user,
+  badgeCounts = {},
+}: PanelSidebarProps) {
+  const closeLabel = variant === 'admin' ? 'Tutup menu admin' : 'Tutup menu pelanggan'
+
   return (
     <>
       <aside className="sticky top-0 hidden h-screen w-[300px] flex-shrink-0 overflow-hidden border-r border-slate-200 bg-[#68247b] lg:flex">
-        <SidebarContent
-          pendingCount={pendingCount}
-          paymentPendingCount={paymentPendingCount}
-        />
+        <SidebarContent variant={variant} user={user} badgeCounts={badgeCounts} />
       </aside>
 
       {open ? (
         <button
           type="button"
           className="fixed inset-0 z-[70] bg-slate-950/45 lg:hidden"
-          aria-label="Tutup menu admin"
+          aria-label={closeLabel}
           onClick={onClose}
         />
       ) : null}
@@ -49,8 +64,9 @@ export default function AdminSidebar({
         }`}
       >
         <SidebarContent
-          pendingCount={pendingCount}
-          paymentPendingCount={paymentPendingCount}
+          variant={variant}
+          user={user}
+          badgeCounts={badgeCounts}
           onNavigate={onClose}
           onClose={onClose}
         />
@@ -60,20 +76,24 @@ export default function AdminSidebar({
 }
 
 function SidebarContent({
-  pendingCount,
-  paymentPendingCount,
+  variant,
+  user,
+  badgeCounts,
   onNavigate,
   onClose,
 }: {
-  pendingCount: number
-  paymentPendingCount: number
+  variant: PanelVariant
+  user: PanelTopbarUser
+  badgeCounts: BadgeCounts
   onNavigate?: () => void
   onClose?: () => void
 }) {
   const pathname = usePathname()
+  const navGroups = variant === 'admin' ? adminNavGroups : customerNavGroups
+  const basePath = variant === 'admin' ? '/admin' : '/dashboard'
 
-  const getBadge = (badgeKey?: AdminMenuBadgeKey) => {
-    const count = badgeKey === 'payment' ? paymentPendingCount : pendingCount
+  const getBadge = (badgeKey?: string) => {
+    const count = badgeKey ? badgeCounts[badgeKey] ?? 0 : 0
 
     if (!badgeKey || count <= 0) return null
 
@@ -101,7 +121,7 @@ function SidebarContent({
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white lg:hidden"
-            aria-label="Tutup menu admin"
+            aria-label={variant === 'admin' ? 'Tutup menu admin' : 'Tutup menu pelanggan'}
             onClick={onClose}
           >
             <X size={20} />
@@ -109,17 +129,33 @@ function SidebarContent({
         ) : null}
       </div>
 
+      {variant === 'customer' ? (
+        <div className="mx-[18px] mb-3 rounded-[18px] bg-white/10 p-4 text-white">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[13px] bg-white text-[13px] font-bold text-[#68247b]">
+              {getInitials(user.name)}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-[14px] font-semibold">{user.name}</p>
+              <p className="truncate text-[12px] font-medium text-white/60">{user.email}</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <nav className="flex-1 overflow-y-auto px-[18px] pb-4 pt-4">
         <div className="flex flex-col gap-2">
-          {adminNavGroups.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.title} className="overflow-hidden">
               <p className="px-5 pb-2 text-xs font-semibold uppercase tracking-wide text-white/75">
                 {group.title}
               </p>
               <div className="flex flex-col gap-1">
-                {group.items.map(({ href, label, icon: Icon, badgeKey }) => {
+                {group.items.map((item) => {
+                  const { href, label, icon: Icon } = item
+                  const badgeKey = 'badgeKey' in item ? (item.badgeKey as string) : undefined
                   const active =
-                    pathname === href || (href !== '/admin' && pathname.startsWith(href))
+                    pathname === href || (href !== basePath && pathname.startsWith(href))
 
                   return (
                     <Link
@@ -128,7 +164,7 @@ function SidebarContent({
                       onClick={onNavigate}
                       className={`flex min-h-11 items-center gap-3 border-l-2 px-5 py-3 text-[14px] font-normal tracking-wide transition ${
                         active
-                          ? 'rounded-r bg-[#eceef2] border-black text-[#6e2786]'
+                          ? 'rounded-r border-black bg-[#eceef2] text-[#6e2786]'
                           : 'rounded-r border-transparent text-white hover:bg-white/10'
                       }`}
                     >

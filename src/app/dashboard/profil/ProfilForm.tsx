@@ -208,13 +208,13 @@ export default function ProfilForm({
   }
 
   const inputCls =
-    'w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20'
+    'w-full rounded-xl border-0 bg-[#f1f4fc] px-4 py-3 text-[15px] font-normal text-slate-800 outline-none transition placeholder:text-slate-500 focus:bg-white focus:ring-2 focus:ring-[#6741f5]/25'
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {/* No. HP */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label className="mb-1.5 block text-[14px] font-medium text-slate-700">
           No. HP
         </label>
         <input
@@ -236,14 +236,14 @@ export default function ProfilForm({
 
       {/* Lokasi Map */}
       <div>
-        <p className="mb-2 text-sm font-medium text-gray-700">
+        <p className="mb-2 text-[14px] font-medium text-slate-700">
           Lokasi Pemasangan
         </p>
 
         {/* Koordinat saat ini (jika ada) */}
         {coords && (
-          <p className="mb-2 text-xs text-green-700">
-            ✓ Koordinat tersimpan: {coords.lat.toFixed(5)},{' '}
+          <p className="mb-2 text-xs text-emerald-700">
+            Koordinat tersimpan: {coords.lat.toFixed(5)},{' '}
             {coords.lng.toFixed(5)}
           </p>
         )}
@@ -257,7 +257,7 @@ export default function ProfilForm({
           <button
             type="button"
             onClick={useGps}
-            className="inline-flex items-center gap-1 rounded-xl border border-brand-purple px-3 py-2 text-sm font-medium text-brand-purple transition hover:bg-brand-purple/5"
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#dfe5ef] px-3 text-sm font-semibold text-[#6741f5] transition hover:bg-slate-50"
           >
             <MapPin size={14} /> Gunakan GPS
           </button>
@@ -268,7 +268,7 @@ export default function ProfilForm({
               setOutOfBounds(false)
               setShowMap((v) => !v)
             }}
-            className="rounded-xl bg-brand-purple px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-purple/90"
+            className="h-10 rounded-xl bg-[#6741f5] px-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(103,65,245,0.18)] transition hover:bg-[#5b2fd6]"
           >
             {showMap ? 'Sembunyikan Peta' : 'Pilih di Peta'}
           </button>
@@ -280,17 +280,16 @@ export default function ProfilForm({
         <div className="space-y-1.5">
           <div
             ref={mapRef}
-            className="h-[260px] w-full overflow-hidden rounded-xl border border-gray-200"
+            className="h-[260px] w-full overflow-hidden rounded-[18px] border border-[#e5e7eb]"
           />
           {outOfBounds && (
             <p className="text-xs text-red-600">
-              ⚠️ Lokasi di luar wilayah Kabupaten Padang Pariaman. Pilih titik
-              yang benar.
+              Lokasi di luar wilayah Kabupaten Padang Pariaman. Pilih titik yang benar.
             </p>
           )}
           {!outOfBounds && coords && (
-            <p className="text-xs text-green-700">
-              ✓ Lokasi baru dipilih: {coords.lat.toFixed(5)},{' '}
+            <p className="text-xs text-emerald-700">
+              Lokasi baru dipilih: {coords.lat.toFixed(5)},{' '}
               {coords.lng.toFixed(5)}
             </p>
           )}
@@ -315,7 +314,7 @@ export default function ProfilForm({
 
       {/* Alamat Pemasangan */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label className="mb-1.5 block text-[14px] font-medium text-slate-700">
           Alamat Pemasangan
         </label>
         <textarea
@@ -326,7 +325,7 @@ export default function ProfilForm({
           onChange={(e) => setAlamatValue(e.target.value)}
           className={inputCls}
         />
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-slate-400">
           Alamat akan otomatis terisi saat kamu memilih titik di peta.
         </p>
       </div>
@@ -334,7 +333,7 @@ export default function ProfilForm({
       <button
         type="submit"
         disabled={submitting}
-        className="flex items-center gap-2 rounded-xl bg-brand-pink px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-pink-dark disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#6741f5] px-6 text-[15px] font-semibold text-white shadow-[0_10px_22px_rgba(103,65,245,0.18)] transition hover:bg-[#5b2fd6] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting && <Loader2 size={14} className="animate-spin" />}
         Simpan Perubahan

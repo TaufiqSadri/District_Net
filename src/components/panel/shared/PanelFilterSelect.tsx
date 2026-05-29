@@ -1,6 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 
-interface AdminFilterSelectProps {
+interface PanelFilterSelectProps {
   name: string
   label: string
   value: string
@@ -9,14 +9,14 @@ interface AdminFilterSelectProps {
   light?: boolean
 }
 
-export default function AdminFilterSelect({
+export default function PanelFilterSelect({
   name,
   label,
   value,
   options,
   widthClass = 'lg:w-[154px]',
   light,
-}: AdminFilterSelectProps) {
+}: PanelFilterSelectProps) {
   return (
     <label className={`relative w-full flex-shrink-0 ${widthClass}`}>
       <span className="sr-only">{label}</span>

@@ -6,7 +6,7 @@ import PromoManager from '@/components/admin/landing/managers/PromoManager'
 import ServiceAreaManager from '@/components/admin/landing/managers/ServiceAreaManager'
 import LandingTabs, { type LandingTab } from '@/components/admin/landing/LandingTabs'
 import { InfoNotice } from '@/components/admin/landing/LandingShared'
-import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
+import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
 
 type AreaRow = AreaLayanan & { id: string }
 
@@ -37,7 +37,7 @@ export default function LandingPageContent({
 }: LandingPageContentProps) {
   return (
     <div className="space-y-6">
-      <AdminPageHeader 
+      <PanelPageHeader 
       title='Kelola Landing'
       subtitle='Kelola konten yang tampil di halaman publik website.'
       />
