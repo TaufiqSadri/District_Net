@@ -8,7 +8,7 @@ import {
   EmptyCreateCard,
   SectionHeader,
   StatusBadge,
-} from '@/components/admin/landing/LandingShared'
+} from '@/app/admin/landing/sections/LandingShared'
 import {
   createPromo,
   deletePromo,
@@ -24,7 +24,7 @@ import {
   Modal,
   SubmitBtn,
   ToggleButton,
-} from '@/components/admin/landing/managers/LandingManagerShared'
+} from '@/app/admin/landing/sections/managers/LandingManagerShared'
 
 export default function PromoManager({ promos }: { promos: Promo[] }) {
   const [modal, setModal] = useState<'create' | Promo | null>(null)

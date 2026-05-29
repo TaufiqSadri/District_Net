@@ -7,7 +7,7 @@ import {
   EmptyCreateCard,
   SectionHeader,
   StatusBadge,
-} from '@/components/admin/landing/LandingShared'
+} from '@/app/admin/landing/sections/LandingShared'
 import {
   createIklan,
   deleteIklan,
@@ -24,7 +24,7 @@ import {
   Modal,
   SubmitBtn,
   ToggleButton,
-} from '@/components/admin/landing/managers/LandingManagerShared'
+} from '@/app/admin/landing/sections/managers/LandingManagerShared'
 
 export default function BannerManager({ iklans }: { iklans: Iklan[] }) {
   const [modal, setModal] = useState<'create' | Iklan | null>(null)

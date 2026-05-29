@@ -26,7 +26,7 @@ import {
   labelScheduleStatus,
   scheduleStatusOptions,
   scheduleStatusTone,
-} from '@/components/admin/schedule/scheduleConfig'
+} from '@/app/admin/jadwal-instalasi/sections/scheduleConfig'
 
 interface InstallationSchedulePageContentProps {
   rows: JadwalInstalasiWithRelations[]

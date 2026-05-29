@@ -1,7 +1,7 @@
 'use client'
 
 import type { PelangganWithPaket, StatusLangganan } from '@/types/database'
-import ActionMenuButton from '@/components/admin/customers/ActionMenuButton'
+import ActionMenuButton from '@/app/admin/pelanggan/sections/ActionMenuButton'
 import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
 import { customerStatusConfig } from '@/constants/admin-status-styles'
 

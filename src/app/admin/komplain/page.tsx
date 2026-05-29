@@ -1,9 +1,9 @@
-import ComplaintPageContent from '@/components/admin/complaints/ComplaintPageContent'
+import ComplaintPageContent from '@/app/admin/komplain/sections/ComplaintPageContent'
 import {
   type ComplaintSearchParams,
   parseComplaintSort,
   parseComplaintStatus,
-} from '@/components/admin/complaints/complaintConfig'
+} from '@/app/admin/komplain/sections/complaintConfig'
 import { getAllKomplain, getKomplainStats } from '@/lib/data/komplain'
 
 export default async function AdminKomplainPage({

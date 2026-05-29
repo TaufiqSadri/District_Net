@@ -1,8 +1,8 @@
 import type { PembayaranWithRelations } from '@/lib/data/pembayaran'
 import { getPembayaranPelanggan } from '@/lib/pembayaranPelanggan'
-import ApproveRejectActions from '@/components/admin/verification/ApproveRejectActions'
-import InvoiceDownloadButton from '@/components/admin/verification/InvoiceDownloadButton'
-import ProofButton from '@/components/admin/verification/ProofButton'
+import ApproveRejectActions from '@/app/admin/verifikasi/sections/ApproveRejectActions'
+import InvoiceDownloadButton from '@/app/admin/verifikasi/sections/InvoiceDownloadButton'
+import ProofButton from '@/app/admin/verifikasi/sections/ProofButton'
 import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
 import { verificationStatusConfig } from '@/constants/admin-status-styles'
 

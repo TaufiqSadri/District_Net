@@ -3,8 +3,8 @@ import type {
   TagihanStatus,
   TagihanWithRelations,
 } from '@/lib/data/tagihan'
-import ActionMenuButton from '@/components/admin/billing/ActionMenuButton'
-import ProofButton from '@/components/admin/billing/ProofButton'
+import ActionMenuButton from '@/app/admin/tagihan/sections/ActionMenuButton'
+import ProofButton from '@/app/admin/tagihan/sections/ProofButton'
 import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
 import { billingStatusConfig } from '@/constants/admin-status-styles'
 

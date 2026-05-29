@@ -9,23 +9,23 @@ import {
   Wifi,
   Wrench,
 } from 'lucide-react'
-import StatCard from '@/components/admin/dashboard/StatCard'
-import StatusDistributionCard from '@/components/admin/dashboard/StatusDistributionCard'
-import BillingStatusCard from '@/components/admin/dashboard/BillingStatusCard'
-import InstallationActivityCard from '@/components/admin/dashboard/InstallationActivityCard'
-import ComplaintStatsCard from '@/components/admin/dashboard/ComplaintStatsCard'
+import StatCard from '@/app/admin/sections/StatCard'
+import StatusDistributionCard from '@/app/admin/sections/StatusDistributionCard'
+import BillingStatusCard from '@/app/admin/sections/BillingStatusCard'
+import InstallationActivityCard from '@/app/admin/sections/InstallationActivityCard'
+import ComplaintStatsCard from '@/app/admin/sections/ComplaintStatsCard'
 import RegistrationTable, {
   type NewRegistrationRow,
-} from '@/components/admin/dashboard/RegistrationTable'
+} from '@/app/admin/sections/RegistrationTable'
 import RecentActivityCard, {
   type RecentActivityItem,
-} from '@/components/admin/dashboard/RecentActivityCard'
+} from '@/app/admin/sections/RecentActivityCard'
 import {
   buildSignupBars,
   customerStatusItems,
   formatCompactRupiah,
   formatDashboardDate,
-} from '@/components/admin/dashboard/dashboardOverviewUtils'
+} from '@/app/admin/sections/dashboardOverviewUtils'
 import type { KomplainStats } from '@/lib/data/komplain'
 
 interface DashboardOverviewContentProps {

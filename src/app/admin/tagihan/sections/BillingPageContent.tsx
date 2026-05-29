@@ -6,9 +6,9 @@ import {
   getAllTagihanInstalasi,
   type TagihanStatus,
 } from '@/lib/data/tagihan'
-import BillingTabs, { type BillingTabKey } from '@/components/admin/billing/BillingTabs'
-import SearchFilterBar from '@/components/admin/billing/SearchFilterBar'
-import BillingTable from '@/components/admin/billing/billingTable'
+import BillingTabs, { type BillingTabKey } from '@/app/admin/tagihan/sections/BillingTabs'
+import SearchFilterBar from '@/app/admin/tagihan/sections/SearchFilterBar'
+import BillingTable from '@/app/admin/tagihan/sections/billingTable'
 import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
 
 interface SearchParams extends Record<string, string | undefined> {

@@ -10,7 +10,7 @@ import BillingTableRow, {
   BillingMobileRow,
   type BillingRow,
   type BillingVariant,
-} from '@/components/admin/billing/BillingTableRow'
+} from '@/app/admin/tagihan/sections/BillingTableRow'
 import PanelPagination from '@/components/panel/shared/PanelPagination'
 
 interface BillingTableProps {

@@ -27,7 +27,7 @@ import {
   reportStatusOptions,
   type ReportSearchParams,
   yearOptions,
-} from '@/components/admin/reports/reportConfig'
+} from '@/app/admin/laporan/sections/reportConfig'
 
 interface ReportPreviewData {
   tagihan: any[]

@@ -1,10 +1,10 @@
-import ReportPageContent from '@/components/admin/reports/ReportPageContent'
+import ReportPageContent from '@/app/admin/laporan/sections/ReportPageContent'
 import {
   parseReportMonth,
   parseReportStatus,
   parseReportYear,
   type ReportSearchParams,
-} from '@/components/admin/reports/reportConfig'
+} from '@/app/admin/laporan/sections/reportConfig'
 import { getLaporanOverview, getLaporanPreview } from '@/lib/data/laporan'
 
 export default async function AdminLaporanPage({

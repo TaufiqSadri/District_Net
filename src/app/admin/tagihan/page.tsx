@@ -1,4 +1,4 @@
-import BillingPageContent from '@/components/admin/billing/BillingPageContent'
+import BillingPageContent from '@/app/admin/tagihan/sections/BillingPageContent'
 import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 interface SearchParams extends Record<string, string | undefined> {

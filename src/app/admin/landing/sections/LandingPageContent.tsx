@@ -1,11 +1,11 @@
 import type { AreaLayanan, Faq, Iklan, PaketInternet, Promo } from '@/types/database'
-import BannerManager from '@/components/admin/landing/managers/BannerManager'
-import FAQManager from '@/components/admin/landing/managers/FAQManager'
-import PackageManager from '@/components/admin/landing/managers/PackageManager'
-import PromoManager from '@/components/admin/landing/managers/PromoManager'
-import ServiceAreaManager from '@/components/admin/landing/managers/ServiceAreaManager'
-import LandingTabs, { type LandingTab } from '@/components/admin/landing/LandingTabs'
-import { InfoNotice } from '@/components/admin/landing/LandingShared'
+import BannerManager from '@/app/admin/landing/sections/managers/BannerManager'
+import FAQManager from '@/app/admin/landing/sections/managers/FAQManager'
+import PackageManager from '@/app/admin/landing/sections/managers/PackageManager'
+import PromoManager from '@/app/admin/landing/sections/managers/PromoManager'
+import ServiceAreaManager from '@/app/admin/landing/sections/managers/ServiceAreaManager'
+import LandingTabs, { type LandingTab } from '@/app/admin/landing/sections/LandingTabs'
+import { InfoNotice } from '@/app/admin/landing/sections/LandingShared'
 import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
 
 type AreaRow = AreaLayanan & { id: string }

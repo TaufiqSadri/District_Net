@@ -23,7 +23,7 @@ import {
   complaintSortOptions,
   complaintStatusOptions,
   type ComplaintSearchParams,
-} from '@/components/admin/complaints/complaintConfig'
+} from '@/app/admin/komplain/sections/complaintConfig'
 
 interface ComplaintPageContentProps {
   stats: KomplainStats

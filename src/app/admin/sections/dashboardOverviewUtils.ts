@@ -1,5 +1,5 @@
-import type { NewRegistrationRow } from '@/components/admin/dashboard/RegistrationTable'
-import type { RecentActivityItem } from '@/components/admin/dashboard/RecentActivityCard'
+import type { NewRegistrationRow } from '@/app/admin/sections/RegistrationTable'
+import type { RecentActivityItem } from '@/app/admin/sections/RecentActivityCard'
 
 export type PelangganBaru = {
   id: string

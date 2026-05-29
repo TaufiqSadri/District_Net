@@ -8,7 +8,7 @@ import {
   renderToBuffer,
   Font,
 } from '@react-pdf/renderer'
-import type { InvoiceDetail } from '../../../lib/invoice/types'
+import type { InvoiceDetail } from '@/lib/invoice/types'
 
 const BULAN = [
   'Januari','Februari','Maret','April','Mei','Juni',

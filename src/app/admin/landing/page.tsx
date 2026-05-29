@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import LandingPageContent from '@/components/admin/landing/LandingPageContent'
+import LandingPageContent from '@/app/admin/landing/sections/LandingPageContent'
 import type { AreaLayanan, Faq, Iklan, PaketInternet, Promo } from '@/types/database'
-import type { LandingTab } from '@/components/admin/landing/LandingTabs'
+import type { LandingTab } from '@/app/admin/landing/sections/LandingTabs'
 
 type AreaRow = AreaLayanan & { id: string }
 

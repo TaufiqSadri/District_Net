@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getPembayaranList } from '@/lib/data/pembayaran'
-import SearchFilterBar from '@/components/admin/verification/SearchFilterBar'
-import VerificationPaymentTable from '@/components/admin/verification/VerificationPaymentTable'
-import type { InvoiceLookup } from '@/components/admin/verification/VerificationPaymentRow'
+import SearchFilterBar from '@/app/admin/verifikasi/sections/SearchFilterBar'
+import VerificationPaymentTable from '@/app/admin/verifikasi/sections/VerificationPaymentTable'
+import type { InvoiceLookup } from '@/app/admin/verifikasi/sections/VerificationPaymentRow'
 import PanelPageHeader from '@/components/panel/shared/PanelPageHeader'
 
 interface SearchParams extends Record<string, string | undefined> {

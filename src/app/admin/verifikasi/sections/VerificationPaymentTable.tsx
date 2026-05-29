@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import type { PembayaranWithRelations } from '@/lib/data/pembayaran'
 import PanelPagination from '@/components/panel/shared/PanelPagination'
-import PaymentProofModal from '@/components/admin/verification/paymentProofModal'
+import PaymentProofModal from '@/app/admin/verifikasi/sections/paymentProofModal'
 import VerificationPaymentRow, {
   VerificationPaymentMobileRow,
   type InvoiceLookup,
-} from '@/components/admin/verification/VerificationPaymentRow'
+} from '@/app/admin/verifikasi/sections/VerificationPaymentRow'
 
 interface VerificationPaymentTableProps {
   rows: PembayaranWithRelations[]

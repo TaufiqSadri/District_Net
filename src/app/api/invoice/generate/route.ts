@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateInvoice, getInvoiceDetail, updateInvoicePdfUrl } from '@/lib/invoice/invoiceService'
-import { renderInvoicePdf } from '@/components/admin/verification/renderInvoicePdf'
+import { renderInvoicePdf } from '@/lib/pdf/renderInvoicePdf'
 
 export const runtime = 'nodejs'
 

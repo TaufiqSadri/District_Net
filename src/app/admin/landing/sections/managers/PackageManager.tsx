@@ -8,7 +8,7 @@ import {
   EmptyCreateCard,
   SectionHeader,
   StatusBadge,
-} from '@/components/admin/landing/LandingShared'
+} from '@/app/admin/landing/sections/LandingShared'
 import {
   addPaket,
   deletePaket,
@@ -27,7 +27,7 @@ import {
   PaketImageUploader,
   SubmitBtn,
   ToggleButton,
-} from '@/components/admin/landing/managers/LandingManagerShared'
+} from '@/app/admin/landing/sections/managers/LandingManagerShared'
 
 export default function PackageManager({ paketList }: { paketList: PaketInternet[] }) {
   const [modal, setModal] = useState<'create' | PaketInternet | null>(null)

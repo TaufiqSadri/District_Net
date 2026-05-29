@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { PelangganWithPaket, StatusLangganan } from '@/types/database'
 import PanelPagination from '@/components/panel/shared/PanelPagination'
-import CustomerTableRow, { CustomerMobileRow } from '@/components/admin/customers/CustomerTableRow'
+import CustomerTableRow, { CustomerMobileRow } from '@/app/admin/pelanggan/sections/CustomerTableRow'
 
 interface CustomerTableProps {
   rows: PelangganWithPaket[]

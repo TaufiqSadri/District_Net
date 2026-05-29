@@ -1,4 +1,4 @@
-import VerificationPaymentPageContent from '@/components/admin/verification/VerificationPaymentPageContent'
+import VerificationPaymentPageContent from '@/app/admin/verifikasi/sections/VerificationPaymentPageContent'
 
 interface SearchParams extends Record<string, string | undefined> {
   pelanggan?: string

@@ -1,5 +1,5 @@
-import InstallationSchedulePageContent from '@/components/admin/schedule/InstallationSchedulePageContent'
-import { scheduleStatusOptions } from '@/components/admin/schedule/scheduleConfig'
+import InstallationSchedulePageContent from '@/app/admin/jadwal-instalasi/sections/InstallationSchedulePageContent'
+import { scheduleStatusOptions } from '@/app/admin/jadwal-instalasi/sections/scheduleConfig'
 import { getJadwalInstalasiList } from '@/lib/data/jadwalInstalasi'
 import type { StatusJadwalInstalasi } from '@/types/database'
 

@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
 import { getPelangganList, getPaketList } from '@/lib/data/pelanggan'
-import PageHeader from '@/components/admin/customers/PageHeader'
-import SearchFilterBar from '@/components/admin/customers/SearchFilterBar'
-import CustomerTable from '@/components/admin/customers/customerTable'
-import { CustomerTableSkeleton } from '@/components/admin/customers/customerSkeleton'
+import PageHeader from '@/app/admin/pelanggan/sections/PageHeader'
+import SearchFilterBar from '@/app/admin/pelanggan/sections/SearchFilterBar'
+import CustomerTable from '@/app/admin/pelanggan/sections/customerTable'
+import { CustomerTableSkeleton } from '@/app/admin/pelanggan/sections/customerSkeleton'
 import type { StatusLangganan } from '@/types/database'
 
 interface SearchParams {

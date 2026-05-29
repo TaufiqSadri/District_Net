@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { SectionHeader } from '@/components/admin/landing/LandingShared'
+import { SectionHeader } from '@/app/admin/landing/sections/LandingShared'
 import { createFaq, deleteFaq, updateFaq } from '@/app/admin/landing/actions'
 import type { Faq } from '@/types/database'
 import {
@@ -11,7 +11,7 @@ import {
   landingInputClass,
   Modal,
   SubmitBtn,
-} from '@/components/admin/landing/managers/LandingManagerShared'
+} from '@/app/admin/landing/sections/managers/LandingManagerShared'
 
 export default function FAQManager({ faqs }: { faqs: Faq[] }) {
   const [modal, setModal] = useState<'create' | Faq | null>(null)

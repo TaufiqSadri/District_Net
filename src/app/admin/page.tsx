@@ -1,4 +1,4 @@
-import DashboardOverviewContent from '@/components/admin/dashboard/DashboardOverviewContent'
+import DashboardOverviewContent from '@/app/admin/sections/DashboardOverviewContent'
 import {
   type AmountRow,
   buildRecentActivities,
@@ -9,7 +9,7 @@ import {
   type PaymentActivityRow,
   type ScheduleActivityRow,
   sumRows,
-} from '@/components/admin/dashboard/dashboardOverviewUtils'
+} from '@/app/admin/sections/dashboardOverviewUtils'
 import { getKomplainStats } from '@/lib/data/komplain'
 import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 import { createAdminClient } from '@/lib/supabase/admin'

@@ -3,13 +3,13 @@
 import { useRef, useState, useTransition } from 'react'
 import { MapPin, Pencil, Search, Trash2, X } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { SectionHeader } from '@/components/admin/landing/LandingShared'
+import { SectionHeader } from '@/app/admin/landing/sections/LandingShared'
 import { createAreaLayanan, deleteAreaLayanan } from '@/app/admin/landing/actions'
 import type { AreaLayanan } from '@/types/database'
 import {
   landingInputClass,
   SubmitBtn,
-} from '@/components/admin/landing/managers/LandingManagerShared'
+} from '@/app/admin/landing/sections/managers/LandingManagerShared'
 
 type ServiceAreaRow = AreaLayanan & { id: string }
 
