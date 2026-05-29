@@ -6,7 +6,7 @@ import type {
 import ActionMenuButton from '@/app/admin/tagihan/sections/ActionMenuButton'
 import ProofButton from '@/app/admin/tagihan/sections/ProofButton'
 import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
-import { billingStatusConfig } from '@/constants/admin-status-styles'
+import { billingStatusConfig } from '@/app/admin/adminStatusStyles'
 
 export type BillingVariant = 'bulanan' | 'instalasi'
 export type BillingRow = TagihanWithRelations | TagihanInstalasiWithRelations

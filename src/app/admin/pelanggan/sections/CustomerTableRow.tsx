@@ -3,7 +3,7 @@
 import type { PelangganWithPaket, StatusLangganan } from '@/types/database'
 import ActionMenuButton from '@/app/admin/pelanggan/sections/ActionMenuButton'
 import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
-import { customerStatusConfig } from '@/constants/admin-status-styles'
+import { customerStatusConfig } from '@/app/admin/adminStatusStyles'
 
 interface CustomerTableRowProps {
   pelanggan: PelangganWithPaket

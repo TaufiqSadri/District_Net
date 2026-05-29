@@ -4,7 +4,7 @@ import ApproveRejectActions from '@/app/admin/verifikasi/sections/ApproveRejectA
 import InvoiceDownloadButton from '@/app/admin/verifikasi/sections/InvoiceDownloadButton'
 import ProofButton from '@/app/admin/verifikasi/sections/ProofButton'
 import PanelStatusBadge from '@/components/panel/shared/PanelStatusBadge'
-import { verificationStatusConfig } from '@/constants/admin-status-styles'
+import { verificationStatusConfig } from '@/app/admin/adminStatusStyles'
 
 export interface InvoiceLookup {
   id: string
