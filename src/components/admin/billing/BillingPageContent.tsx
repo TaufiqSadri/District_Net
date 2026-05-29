@@ -97,7 +97,7 @@ export default function BillingPageContent({
             Kelola Tagihan
           </h1>
           <p className="mt-2 max-w-2xl text-[15px] font-normal leading-6 text-slate-600">
-            Manajemen data pelanggan dan status layanan internet di seluruh distrik.
+            Manajemen data tagihan bulanan dan tagihan instalasi pemasangan.
           </p>
         </div>
 
