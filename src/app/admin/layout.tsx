@@ -1,4 +1,4 @@
-import AdminLayout from '@/components/admin/dashboard/AdminLayout'
+import AdminLayout from '@/components/admin/layout/AdminLayout'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'

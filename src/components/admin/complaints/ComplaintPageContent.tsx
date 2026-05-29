@@ -100,7 +100,6 @@ export default function ComplaintPageContent({
           filteredTotal={result.total}
           page={page}
           totalPages={result.totalPages}
-          searchParams={{ ...searchParams }}
         />
       </section>
     </div>

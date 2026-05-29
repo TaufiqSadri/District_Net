@@ -2,7 +2,8 @@
 
 import type { PelangganWithPaket, StatusLangganan } from '@/types/database'
 import ActionMenuButton from '@/components/admin/customers/ActionMenuButton'
-import StatusBadge from '@/components/admin/customers/StatusBadge'
+import AdminStatusBadge from '@/components/admin/shared/AdminStatusBadge'
+import { customerStatusConfig } from '@/constants/admin-status-styles'
 
 interface CustomerTableRowProps {
   pelanggan: PelangganWithPaket
@@ -55,7 +56,7 @@ export default function CustomerTableRow({
         )}
       </td>
       <td className="px-6 py-6">
-        <StatusBadge status={status} />
+        <CustomerStatusBadge status={status} />
       </td>
       <td className="px-6 py-6 text-[15px] font-normal text-slate-800">
         {formatJoinDate(pelanggan.tanggal_bergabung)}
@@ -104,7 +105,7 @@ export function CustomerMobileRow({
               <p className="text-xs text-slate-500">{pelanggan.no_hp}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge status={status} />
+              <CustomerStatusBadge status={status} />
               <span className="text-xs text-slate-500">
                 {formatJoinDate(pelanggan.tanggal_bergabung)}
               </span>
@@ -121,6 +122,22 @@ export function CustomerMobileRow({
         </div>
       </div>
     </div>
+  )
+}
+
+function CustomerStatusBadge({ status }: { status: StatusLangganan }) {
+  const config = customerStatusConfig[status]
+
+  return (
+    <AdminStatusBadge
+      className={config.className}
+      dotClassName={config.dotClassName}
+      textClassName="text-xs"
+      uppercase
+      ring={false}
+    >
+      {config.label}
+    </AdminStatusBadge>
   )
 }
 

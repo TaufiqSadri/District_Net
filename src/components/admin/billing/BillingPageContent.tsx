@@ -9,6 +9,7 @@ import {
 import BillingTabs, { type BillingTabKey } from '@/components/admin/billing/BillingTabs'
 import SearchFilterBar from '@/components/admin/billing/SearchFilterBar'
 import BillingTable from '@/components/admin/billing/billingTable'
+import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
 
 interface SearchParams extends Record<string, string | undefined> {
   pelanggan?: string
@@ -92,14 +93,10 @@ export default function BillingPageContent({
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-[28px] font-bold leading-tight text-slate-900 sm:text-[30px]">
-            Kelola Tagihan
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] font-normal leading-6 text-slate-600">
-            Manajemen data tagihan bulanan dan tagihan instalasi pemasangan.
-          </p>
-        </div>
+        <AdminPageHeader
+        title='Kelola tagihan'
+        subtitle='Manajemen data tagihan bulanan dan tagihan instalasi pemasangan.'
+        />
 
         <Link
           href={isInstallation ? '/admin/tagihan/generate?jenis=instalasi' : '/admin/tagihan/generate'}

@@ -85,13 +85,13 @@ export default async function DetailPelangganPage({ params }: Props) {
       <div className="rounded-2xl bg-white p-6 shadow-card md:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           {/* Avatar */}
-          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-purple/10 font-display text-2xl font-bold text-brand-purple">
+          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-purple/10 text-2xl font-bold text-brand-purple">
             {initials}
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-display text-2xl font-bold text-gray-900">{pelanggan.nama_lengkap}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{pelanggan.nama_lengkap}</h1>
               <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${status?.cls}`}>
                 {status?.label}
               </span>
@@ -132,7 +132,7 @@ export default async function DetailPelangganPage({ params }: Props) {
 
       {/* Paket Info */}
       <div className="rounded-2xl bg-white p-6 shadow-card">
-        <h2 className="mb-4 font-display font-semibold text-gray-900">Paket Internet</h2>
+        <h2 className="mb-4 font-semibold text-gray-900">Paket Internet</h2>
         {paket ? (
           <div className="flex flex-wrap items-center gap-4 rounded-xl bg-purple-50 p-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-purple/10">
@@ -151,7 +151,7 @@ export default async function DetailPelangganPage({ params }: Props) {
       {/* Tagihan */}
       <div className="rounded-2xl bg-white p-6 shadow-card">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display font-semibold text-gray-900">Riwayat Tagihan</h2>
+          <h2 className="font-semibold text-gray-900">Riwayat Tagihan</h2>
           <Link
             href={`/admin/tagihan?pelanggan=${params.id}`}
             className="text-xs font-semibold text-brand-pink hover:underline"

@@ -4,18 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logoutAction } from '@/app/(public)/login/actions'
-import {
-  BarChart2,
-  CreditCard,
-  CheckCircle,
-  Globe,
-  LayoutDashboard,
-  LogOut,
-  MessageSquare,
-  Users,
-  Wrench,
-  X,
-} from 'lucide-react'
+import { LogOut, X } from 'lucide-react'
+import { adminNavGroups, type AdminMenuBadgeKey } from '@/constants/admin-menu'
 
 interface AdminSidebarProps {
   open: boolean
@@ -23,48 +13,6 @@ interface AdminSidebarProps {
   pendingCount: number
   paymentPendingCount: number
 }
-
-type BadgeKey = 'payment' | 'pending'
-
-const navGroups = [
-  {
-    title: 'Overview',
-    items: [{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard }],
-  },
-  {
-    title: 'Website',
-    items: [{ href: '/admin/landing', label: 'Landing Page', icon: Globe }],
-  },
-  {
-    title: 'Operational',
-    items: [
-      { href: '/admin/pelanggan', label: 'Pelanggan', icon: Users },
-      { href: '/admin/tagihan', label: 'Tagihan', icon: CreditCard },
-      {
-        href: '/admin/verifikasi',
-        label: 'Verifikasi Pembayaran',
-        icon: CheckCircle,
-        badgeKey: 'payment' as const,
-      },
-      { href: '/admin/jadwal-instalasi', label: 'Jadwal', icon: Wrench },
-    ],
-  },
-  {
-    title: 'Service',
-    items: [
-      {
-        href: '/admin/komplain',
-        label: 'Komplain',
-        icon: MessageSquare,
-        badgeKey: 'pending' as const,
-      },
-    ],
-  },
-  {
-    title: 'Analytics',
-    items: [{ href: '/admin/laporan', label: 'Laporan', icon: BarChart2 }],
-  },
-]
 
 function formatBadge(count: number) {
   if (count > 99) return '99+'
@@ -124,7 +72,7 @@ function SidebarContent({
 }) {
   const pathname = usePathname()
 
-  const getBadge = (badgeKey?: BadgeKey) => {
+  const getBadge = (badgeKey?: AdminMenuBadgeKey) => {
     const count = badgeKey === 'payment' ? paymentPendingCount : pendingCount
 
     if (!badgeKey || count <= 0) return null
@@ -163,7 +111,7 @@ function SidebarContent({
 
       <nav className="flex-1 overflow-y-auto px-[18px] pb-4 pt-4">
         <div className="flex flex-col gap-2">
-          {navGroups.map((group) => (
+          {adminNavGroups.map((group) => (
             <div key={group.title} className="overflow-hidden">
               <p className="px-5 pb-2 text-xs font-semibold uppercase tracking-wide text-white/75">
                 {group.title}

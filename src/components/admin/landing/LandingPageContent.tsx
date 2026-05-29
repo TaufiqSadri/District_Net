@@ -1,7 +1,12 @@
 import type { AreaLayanan, Faq, Iklan, PaketInternet, Promo } from '@/types/database'
-import { AreaManager, FaqManager, IklanManager, PaketManager, PromoManager } from '@/app/admin/landing/LandingManagers'
+import BannerManager from '@/components/admin/landing/managers/BannerManager'
+import FAQManager from '@/components/admin/landing/managers/FAQManager'
+import PackageManager from '@/components/admin/landing/managers/PackageManager'
+import PromoManager from '@/components/admin/landing/managers/PromoManager'
+import ServiceAreaManager from '@/components/admin/landing/managers/ServiceAreaManager'
 import LandingTabs, { type LandingTab } from '@/components/admin/landing/LandingTabs'
 import { InfoNotice } from '@/components/admin/landing/LandingShared'
+import AdminPageHeader from '@/components/admin/shared/AdminPageHeader'
 
 type AreaRow = AreaLayanan & { id: string }
 
@@ -32,14 +37,18 @@ export default function LandingPageContent({
 }: LandingPageContentProps) {
   return (
     <div className="space-y-6">
+      <AdminPageHeader 
+      title='Kelola Landing'
+      subtitle='Kelola konten yang tampil di halaman publik website.'
+      />
       <LandingTabs activeTab={activeTab} />
       <InfoNotice>{notices[activeTab]}</InfoNotice>
 
-      {activeTab === 'iklan' ? <IklanManager iklans={iklans} /> : null}
-      {activeTab === 'paket' ? <PaketManager paketList={paket} /> : null}
+      {activeTab === 'iklan' ? <BannerManager iklans={iklans} /> : null}
+      {activeTab === 'paket' ? <PackageManager paketList={paket} /> : null}
       {activeTab === 'promo' ? <PromoManager promos={promos} /> : null}
-      {activeTab === 'faq' ? <FaqManager faqs={faqs} /> : null}
-      {activeTab === 'area' ? <AreaManager areas={areas} /> : null}
+      {activeTab === 'faq' ? <FAQManager faqs={faqs} /> : null}
+      {activeTab === 'area' ? <ServiceAreaManager areas={areas} /> : null}
     </div>
   )
 }

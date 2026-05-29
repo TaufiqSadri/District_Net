@@ -1,29 +1,46 @@
+'use client'
+
 import type { ReactNode } from 'react'
-import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface AdminPaginationProps {
-  basePath: string
   itemLabel: string
   currentCount: number
   filteredTotal: number
   page: number
   totalPages: number
-  searchParams: Record<string, string | undefined>
+  basePath?: string
   omitParams?: string[]
 }
 
 export default function AdminPagination({
-  basePath,
   itemLabel,
   currentCount,
   filteredTotal,
   page,
   totalPages,
-  searchParams,
+  basePath,
   omitParams = ['success', 'error'],
 }: AdminPaginationProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const pages = buildPages(page, totalPages)
+
+  function goToPage(nextPage: number) {
+    const params = new URLSearchParams(searchParams.toString())
+    omitParams.forEach((key) => params.delete(key))
+
+    if (nextPage > 1) {
+      params.set('page', String(nextPage))
+    } else {
+      params.delete('page')
+    }
+
+    const query = params.toString()
+    router.push(query ? `${basePath ?? pathname}?${query}` : basePath ?? pathname)
+  }
 
   return (
     <div className="flex flex-col gap-4 border-t border-[#e5e7eb] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
@@ -35,8 +52,8 @@ export default function AdminPagination({
         <div className="flex items-center gap-2">
           <PageLink
             disabled={page <= 1}
-            href={buildPageHref(basePath, searchParams, page - 1, omitParams)}
             ariaLabel="Halaman sebelumnya"
+            onClick={() => goToPage(page - 1)}
           >
             <ChevronLeft size={16} />
           </PageLink>
@@ -50,8 +67,8 @@ export default function AdminPagination({
               <PageLink
                 key={item}
                 active={item === page}
-                href={buildPageHref(basePath, searchParams, item, omitParams)}
                 ariaLabel={`Halaman ${item}`}
+                onClick={() => goToPage(item)}
               >
                 {item}
               </PageLink>
@@ -60,8 +77,8 @@ export default function AdminPagination({
 
           <PageLink
             disabled={page >= totalPages}
-            href={buildPageHref(basePath, searchParams, page + 1, omitParams)}
             ariaLabel="Halaman berikutnya"
+            onClick={() => goToPage(page + 1)}
           >
             <ChevronRight size={16} />
           </PageLink>
@@ -75,14 +92,14 @@ function PageLink({
   children,
   active,
   disabled,
-  href,
   ariaLabel,
+  onClick,
 }: {
   children: ReactNode
   active?: boolean
   disabled?: boolean
-  href: string
   ariaLabel: string
+  onClick: () => void
 }) {
   const className = `inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 text-sm font-semibold transition ${
     active
@@ -91,31 +108,16 @@ function PageLink({
   } ${disabled ? 'pointer-events-none cursor-not-allowed text-slate-300 hover:bg-white' : ''}`
 
   return (
-    <Link
-      href={disabled || active ? '#' : href}
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || active}
       aria-label={ariaLabel}
-      aria-disabled={disabled || active}
       className={className}
     >
       {children}
-    </Link>
+    </button>
   )
-}
-
-function buildPageHref(
-  basePath: string,
-  searchParams: Record<string, string | undefined>,
-  nextPage: number,
-  omitParams: string[],
-) {
-  const params = new URLSearchParams()
-  Object.entries(searchParams).forEach(([key, value]) => {
-    if (!value || key === 'page' || omitParams.includes(key)) return
-    params.set(key, value)
-  })
-  if (nextPage > 1) params.set('page', String(nextPage))
-  const query = params.toString()
-  return query ? `${basePath}?${query}` : basePath
 }
 
 function buildPages(currentPage: number, totalPages: number) {

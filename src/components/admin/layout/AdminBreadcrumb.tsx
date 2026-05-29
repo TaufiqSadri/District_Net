@@ -12,7 +12,7 @@ const adminPageNames = [
   { prefix: '/admin/laporan', label: 'Laporan' },
 ]
 
-export default function BreadcrumbHeader() {
+export default function AdminBreadcrumb() {
   const pathname = usePathname()
   const page = adminPageNames.find((item) => pathname.startsWith(item.prefix))
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { Bell, Menu, Settings, UserCircle } from 'lucide-react'
-import BreadcrumbHeader from '@/components/admin/dashboard/BreadcrumbHeader'
+import AdminBreadcrumb from '@/components/admin/layout/AdminBreadcrumb'
 
 export interface AdminTopbarUser {
   name: string
@@ -29,7 +29,7 @@ export default function AdminTopbar({ user, onMenuClick }: AdminTopbarProps) {
         </button>
 
         <div className="min-w-0 flex-1">
-          <BreadcrumbHeader />
+          <AdminBreadcrumb />
         </div>
 
         <div className="ml-auto flex flex-shrink-0 items-center gap-2 sm:gap-3">

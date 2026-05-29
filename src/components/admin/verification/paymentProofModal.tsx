@@ -43,7 +43,7 @@ export default function PaymentProofModal({ url, pelangganName, onClose }: Props
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div>
-            <h3 className="font-display font-semibold text-gray-900">Bukti Pembayaran</h3>
+            <h3 className="font-semibold text-gray-900">Bukti Pembayaran</h3>
             <p className="mt-0.5 text-xs text-gray-400">{pelangganName}</p>
           </div>
           <div className="flex items-center gap-2">

@@ -129,7 +129,7 @@ export default async function GenerateTagihanPage({
             <CalendarDays size={18} />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900">
               {isInstalasi ? 'Generate Tagihan Instalasi' : 'Generate Tagihan Bulanan'}
             </h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -158,7 +158,7 @@ export default async function GenerateTagihanPage({
                 <Wrench size={16} />
               </div>
               <div>
-                <h2 className="font-display font-semibold text-gray-900">Tagihan Instalasi</h2>
+                <h2 className="font-semibold text-gray-900">Tagihan Instalasi</h2>
                 <p className="mt-1 text-xs text-gray-500">
                   Membuat tagihan biaya instalasi perangkat Rp 600.000.
                 </p>
@@ -201,7 +201,7 @@ export default async function GenerateTagihanPage({
                 <Receipt size={16} />
               </div>
               <div>
-                <h2 className="font-display font-semibold text-gray-900">Tagihan Bulanan</h2>
+                <h2 className="font-semibold text-gray-900">Tagihan Bulanan</h2>
                 <p className="mt-1 text-xs text-gray-500">
                   Membuat tagihan berdasarkan harga paket pelanggan.
                 </p>

@@ -3,7 +3,8 @@ import { getPembayaranPelanggan } from '@/lib/pembayaranPelanggan'
 import ApproveRejectActions from '@/components/admin/verification/ApproveRejectActions'
 import InvoiceDownloadButton from '@/components/admin/verification/InvoiceDownloadButton'
 import ProofButton from '@/components/admin/verification/ProofButton'
-import StatusBadge from '@/components/admin/verification/StatusBadge'
+import AdminStatusBadge from '@/components/admin/shared/AdminStatusBadge'
+import { verificationStatusConfig } from '@/constants/admin-status-styles'
 
 export interface InvoiceLookup {
   id: string
@@ -71,7 +72,7 @@ export default function VerificationPaymentRow({
         {formatDate(pembayaran.tanggal_pembayaran)}
       </td>
       <td className="px-6 py-5">
-        <StatusBadge status={status} />
+        <VerificationStatusBadge status={status} />
       </td>
       <td className="px-6 py-5">
         <ProofButton
@@ -135,7 +136,7 @@ export function VerificationPaymentMobileRow({
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <StatusBadge status={status} />
+        <VerificationStatusBadge status={status} />
         <ProofButton
           proofUrl={pembayaran.bukti_pembayaran}
           customerName={customerName}
@@ -144,6 +145,28 @@ export function VerificationPaymentMobileRow({
         <InvoiceDownloadButton pdfUrl={invoicePdfUrl} />
       </div>
     </div>
+  )
+}
+
+function VerificationStatusBadge({ status }: { status: string }) {
+  const config = verificationStatusConfig[status] ?? {
+    label: status,
+    className: 'bg-slate-100 text-slate-600',
+    dotClassName: 'bg-slate-400',
+  }
+
+  return (
+    <AdminStatusBadge
+      className={config.className}
+      dotClassName={config.dotClassName}
+      minWidthClass="min-w-[106px]"
+      textClassName="text-[11px] leading-none"
+      uppercase
+      centered
+      ring={false}
+    >
+      {config.label}
+    </AdminStatusBadge>
   )
 }
 

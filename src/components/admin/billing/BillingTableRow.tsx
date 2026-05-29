@@ -5,7 +5,8 @@ import type {
 } from '@/lib/data/tagihan'
 import ActionMenuButton from '@/components/admin/billing/ActionMenuButton'
 import ProofButton from '@/components/admin/billing/ProofButton'
-import StatusBadge from '@/components/admin/billing/StatusBadge'
+import AdminStatusBadge from '@/components/admin/shared/AdminStatusBadge'
+import { billingStatusConfig } from '@/constants/admin-status-styles'
 
 export type BillingVariant = 'bulanan' | 'instalasi'
 export type BillingRow = TagihanWithRelations | TagihanInstalasiWithRelations
@@ -58,7 +59,7 @@ export default function BillingTableRow({
         {formatDate(row.jatuh_tempo)}
       </td>
       <td className="px-6 py-5">
-        <StatusBadge status={status} />
+        <BillingStatusBadge status={status} />
       </td>
       <td className="px-6 py-5">
         <ProofButton proofUrl={proofUrl} />
@@ -132,7 +133,7 @@ export function BillingMobileRow({
               <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
                 Status
               </p>
-              <StatusBadge status={status} />
+              <BillingStatusBadge status={status} />
             </div>
           </div>
 
@@ -145,6 +146,24 @@ export function BillingMobileRow({
         </div>
       </div>
     </div>
+  )
+}
+
+function BillingStatusBadge({ status }: { status: TagihanStatus }) {
+  const config = billingStatusConfig[status]
+
+  return (
+    <AdminStatusBadge
+      className={config.className}
+      dotClassName={config.dotClassName}
+      minWidthClass="min-w-[112px]"
+      textClassName="text-[11px] leading-none"
+      uppercase
+      centered
+      ring={false}
+    >
+      {config.label}
+    </AdminStatusBadge>
   )
 }
 

@@ -16,6 +16,13 @@ interface AdminStatusBadgeProps {
   tone?: AdminTone
   icon?: ReactNode
   dot?: boolean
+  className?: string
+  dotClassName?: string
+  minWidthClass?: string
+  textClassName?: string
+  uppercase?: boolean
+  centered?: boolean
+  ring?: boolean
 }
 
 export default function AdminStatusBadge({
@@ -23,12 +30,23 @@ export default function AdminStatusBadge({
   tone = 'slate',
   icon,
   dot = true,
+  className,
+  dotClassName,
+  minWidthClass = 'w-fit',
+  textClassName = 'text-[12px]',
+  uppercase,
+  centered,
+  ring = true,
 }: AdminStatusBadgeProps) {
   return (
     <span
-      className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold ring-1 ${toneClasses[tone]}`}
+      className={`inline-flex ${minWidthClass} items-center gap-1.5 rounded-full px-3 py-1 ${textClassName} font-semibold ${
+        centered ? 'justify-center' : ''
+      } ${uppercase ? 'uppercase' : ''} ${ring ? 'ring-1' : ''} ${className ?? toneClasses[tone]}`}
     >
-      {icon ?? (dot ? <span className="h-1.5 w-1.5 rounded-full bg-current" /> : null)}
+      {icon ?? (
+        dot ? <span className={`h-1.5 w-1.5 rounded-full ${dotClassName ?? 'bg-current'}`} /> : null
+      )}
       {children}
     </span>
   )

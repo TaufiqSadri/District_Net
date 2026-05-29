@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { PelangganWithPaket, StatusLangganan } from '@/types/database'
-import Pagination from '@/components/admin/customers/Pagination'
+import AdminPagination from '@/components/admin/shared/AdminPagination'
 import CustomerTableRow, { CustomerMobileRow } from '@/components/admin/customers/CustomerTableRow'
 
 interface CustomerTableProps {
@@ -19,7 +19,6 @@ export default function CustomerTable({
   rows,
   total,
   page,
-  pageSize,
   totalPages,
 }: CustomerTableProps) {
   const [optimisticStatuses, setOptimisticStatuses] = useState<Record<string, StatusLangganan>>({})
@@ -113,11 +112,11 @@ export default function CustomerTable({
         )}
       </div>
 
-      <Pagination
+      <AdminPagination
+        itemLabel="Pelanggan"
         currentCount={visibleRows.length}
         filteredTotal={total}
         page={page}
-        pageSize={pageSize}
         totalPages={totalPages}
       />
     </section>

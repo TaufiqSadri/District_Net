@@ -26,7 +26,7 @@ export default async function AdminTagihanDetailPage({ params }: { params: { id:
         <div className="rounded-2xl bg-white p-6 shadow-card">
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h1 className="font-display text-xl font-bold text-gray-900">Detail Tagihan</h1>
+              <h1 className="text-xl font-bold text-gray-900">Detail Tagihan</h1>
               <p className="mt-1 text-sm text-gray-500">
                 {bulanNama[tagihan.bulan - 1]} {tagihan.tahun}
               </p>
@@ -54,7 +54,7 @@ export default async function AdminTagihanDetailPage({ params }: { params: { id:
 
         <div className="rounded-2xl bg-white p-6 shadow-card">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold text-gray-900">Riwayat Pembayaran</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Riwayat Pembayaran</h2>
             <Link
               href={`/admin/tagihan/${tagihan.id}/edit`}
               className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"

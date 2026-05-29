@@ -24,7 +24,7 @@ export default async function EditTagihanPage({ params }: { params: { id: string
 
       <div className="rounded-2xl bg-white p-6 shadow-card md:p-8">
         <div className="mb-8">
-          <h1 className="font-display text-xl font-bold text-gray-900">Edit Tagihan</h1>
+          <h1 className="text-xl font-bold text-gray-900">Edit Tagihan</h1>
           <p className="mt-1 text-sm text-gray-500">Perbarui nominal, status, dan tanggal jatuh tempo tagihan.</p>
         </div>
 

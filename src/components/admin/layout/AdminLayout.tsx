@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import AdminSidebar from '@/components/admin/dashboard/AdminSidebar'
-import AdminTopbar, { type AdminTopbarUser } from '@/components/admin/dashboard/AdminTopbar'
+import AdminSidebar from '@/components/admin/layout/AdminSidebar'
+import AdminTopbar, { type AdminTopbarUser } from '@/components/admin/layout/AdminTopbar'
 
 interface AdminLayoutProps {
   children: ReactNode
