@@ -81,16 +81,11 @@ export async function getPelangganList({
 }): Promise<PelangganListResult> {
   await syncSuspendedPelangganStatuses()
   const admin = createAdminClient()
+  const searchTerm = search.trim().toLowerCase()
 
   let query = admin
     .from('pelanggan')
     .select('*, paket_internet(*)', { count: 'exact' })
-
-  if (search.trim()) {
-    query = query.or(
-      `nama_lengkap.ilike.%${search}%,email.ilike.%${search}%,no_hp.ilike.%${search}%`,
-    )
-  }
 
   if (status !== 'semua') {
     query = query.eq('status_langganan', status)
@@ -106,6 +101,44 @@ export async function getPelangganList({
 
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
+
+  if (searchTerm) {
+    const { data, error } = await query
+
+    if (error) {
+      console.error('getPelangganList error:', error)
+      return { data: [], total: 0, page, pageSize, totalPages: 0 }
+    }
+
+    const filtered = ((data ?? []) as PelangganWithPaket[]).filter((pelanggan) => {
+      const id = pelanggan.id.toLowerCase()
+      const compactId = id.replace(/-/g, '')
+      const displayId = `dn${compactId.slice(0, 6)}`
+      const normalizedSearch = searchTerm
+        .replace(/^#/, '')
+        .replace(/^dn-?/, 'dn')
+        .replace(/[^a-z0-9@.]/g, '')
+
+      return (
+        pelanggan.nama_lengkap.toLowerCase().includes(searchTerm) ||
+        pelanggan.email.toLowerCase().includes(searchTerm) ||
+        pelanggan.no_hp.toLowerCase().includes(searchTerm) ||
+        id.includes(searchTerm) ||
+        compactId.includes(normalizedSearch.replace(/^dn/, '')) ||
+        displayId.includes(normalizedSearch)
+      )
+    })
+
+    const total = filtered.length
+    return {
+      data: filtered.slice(from, to + 1),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    }
+  }
+
   query = query.range(from, to)
 
   const { data, count, error } = await query

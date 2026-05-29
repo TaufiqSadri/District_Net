@@ -1,14 +1,9 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
-import { UserPlus, Users } from 'lucide-react'
-import { getPelangganStats, getPelangganList, getPaketList } from '@/lib/data/pelanggan'
-import CustomerStats from '@/components/admin/customers/customerStats'
-import CustomerFilters from '@/components/admin/customers/customerFilters'
+import { getPelangganList, getPaketList } from '@/lib/data/pelanggan'
+import PageHeader from '@/components/admin/customers/PageHeader'
+import SearchFilterBar from '@/components/admin/customers/SearchFilterBar'
 import CustomerTable from '@/components/admin/customers/customerTable'
-import {
-  CustomerStatsSkeleton,
-  CustomerTableSkeleton,
-} from '@/components/admin/customers/customerSkeleton'
+import { CustomerTableSkeleton } from '@/components/admin/customers/customerSkeleton'
 import type { StatusLangganan } from '@/types/database'
 
 interface SearchParams {
@@ -19,12 +14,6 @@ interface SearchParams {
   page?: string
   success?: string
   error?: string
-}
-
-// ─── Stats (isolated Suspense boundary) ──────────────────────────────────────
-async function StatsSection() {
-  const stats = await getPelangganStats()
-  return <CustomerStats stats={stats} />
 }
 
 // ─── Table (isolated Suspense boundary) ──────────────────────────────────────
@@ -60,30 +49,11 @@ export default async function AdminPelangganPage({
 }: {
   searchParams: SearchParams
 }) {
-  // Fetch paket list for filter options (fast, cached)
   const paketList = await getPaketList()
 
   return (
     <div className="space-y-6">
-      {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users size={20} className='text-brand-purple'/>
-            Kelola Pelanggan
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manajemen data pelanggan Distric Net
-          </p>
-        </div>
-        <Link
-          href="/admin/pelanggan/createPelanggan"
-          className="inline-flex items-center gap-2 rounded-xl bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 active:scale-95"
-        >
-          <UserPlus size={15} />
-          Tambah Pelanggan
-        </Link>
-      </div>
+      <PageHeader />
 
       {searchParams.success ? (
         <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
@@ -96,15 +66,8 @@ export default async function AdminPelangganPage({
         </div>
       ) : null}
 
-      {/* ── Stats Cards ── */}
-      <Suspense fallback={<CustomerStatsSkeleton />}>
-        <StatsSection />
-      </Suspense>
+      <SearchFilterBar paketList={paketList} />
 
-      {/* ── Filters ── */}
-      <CustomerFilters paketList={paketList} />
-
-      {/* ── Table ── */}
       <Suspense
         key={JSON.stringify(searchParams)}
         fallback={<CustomerTableSkeleton />}

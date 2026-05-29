@@ -61,7 +61,7 @@ function getDropdownCoords(btn: HTMLButtonElement): DropdownCoords {
   return { top, left, right }
 }
 
-export default function CustomerActions({
+export default function ActionMenuButton({
   pelanggan,
   onStatusChange,
   onDelete,
@@ -252,7 +252,7 @@ export default function CustomerActions({
         zIndex: 9999,
         width: DROPDOWN_WIDTH,
       }}
-      className="overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-xl"
+      className="overflow-hidden rounded-xl border border-[#e5e7eb] bg-white py-1 shadow-xl"
     >
       {menuItems.map((item, i) => {
         if ('divider' in item) {
@@ -267,7 +267,7 @@ export default function CustomerActions({
             key={item.label}
             type="button"
             onClick={item.onClick}
-            className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 ${itemClassName}`}
+            className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 ${itemClassName}`}
           >
             <Icon size={14} />
             {item.label}
@@ -284,7 +284,7 @@ export default function CustomerActions({
         type="button"
         onClick={openMenu}
         disabled={isPending}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#c6c0de] transition hover:bg-violet-50 hover:text-brand-purple disabled:opacity-50"
         aria-label="Aksi pelanggan"
       >
         {isPending ? (
