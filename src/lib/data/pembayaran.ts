@@ -71,10 +71,32 @@ const pembayaranSelect = `
   )
 `
 
-export interface VerificationStats {
-  menunggu: number
-  approvedCount: number
-  rejectedCount: number
+type PelangganPaymentSearchRow = {
+  id: string
+  nama_lengkap: string | null
+  email: string | null
+  no_hp: string | null
+}
+
+function matchesPelangganSearch(row: PelangganPaymentSearchRow, searchTerm: string) {
+  if (!searchTerm) return true
+
+  const id = row.id.toLowerCase()
+  const compactId = id.replace(/-/g, '')
+  const displayId = `dn${compactId.slice(0, 6)}`
+  const normalizedSearch = searchTerm
+    .replace(/^#/, '')
+    .replace(/^dn-?/, 'dn')
+    .replace(/[^a-z0-9@.]/g, '')
+
+  return (
+    (row.nama_lengkap ?? '').toLowerCase().includes(searchTerm) ||
+    (row.email ?? '').toLowerCase().includes(searchTerm) ||
+    (row.no_hp ?? '').toLowerCase().includes(searchTerm) ||
+    id.includes(searchTerm) ||
+    compactId.includes(normalizedSearch.replace(/^dn/, '')) ||
+    displayId.includes(normalizedSearch)
+  )
 }
 
 async function pembayaranOrFilterForPelangganIds(admin: ReturnType<typeof createAdminClient>, pelangganIds: string[]) {
@@ -114,11 +136,19 @@ export async function getPembayaranList({
   if (pelangganId) {
     pelangganIds = [pelangganId]
   } else if (search.trim()) {
-    const { data: matched } = await admin
+    const searchTerm = search.trim().toLowerCase()
+    const { data: matched, error: searchError } = await admin
       .from('pelanggan')
-      .select('id')
-      .ilike('nama_lengkap', `%${search}%`)
-    pelangganIds = (matched ?? []).map((p) => p.id)
+      .select('id, nama_lengkap, email, no_hp')
+
+    if (searchError) {
+      console.error('getPembayaranList search error:', searchError)
+      return empty
+    }
+
+    pelangganIds = ((matched ?? []) as PelangganPaymentSearchRow[])
+      .filter((row) => matchesPelangganSearch(row, searchTerm))
+      .map((p) => p.id)
     if (pelangganIds.length === 0) return empty
   }
 
@@ -162,31 +192,6 @@ export async function getPendingPembayaran(args: {
   pageSize?: number
 } = {}) {
   return getPembayaranList({ ...args, status: 'menunggu' })
-}
-
-export async function getVerificationStats(): Promise<VerificationStats> {
-  const admin = createAdminClient()
-
-  const [menunggu, approved, rejected] = await Promise.all([
-    admin
-      .from('pembayaran')
-      .select('*', { count: 'exact', head: true })
-      .eq('status_verifikasi', 'menunggu'),
-    admin
-      .from('pembayaran')
-      .select('*', { count: 'exact', head: true })
-      .eq('status_verifikasi', 'diterima'),
-    admin
-      .from('pembayaran')
-      .select('*', { count: 'exact', head: true })
-      .eq('status_verifikasi', 'ditolak'),
-  ])
-
-  return {
-    menunggu: menunggu.count ?? 0,
-    approvedCount: approved.count ?? 0,
-    rejectedCount: rejected.count ?? 0,
-  }
 }
 
 export async function approvePayment(pembayaranId: string): Promise<void> {
