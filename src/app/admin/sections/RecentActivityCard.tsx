@@ -9,7 +9,7 @@ export interface RecentActivityItem {
   id: string
   title: string
   meta: string
-  type: 'payment' | 'schedule' | 'registration' | 'complaint'
+  type: 'payment' | 'schedule' | 'registration' | 'ticket'
 }
 
 interface RecentActivityCardProps {
@@ -29,9 +29,9 @@ const activityConfig = {
     icon: Users,
     className: 'bg-blue-100 text-blue-600',
   },
-  complaint: {
+  ticket: {
     icon: MessageSquare,
-    className: 'bg-red-100 text-red-600',
+    className: 'bg-blue-100 text-blue-600',
   },
 }
 

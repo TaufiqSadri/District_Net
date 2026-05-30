@@ -1,39 +1,39 @@
-interface ComplaintStatsCardProps {
-  resolved: number
-  unresolved: number
+interface TicketStatsCardProps {
+  closed: number
+  open: number
 }
 
-export default function ComplaintStatsCard({
-  resolved,
-  unresolved,
-}: ComplaintStatsCardProps) {
-  const total = resolved + unresolved
-  const resolvedPercent = total > 0 ? Math.round((resolved / total) * 100) : 0
-  const unresolvedPercent = total > 0 ? 100 - resolvedPercent : 0
+export default function TicketStatsCard({
+  closed,
+  open,
+}: TicketStatsCardProps) {
+  const total = closed + open
+  const closedPercent = total > 0 ? Math.round((closed / total) * 100) : 0
+  const openPercent = total > 0 ? 100 - closedPercent : 0
 
   return (
     <section className="rounded-[18px] border border-[#dfe5ef] bg-white p-7 shadow-[0_1px_2px_rgba(15,23,42,0.06)] sm:p-8">
       <div className="flex items-start justify-between gap-4">
-        <h2 className="text-[22px] font-semibold text-slate-900">Statistik Pengaduan</h2>
-        <span className="mt-1 text-sm font-normal text-slate-500">Monthly Trend</span>
+        <h2 className="text-[22px] font-semibold text-slate-900">Statistik Tiket</h2>
+        <span className="mt-1 text-sm font-normal text-slate-500">Helpdesk</span>
       </div>
       <div className="mt-8 space-y-5">
-        <ComplaintBar
-          label="Resolved"
-          percent={resolvedPercent}
+        <TicketBar
+          label="Closed"
+          percent={closedPercent}
           barClass="bg-emerald-500"
         />
-        <ComplaintBar
-          label="Unresolved"
-          percent={unresolvedPercent}
-          barClass="bg-red-700"
+        <TicketBar
+          label="Open"
+          percent={openPercent}
+          barClass="bg-blue-600"
         />
       </div>
     </section>
   )
 }
 
-function ComplaintBar({
+function TicketBar({
   label,
   percent,
   barClass,

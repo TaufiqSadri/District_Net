@@ -14,8 +14,8 @@ export interface LaporanOverview {
   tagihanLunas: number
   totalPendapatanTerverifikasi: number
   totalTunggakan: number
-  totalKomplain: number
-  komplainMenunggu: number
+  totalTiket: number
+  tiketOpen: number
 }
 
 export interface LaporanFilters {
@@ -128,14 +128,14 @@ export async function getLaporanOverview(filters: LaporanFilters = {}): Promise<
       ? tagihanTunggakanBase.eq('status_tagihan', filters.status)
       : tagihanTunggakanBase.neq('status_tagihan', 'lunas')
 
-  const komplainQuery = applyDateRange(
-    admin.from('komplain').select('*', { count: 'exact', head: true }),
-    'tanggal',
+  const ticketQuery = applyDateRange(
+    admin.from('tiket_layanan').select('*', { count: 'exact', head: true }),
+    'created_at',
     filters,
   )
-  const komplainMenungguQuery = applyDateRange(
-    admin.from('komplain').select('*', { count: 'exact', head: true }).eq('status', false),
-    'tanggal',
+  const ticketOpenQuery = applyDateRange(
+    admin.from('tiket_layanan').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+    'created_at',
     filters,
   )
 
@@ -150,8 +150,8 @@ export async function getLaporanOverview(filters: LaporanFilters = {}): Promise<
     tagihanBelumBayar,
     tagihanMenungguVerifikasi,
     tagihanLunas,
-    totalKomplain,
-    komplainMenunggu,
+    totalTiket,
+    tiketOpen,
     pembayaranDiterima,
     tagihanTunggakan,
   ] = await Promise.all([
@@ -171,8 +171,8 @@ export async function getLaporanOverview(filters: LaporanFilters = {}): Promise<
     isTagihanStatus(filters.status) && filters.status !== 'lunas'
       ? Promise.resolve({ count: 0 })
       : tagihanLunasQuery,
-    komplainQuery,
-    komplainMenungguQuery,
+    ticketQuery,
+    ticketOpenQuery,
     pembayaranDiterimaQuery,
     filters.status === 'lunas' ? Promise.resolve({ data: [] }) : tagihanTunggakanQuery,
   ])
@@ -199,8 +199,8 @@ export async function getLaporanOverview(filters: LaporanFilters = {}): Promise<
     tagihanLunas: tagihanLunas.count ?? 0,
     totalPendapatanTerverifikasi,
     totalTunggakan,
-    totalKomplain: totalKomplain.count ?? 0,
-    komplainMenunggu: komplainMenunggu.count ?? 0,
+    totalTiket: totalTiket.count ?? 0,
+    tiketOpen: tiketOpen.count ?? 0,
   }
 }
 
@@ -226,25 +226,25 @@ export async function getLaporanPreview(filters: LaporanFilters = {}) {
     filters,
   )
 
-  const komplainQuery = applyDateRange(
+  const ticketQuery = applyDateRange(
     admin
-      .from('komplain')
+      .from('tiket_layanan')
       .select('*, pelanggan(nama_lengkap)')
-      .order('tanggal', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(8),
-    'tanggal',
+    'created_at',
     filters,
   )
 
-  const [{ data: tagihan }, { data: pembayaran }, { data: komplain }] = await Promise.all([
+  const [{ data: tagihan }, { data: pembayaran }, { data: tiket }] = await Promise.all([
     tagihanQuery,
     pembayaranQuery,
-    komplainQuery,
+    ticketQuery,
   ])
 
   return {
     tagihan: tagihan ?? [],
     pembayaran: pembayaran ?? [],
-    komplain: komplain ?? [],
+    tiket: tiket ?? [],
   }
 }

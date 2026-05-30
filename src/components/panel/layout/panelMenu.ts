@@ -35,15 +35,15 @@ export const adminNavGroups = [
         icon: CheckCircle,
         badgeKey: 'payment' as const,
       },
-      { href: '/admin/jadwal-instalasi', label: 'Jadwal', icon: Wrench },
+      { href: '/admin/jadwal-instalasi', label: 'Jadwal Layanan', icon: Wrench },
     ],
   },
   {
     title: 'Service',
     items: [
       {
-        href: '/admin/komplain',
-        label: 'Komplain',
+        href: '/admin/tiket',
+        label: 'Tiket Layanan',
         icon: MessageSquare,
         badgeKey: 'pending' as const,
       },
@@ -71,7 +71,7 @@ export const customerNavGroups = [
     title: 'Aktivitas',
     items: [
       { href: '/dashboard/riwayat', label: 'Riwayat Bayar', icon: History },
-      { href: '/dashboard/komplain', label: 'Komplain', icon: MessageSquare },
+      { href: '/dashboard/tiket', label: 'Tiket Layanan', icon: MessageSquare },
     ],
   },
   {

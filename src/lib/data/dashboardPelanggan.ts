@@ -9,16 +9,6 @@ export type PembayaranWithTagihan = PembayaranRow & {
   tagihan_instalasi?: { id: string; pelanggan_id: string } | null
 }
 
-export type KomplainRow = {
-  id: string
-  pelanggan_id: string | null
-  tanggal: string | null
-  isi_komplain: string
-  status: boolean | null
-  respon_admin: string | null
-  created_at: string | null
-}
-
 export async function requireActivePelanggan(): Promise<PelangganWithPaket> {
   const pelanggan = await getCurrentPelanggan()
 
@@ -37,7 +27,6 @@ export async function getDashboardPelangganData() {
   // Step 1: ambil data yang tidak butuh bypass RLS pakai supabase client biasa
   const [
     { data: tagihan },
-    { data: komplain },
     { data: paketAktif },
   ] = await Promise.all([
     supabase
@@ -46,11 +35,6 @@ export async function getDashboardPelangganData() {
       .eq('pelanggan_id', pelanggan.id)
       .order('tahun', { ascending: false })
       .order('bulan', { ascending: false }),
-    supabase
-      .from('komplain')
-      .select('*')
-      .eq('pelanggan_id', pelanggan.id)
-      .order('tanggal', { ascending: false }),
     supabase
       .from('paket_internet')
       .select('*')
@@ -106,7 +90,6 @@ export async function getDashboardPelangganData() {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     ),
     pembayaran,
-    komplain: (komplain ?? []) as KomplainRow[],
     paketAktif: (paketAktif ?? []) as PaketInternet[],
   }
 }
@@ -179,11 +162,6 @@ export function getStatusVerifikasiMeta(status: string) {
     ditolak: { label: 'Ditolak', className: 'bg-red-100 text-red-700' },
   }
   return map[status] ?? { label: status, className: 'bg-gray-100 text-gray-600' }
-}
-
-export function getStatusKomplainMeta(status: boolean | null) {
-  if (status) return { label: 'Selesai', className: 'bg-green-100 text-green-700' }
-  return { label: 'Menunggu Respons', className: 'bg-yellow-100 text-yellow-700' }
 }
 
 export function formatRupiah(value: number) {

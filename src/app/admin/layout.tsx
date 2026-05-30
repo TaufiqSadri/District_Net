@@ -8,19 +8,18 @@ import { unstable_cache } from 'next/cache'
 const getBadgeCounts = unstable_cache(
   async () => {
     const admin = createAdminClient()
-    // Single query instead of two separate queries
-    const [komplainResult, pembayaranResult] = await Promise.all([
+    const [ticketResult, pembayaranResult] = await Promise.all([
       admin
-        .from('komplain')
+        .from('tiket_layanan')
         .select('*', { count: 'exact', head: true })
-        .eq('status', false),
+        .eq('status', 'open'),
       admin
         .from('pembayaran')
         .select('*', { count: 'exact', head: true })
         .eq('status_verifikasi', 'menunggu'),
     ])
     return {
-      pendingCount: komplainResult.count ?? 0,
+      pendingCount: ticketResult.count ?? 0,
       paymentPendingCount: pembayaranResult.count ?? 0,
     }
   },
