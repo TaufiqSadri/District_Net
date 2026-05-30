@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# District Net
 
-## Getting Started
+District Net adalah aplikasi web operasional untuk layanan internet. Aplikasi ini mencakup landing page publik, registrasi pelanggan, dashboard pelanggan, dashboard admin, manajemen tagihan, verifikasi pembayaran, invoice, jadwal layanan, tiket layanan, dan notifikasi.
 
-First, run the development server:
+## Teknologi
+
+- Next.js 14 App Router
+- React 18
+- TypeScript
+- Tailwind CSS
+- Supabase Auth
+- Supabase Database
+- Supabase Storage
+- `@react-pdf/renderer` untuk invoice PDF
+- pnpm
+
+## Langkah Menjalankan Aplikasi
+
+Install dependency:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buat file `.env.local` dengan variabel berikut:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SITE_URL=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Jalankan development server:
 
-## Learn More
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Buka aplikasi di:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Perintah Utama
 
-## Deploy on Vercel
+| Perintah | Fungsi |
+| --- | --- |
+| `pnpm dev` | Menjalankan development server. |
+| `pnpm build` | Membuat build production dan menjalankan validasi Next.js. |
+| `pnpm start` | Menjalankan hasil build production. |
+| `pnpm lint` | Menjalankan lint Next.js. |
+| `pnpm exec tsc --noEmit` | Menjalankan TypeScript check. |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Variabel Lingkungan
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+| Variabel | Keterangan |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL project Supabase. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key untuk Supabase client. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key untuk operasi server-side admin. Jangan expose ke client. |
+| `NEXT_PUBLIC_SITE_URL` | URL aplikasi untuk callback auth dan invite user. |
+
+## Dokumentasi Teknis
+
+Dokumentasi lengkap tersedia di folder `docs/`:
+
+- [Gambaran Proyek](docs/PROJECT_OVERVIEW.md)
+- [Struktur Folder](docs/FOLDER_STRUCTURE.md)
+- [Route Aplikasi](docs/ROUTES.md)
+- [Skema Database](docs/DATABASE_SCHEMA.md)
+- [Fitur Aplikasi](docs/FEATURES.md)
+- [Action dan Alur Data](docs/ACTIONS_AND_DATA_FLOW.md)
+- [Autentikasi dan Peran](docs/AUTH_AND_ROLES.md)
+- [Notifikasi](docs/NOTIFICATIONS.md)
+- [Tiket Layanan](docs/TICKET_SERVICE.md)
+- [Panduan Pengembangan](docs/DEVELOPMENT_GUIDE.md)
+- [Catatan Pemeliharaan](docs/MAINTENANCE_NOTES.md)
+
+## Catatan Pengembangan
+
+- Gunakan `src/lib/data` untuk logic akses data.
+- Gunakan server action untuk mutasi data dari form atau komponen interaktif.
+- Admin dikenali dari `user.user_metadata.role === 'admin'`.
+- Relasi akun pelanggan memakai `pelanggan.user_id = auth.users.id`.
+- Notifikasi pelanggan memakai `notifikasi.user_id` sebagai penerima utama.
