@@ -28,12 +28,14 @@ export default function TicketMessageBubble({
         <article className="max-w-2xl rounded-[18px] border border-blue-100 bg-blue-50 px-4 py-3 text-center text-[14px] leading-6 text-blue-800">
           <div className="mb-1 flex items-center justify-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-blue-600">
             <Info size={14} />
-            Sistem
+            <span>Sistem</span>
+            <span aria-hidden="true">-</span>
+            <time className="block text-[12px] font-medium text-blue-500">
+            {formatTimestamp(timestamp)}
+            </time>
           </div>
           <p className="whitespace-pre-line">{content}</p>
-          <time className="mt-2 block text-[12px] font-medium text-blue-500">
-            {formatTimestamp(timestamp)}
-          </time>
+          
         </article>
       </div>
     )

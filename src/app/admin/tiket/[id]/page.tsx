@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import AdminTicketDetail from '@/components/admin/tickets/AdminTicketDetail'
+import AdminTicketDetail from '@/app/admin/tiket/sections/AdminTicketDetail'
 import PanelAlert from '@/components/panel/shared/PanelAlert'
 import { getTicketDetail } from '@/lib/data/tiket'
 

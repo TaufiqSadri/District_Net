@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
-import CustomerTicketDetail from '@/components/customer/tickets/CustomerTicketDetail'
+import CustomerTicketDetail from '@/app/dashboard/tiket/sections/CustomerTicketDetail'
 import PanelAlert from '@/components/panel/shared/PanelAlert'
 import { getCurrentPelanggan } from '@/lib/data/pelanggan'
 import { getTicketDetail } from '@/lib/data/tiket'

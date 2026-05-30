@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { CheckCircle2, Clock3, MessageSquareText, Search, SlidersHorizontal, X } from 'lucide-react'
-import AdminTicketTable from '@/components/admin/tickets/AdminTicketTable'
+import AdminTicketTable from '@/app/admin/tiket/sections/AdminTicketTable'
 import PanelAlert from '@/components/panel/shared/PanelAlert'
 import PanelFilterSelect from '@/components/panel/shared/PanelFilterSelect'
 import PanelMetricCard from '@/components/panel/shared/PanelMetricCard'
