@@ -68,7 +68,7 @@ export async function sendCustomerTicketMessageAction(tiketId: string, formData:
 }
 
 export async function markNotificationAsReadAction(notificationId: string, _formData: FormData) {
-  const pelanggan = await requireDashboardPelanggan()
-  await markNotificationAsRead(notificationId, pelanggan.id)
-  revalidatePath('/dashboard')
+  await requireDashboardPelanggan()
+  await markNotificationAsRead(notificationId)
+  revalidatePath('/dashboard', 'layout')
 }

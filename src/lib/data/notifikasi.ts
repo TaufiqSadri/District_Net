@@ -1,95 +1,75 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
 export interface NotificationInput {
-  pelangganId: string
+  userId: string
   title: string
   message: string
   type?: string
   ticketId?: string | null
   scheduleId?: string | null
+  relatedId?: string | null
   scheduledAt?: string | null
 }
 
 export interface NotificationRow {
   id: string
-  pelanggan_id: string
+  user_id: string
   title: string
   message: string
   type: string | null
+  related_id: string | null
   scheduled_at: string | null
   is_read: boolean
   created_at: string | null
 }
 
-function buildNotificationAttempts(inputs: NotificationInput[]) {
+async function getCurrentUserId() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  return user?.id ?? null
+}
+
+function buildNotificationRows(inputs: NotificationInput[]) {
   const now = new Date().toISOString()
 
-  return [
-    inputs.map((item) => ({
-      pelanggan_id: item.pelangganId,
-      judul: item.title,
-      pesan: item.message,
-      tipe: item.type ?? 'info',
-      tiket_id: item.ticketId ?? null,
-      jadwal_layanan_id: item.scheduleId ?? null,
-      tanggal_notifikasi: item.scheduledAt ?? now,
-      is_read: false,
-      created_at: now,
-    })),
-    inputs.map((item) => ({
-      pelanggan_id: item.pelangganId,
-      title: item.title,
-      message: item.message,
-      type: item.type ?? 'info',
-      ticket_id: item.ticketId ?? null,
-      jadwal_layanan_id: item.scheduleId ?? null,
-      scheduled_at: item.scheduledAt ?? now,
-      read: false,
-      created_at: now,
-    })),
-    inputs.map((item) => ({
-      pelanggan_id: item.pelangganId,
-      judul: item.title,
-      isi_notifikasi: item.message,
-      tipe: item.type ?? 'info',
-      tiket_id: item.ticketId ?? null,
-      jadwal_layanan_id: item.scheduleId ?? null,
-      tanggal_kirim: item.scheduledAt ?? now,
-      dibaca: false,
-      created_at: now,
-    })),
-    inputs.map((item) => ({
-      pelanggan_id: item.pelangganId,
-      judul: item.title,
-      pesan: item.message,
-      created_at: item.scheduledAt ?? now,
-    })),
-  ]
+  return inputs.map((item) => ({
+    user_id: item.userId,
+    judul: item.title,
+    isi: item.message,
+    tipe: item.type ?? 'info',
+    related_id: item.relatedId ?? item.scheduleId ?? item.ticketId ?? null,
+    scheduled_at: item.scheduledAt ?? now,
+    is_read: false,
+    created_at: now,
+  }))
 }
 
 export async function createNotifications(inputs: NotificationInput[], admin: AdminClient = createAdminClient()) {
   if (inputs.length === 0) return
 
-  const attempts = buildNotificationAttempts(inputs)
-  let lastError: { message: string } | null = null
+  const { error } = await admin.from('notifikasi').insert(buildNotificationRows(inputs) as any[])
 
-  for (const rows of attempts) {
-    const { error } = await admin.from('notifikasi').insert(rows as any[])
-    if (!error) return
-    lastError = error
-  }
-
-  if (lastError) throw new Error(lastError.message)
+  if (error) throw new Error(error.message)
 }
 
-export async function getNotifications(pelangganId: string): Promise<NotificationRow[]> {
+export async function getNotifications(): Promise<NotificationRow[]> {
+  const userId = await getCurrentUserId()
+  if (!userId) return []
+
   const admin = createAdminClient()
+  const now = new Date().toISOString()
   const { data, error } = await admin
     .from('notifikasi')
     .select('*')
-    .eq('pelanggan_id', pelangganId)
+    .eq('user_id', userId)
+    .lte('scheduled_at', now)
+    .order('scheduled_at', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -100,37 +80,48 @@ export async function getNotifications(pelangganId: string): Promise<Notificatio
 
   return (data ?? []).map((item: any) => ({
     id: item.id,
-    pelanggan_id: item.pelanggan_id,
+    user_id: item.user_id,
     title: item.judul ?? item.title ?? 'Notifikasi',
-    message: item.pesan ?? item.message ?? item.isi_notifikasi ?? '',
+    message: item.isi ?? item.pesan ?? item.message ?? '',
     type: item.tipe ?? item.type ?? null,
-    scheduled_at: item.tanggal_notifikasi ?? item.scheduled_at ?? item.tanggal_kirim ?? item.created_at ?? null,
-    is_read: Boolean(item.is_read ?? item.read ?? item.dibaca ?? false),
+    related_id: item.related_id ?? null,
+    scheduled_at: item.scheduled_at ?? item.created_at ?? null,
+    is_read: Boolean(item.is_read ?? false),
     created_at: item.created_at ?? null,
   }))
 }
 
-export async function markNotificationAsRead(notificationId: string, pelangganId: string) {
+export async function getUnreadNotificationCount() {
+  const userId = await getCurrentUserId()
+  if (!userId) return 0
+
   const admin = createAdminClient()
   const now = new Date().toISOString()
-  const attempts = [
-    { is_read: true, read_at: now },
-    { dibaca: true, dibaca_pada: now },
-    { read: true, read_at: now },
-  ]
+  const { count, error } = await admin
+    .from('notifikasi')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .lte('scheduled_at', now)
+    .eq('is_read', false)
 
-  let lastError: { message: string } | null = null
-
-  for (const payload of attempts) {
-    const { error } = await admin
-      .from('notifikasi')
-      .update(payload)
-      .eq('id', notificationId)
-      .eq('pelanggan_id', pelangganId)
-
-    if (!error) return
-    lastError = error
+  if (error) {
+    console.error('getUnreadNotificationCount error:', error)
+    return 0
   }
 
-  if (lastError) throw new Error(lastError.message)
+  return count ?? 0
+}
+
+export async function markNotificationAsRead(notificationId: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return
+
+  const admin = createAdminClient()
+  const { error } = await admin
+    .from('notifikasi')
+    .update({ is_read: true })
+    .eq('id', notificationId)
+    .eq('user_id', userId)
+
+  if (error) throw new Error(error.message)
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { markNotificationAsReadAction } from '@/app/dashboard/notification-actions'
 import {
   Bell,
   CalendarClock,
@@ -24,10 +25,13 @@ export type PanelNotification = {
   href?: string
   actionLabel?: string
   details?: Array<{ label: string; value: string }>
+  isUnread?: boolean
+  canMarkRead?: boolean
 }
 
 type Props = {
   notifications: PanelNotification[]
+  unreadCount?: number
 }
 
 const toneClass: Record<PanelNotification['tone'], { icon: string; badge: string; border: string }> = {
@@ -76,13 +80,14 @@ const iconMap: Record<PanelNotification['icon'], typeof Wrench> = {
   calendar: CalendarClock,
 }
 
-export default function PanelNotificationDrawer({ notifications }: Props) {
+export default function PanelNotificationDrawer({ notifications, unreadCount }: Props) {
   const [open, setOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(
-    notifications.find((item) => item.href || item.details?.length)?.id ?? null,
+    notifications.find((item) => item.href || item.details?.length || (item.canMarkRead && item.isUnread))?.id ?? null,
   )
 
   const count = notifications.length
+  const unreadTotal = unreadCount ?? notifications.filter((item) => item.isUnread).length
 
   return (
     <>
@@ -93,7 +98,7 @@ export default function PanelNotificationDrawer({ notifications }: Props) {
         aria-label="Buka notifikasi pelanggan"
       >
         <Bell size={21} />
-        {count > 0 ? (
+        {unreadTotal > 0 ? (
           <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-600" />
         ) : null}
       </button>
@@ -117,7 +122,7 @@ export default function PanelNotificationDrawer({ notifications }: Props) {
             <div>
               <h2 className="text-[22px] font-semibold text-slate-900">Pengumuman</h2>
               <p className="mt-1 text-sm text-slate-500">
-                {count > 0 ? `${count} informasi layanan Anda` : 'Tidak ada informasi baru'}
+                {unreadTotal > 0 ? `${unreadTotal} notifikasi baru` : 'Tidak ada notifikasi baru'}
               </p>
             </div>
             <button
@@ -141,7 +146,8 @@ export default function PanelNotificationDrawer({ notifications }: Props) {
           {notifications.map((item) => {
             const Icon = iconMap[item.icon]
             const tone = toneClass[item.tone]
-            const canExpand = Boolean(item.href || item.details?.length)
+            const canMarkRead = Boolean(item.canMarkRead && item.isUnread)
+            const canExpand = Boolean(item.href || item.details?.length || canMarkRead)
             const expanded = expandedId === item.id
 
             return (
@@ -220,6 +226,18 @@ export default function PanelNotificationDrawer({ notifications }: Props) {
                       >
                         {item.actionLabel ?? 'Lihat Detail'}
                       </Link>
+                    ) : null}
+
+                    {canMarkRead ? (
+                      <form action={markNotificationAsReadAction} className="mt-4">
+                        <input type="hidden" name="notification_id" value={item.id} />
+                        <button
+                          type="submit"
+                          className="inline-flex h-10 items-center justify-center rounded-xl border border-[#dfe5ef] bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        >
+                          Tandai dibaca
+                        </button>
+                      </form>
                     ) : null}
                   </div>
                 ) : null}
