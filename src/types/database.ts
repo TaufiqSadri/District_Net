@@ -7,6 +7,9 @@ export type StatusJadwalInstalasi =
   | 'dikerjakan'
   | 'selesai'
   | 'dibatalkan'
+export type JenisJadwalLayanan = 'instalasi' | 'pengecekan' | 'perbaikan'
+export type TicketStatus = 'open' | 'closed'
+export type TicketSenderType = 'pelanggan' | 'admin' | 'system'
 
 export interface PaketInternet {
   id: string
@@ -120,23 +123,36 @@ export interface JadwalInstalasi {
   id: string
   pelanggan_id: string
   tagihan_instalasi_id: string | null
-  tanggal_pemasangan: string | null
+  tiket_id?: string | null
+  jenis_jadwal: JenisJadwalLayanan
+  tanggal_jadwal: string | null
   teknisi: string | null
-  no_hp_teknisi: string | null
   status: StatusJadwalInstalasi
   catatan: string | null
+  catatan_pelanggan?: string | null
+  catatan_internal?: string | null
   created_at: string
   updated_at: string | null
 }
 
-export interface KomplainRow {
+export interface TicketRow {
   id: string
-  pelanggan_id: string | null
-  tanggal: string | null
-  isi_komplain: string
-  status: boolean | null
-  respon_admin: string | null
-  created_at: string | null
+  pelanggan_id: string
+  nomor_tiket: string
+  subjek: string
+  status: TicketStatus
+  closed_at: string | null
+  created_at: string
+  updated_at?: string | null
+}
+
+export interface TicketMessageRow {
+  id: string
+  tiket_id: string
+  sender_type: TicketSenderType
+  sender_id: string | null
+  pesan: string
+  created_at: string
 }
 
 // ── New types for admin customer management ──────────────────────────────────

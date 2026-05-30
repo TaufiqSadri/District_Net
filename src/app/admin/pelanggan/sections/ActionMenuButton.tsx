@@ -215,8 +215,8 @@ export default function ActionMenuButton({
     },
     {
       icon: MessageSquare,
-      label: 'Lihat Komplain',
-      onClick: () => navigate(`/admin/komplain?pelanggan=${pelanggan.id}`),
+      label: 'Lihat Tiket',
+      onClick: () => navigate(`/admin/tiket?pelanggan=${pelanggan.id}`),
     },
     { divider: true },
     ...statusActionItems,

@@ -84,8 +84,8 @@ export default function DashboardOverviewContent({
           <QuickAction href="/dashboard/tagihan" icon={<Receipt size={18} />}>
             Bayar Tagihan
           </QuickAction>
-          <QuickAction href="/dashboard/komplain" icon={<MessageSquare size={18} />}>
-            Kirim Komplain
+          <QuickAction href="/dashboard/tiket" icon={<MessageSquare size={18} />}>
+            Tiket Layanan
           </QuickAction>
         </div>
       </div>
@@ -160,8 +160,8 @@ export default function DashboardOverviewContent({
             <InfoBlock
               label="Jadwal"
               value={
-                jadwalInstalasi?.tanggal_pemasangan
-                  ? new Date(jadwalInstalasi.tanggal_pemasangan).toLocaleString('id-ID')
+                jadwalInstalasi?.tanggal_jadwal
+                  ? new Date(jadwalInstalasi.tanggal_jadwal).toLocaleString('id-ID')
                   : 'Belum dijadwalkan'
               }
             />
@@ -406,8 +406,8 @@ function getSubscriptionMeta({
   if (pelanggan.status_langganan === 'proses_instalasi') {
     return {
       label: 'Proses Instalasi',
-      sub: jadwalInstalasi?.tanggal_pemasangan
-        ? `Jadwal ${new Date(jadwalInstalasi.tanggal_pemasangan).toLocaleDateString('id-ID')}`
+      sub: jadwalInstalasi?.tanggal_jadwal
+        ? `Jadwal ${new Date(jadwalInstalasi.tanggal_jadwal).toLocaleDateString('id-ID')}`
         : 'Menunggu jadwal pemasangan',
       icon: <Wrench size={18} />,
       tone: 'blue' as const,

@@ -56,17 +56,18 @@ export type PaymentActivityRow = {
 export type ScheduleActivityRow = {
   id: string
   status: string | null
+  jenis_jadwal?: string | null
   created_at: string | null
   updated_at: string | null
   pelanggan: { nama_lengkap: string | null } | { nama_lengkap: string | null }[] | null
 }
 
-export type ComplaintActivityRow = {
+export type TicketActivityRow = {
   id: string
-  isi_komplain: string | null
-  status: boolean | null
+  nomor_tiket: string | null
+  subjek: string | null
+  status: string | null
   created_at: string | null
-  tanggal: string | null
   pelanggan: { nama_lengkap: string | null } | { nama_lengkap: string | null }[] | null
 }
 
@@ -156,13 +157,13 @@ export function mapRegistrations(rows: PelangganBaru[]): NewRegistrationRow[] {
 export function buildRecentActivities({
   payments,
   schedules,
-  complaints,
+  tickets,
   registrations,
   now,
 }: {
   payments: PaymentActivityRow[]
   schedules: ScheduleActivityRow[]
-  complaints: ComplaintActivityRow[]
+  tickets: TicketActivityRow[]
   registrations: PelangganBaru[]
   now: Date
 }) {
@@ -197,15 +198,15 @@ export function buildRecentActivities({
     }
   })
 
-  const complaintItems = complaints.map<ActivityWithTimestamp>((complaint) => {
-    const pelanggan = firstRelation(complaint.pelanggan)?.nama_lengkap ?? 'Pelanggan'
-    const date = complaint.created_at ?? complaint.tanggal
+  const ticketItems = tickets.map<ActivityWithTimestamp>((ticket) => {
+    const pelanggan = firstRelation(ticket.pelanggan)?.nama_lengkap ?? 'Pelanggan'
+    const date = ticket.created_at
 
     return {
-      id: `complaint-${complaint.id}`,
-      title: `${pelanggan} mengirim komplain`,
-      meta: `${relativeTime(date, now)} - ${complaint.status ? 'Resolved' : 'Menunggu respons'}`,
-      type: 'complaint',
+      id: `ticket-${ticket.id}`,
+      title: `${pelanggan} membuat tiket layanan`,
+      meta: `${relativeTime(date, now)} - ${ticket.status === 'closed' ? 'Closed' : 'Open'}`,
+      type: 'ticket',
       timestamp: timestamp(date),
     }
   })
@@ -224,7 +225,7 @@ export function buildRecentActivities({
     }
   })
 
-  return [...paymentItems, ...scheduleItems, ...complaintItems, ...registrationItems]
+  return [...paymentItems, ...scheduleItems, ...ticketItems, ...registrationItems]
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, 4)
     .map(({ timestamp: _timestamp, ...item }) => item)

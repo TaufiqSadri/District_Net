@@ -1,4 +1,4 @@
-import { CalendarClock, Phone, ReceiptText, UserRound, Wrench } from 'lucide-react'
+import { CalendarClock, ReceiptText, UserRound, Wrench } from 'lucide-react'
 import type { ReactNode } from 'react'
 import PanelInfoTile from '@/components/panel/shared/PanelInfoTile'
 import PanelSectionCard from '@/components/panel/shared/PanelSectionCard'
@@ -77,13 +77,13 @@ function InstallationScheduleInfo({
         <Wrench size={16} className="text-blue-700" />
         <h2 className="font-semibold text-blue-900">Informasi Proses Instalasi</h2>
       </div>
-      <div className="grid gap-3 text-sm sm:grid-cols-3">
+      <div className="grid gap-3 text-sm sm:grid-cols-2">
         <ScheduleTile
           icon={<CalendarClock size={13} />}
           label="Jadwal"
           value={
-            jadwalInstalasi?.tanggal_pemasangan
-              ? new Date(jadwalInstalasi.tanggal_pemasangan).toLocaleString('id-ID')
+            jadwalInstalasi?.tanggal_jadwal
+              ? new Date(jadwalInstalasi.tanggal_jadwal).toLocaleString('id-ID')
               : 'Belum dijadwalkan'
           }
         />
@@ -91,11 +91,6 @@ function InstallationScheduleInfo({
           icon={<UserRound size={13} />}
           label="Teknisi"
           value={jadwalInstalasi?.teknisi ?? 'Belum ditentukan'}
-        />
-        <ScheduleTile
-          icon={<Phone size={13} />}
-          label="No. HP"
-          value={jadwalInstalasi?.no_hp_teknisi ?? 'Belum tersedia'}
         />
       </div>
       {jadwalInstalasi?.catatan ? (
@@ -194,8 +189,8 @@ function getInstallationInfo(
   if (tagihanInstalasi.status_tagihan === 'lunas') {
     return {
       title: 'Instalasi Siap Diproses',
-      message: jadwalInstalasi?.tanggal_pemasangan
-        ? `Pembayaran instalasi sudah lunas. Jadwal pemasangan: ${new Date(jadwalInstalasi.tanggal_pemasangan).toLocaleString('id-ID')}.`
+      message: jadwalInstalasi?.tanggal_jadwal
+        ? `Pembayaran instalasi sudah lunas. Jadwal pemasangan: ${new Date(jadwalInstalasi.tanggal_jadwal).toLocaleString('id-ID')}.`
         : 'Pembayaran instalasi sudah lunas. Tim District Net akan menghubungi Anda untuk konfirmasi jadwal pemasangan di alamat pemasangan.',
       className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
     }

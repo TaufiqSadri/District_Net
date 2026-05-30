@@ -5,12 +5,12 @@ import {
   formatPercentChange,
   mapRegistrations,
   type PelangganBaru,
-  type ComplaintActivityRow,
+  type TicketActivityRow,
   type PaymentActivityRow,
   type ScheduleActivityRow,
   sumRows,
 } from '@/app/admin/sections/dashboardOverviewUtils'
-import { getKomplainStats } from '@/lib/data/komplain'
+import { getTicketStats } from '@/lib/data/tiket'
 import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -36,10 +36,10 @@ export default async function AdminDashboardPage() {
     { data: tagihanRows },
     { data: tagihanInstalasiRows },
     { data: signupsThisMonth },
-    komplainStats,
+    ticketStats,
     { data: paymentActivities },
     { data: scheduleActivities },
-    { data: complaintActivities },
+    { data: ticketActivities },
   ] = await Promise.all([
     admin.from('pelanggan').select('*', { count: 'exact', head: true }),
     admin.from('pelanggan').select('*', { count: 'exact', head: true }).eq('status_langganan', 'aktif'),
@@ -71,7 +71,7 @@ export default async function AdminDashboardPage() {
       .select('created_at')
       .gte('created_at', monthStart.toISOString())
       .lt('created_at', nextMonthStart.toISOString()),
-    getKomplainStats(),
+    getTicketStats(),
     admin
       .from('pembayaran')
       .select(
@@ -94,13 +94,13 @@ export default async function AdminDashboardPage() {
       .order('created_at', { ascending: false })
       .limit(4),
     admin
-      .from('jadwal_instalasi')
-      .select('id, status, created_at, updated_at, pelanggan:pelanggan_id ( nama_lengkap )')
+      .from('jadwal_layanan')
+      .select('id, jenis_jadwal, status, created_at, updated_at, pelanggan:pelanggan_id ( nama_lengkap )')
       .order('created_at', { ascending: false })
       .limit(3),
     admin
-      .from('komplain')
-      .select('id, isi_komplain, status, created_at, tanggal, pelanggan:pelanggan_id ( nama_lengkap )')
+      .from('tiket_layanan')
+      .select('id, nomor_tiket, subjek, status, created_at, pelanggan:pelanggan_id ( nama_lengkap )')
       .order('created_at', { ascending: false })
       .limit(3),
   ])
@@ -141,7 +141,7 @@ export default async function AdminDashboardPage() {
   const activities = buildRecentActivities({
     payments: (paymentActivities ?? []) as PaymentActivityRow[],
     schedules: (scheduleActivities ?? []) as ScheduleActivityRow[],
-    complaints: (complaintActivities ?? []) as ComplaintActivityRow[],
+    tickets: (ticketActivities ?? []) as TicketActivityRow[],
     registrations: (pelangganBaru ?? []) as PelangganBaru[],
     now,
   })
@@ -163,7 +163,7 @@ export default async function AdminDashboardPage() {
       billingTotals={billingTotals}
       paidPercent={paidPercent}
       unpaidBillCount={unpaidBillCount}
-      komplainStats={komplainStats}
+      ticketStats={ticketStats}
       registrations={registrations}
       activities={activities}
     />

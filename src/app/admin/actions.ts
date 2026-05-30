@@ -594,42 +594,55 @@ export async function updateTagihanInstalasiAction(instalasiId: string, formData
 }
 
 export async function updateJadwalInstalasiAction(jadwalId: string, formData: FormData) {
-  await updateJadwalInstalasiByAdmin(jadwalId, formData)
+  try {
+    await updateJadwalInstalasiByAdmin(jadwalId, formData)
+    return { success: true, message: 'Jadwal layanan berhasil diperbarui.' }
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Gagal memperbarui jadwal layanan.',
+    }
+  }
 }
 
-export async function respondKomplainAction(komplainId: string, formData: FormData) {
+export async function createManualJadwalLayananAction(formData: FormData) {
   const admin = createAdminClient()
-  const responAdmin = String(formData.get('respon_admin') ?? '').trim()
-  const selesai = formData.get('selesai') === 'true'
+  const pelangganId = String(formData.get('pelanggan_id') ?? '').trim()
+  const jenisJadwal = String(formData.get('jenis_jadwal') ?? 'pengecekan').trim()
+  const tanggalRaw = String(formData.get('tanggal_jadwal') ?? '').trim()
+  const jamRaw = String(formData.get('jam_jadwal') ?? '').trim()
+  const teknisi = String(formData.get('teknisi') ?? '').trim()
+  const catatanPelanggan = String(formData.get('catatan_pelanggan') ?? '').trim()
+  const catatanInternal = String(formData.get('catatan_internal') ?? '').trim()
 
-  const { error } = await admin
-    .from('komplain')
-    .update({
-      respon_admin: responAdmin || null,
-      status: selesai,
-    })
-    .eq('id', komplainId)
+  if (!pelangganId) return { success: false, message: 'Pelanggan wajib dipilih.' }
+  if (!['instalasi', 'pengecekan', 'perbaikan'].includes(jenisJadwal)) {
+    return { success: false, message: 'Jenis jadwal tidak valid.' }
+  }
+  if (!tanggalRaw) return { success: false, message: 'Tanggal jadwal wajib diisi.' }
 
-  if (error) {
-    redirect(`/admin/komplain?error=${encodeURIComponent(error.message)}`)
+  const tanggalJadwal = new Date(`${tanggalRaw}T${jamRaw || '09:00'}:00+07:00`)
+  if (Number.isNaN(tanggalJadwal.getTime())) {
+    return { success: false, message: 'Tanggal jadwal tidak valid.' }
   }
 
-  revalidatePath('/admin/komplain')
-  revalidatePath('/dashboard/komplain')
-  redirect('/admin/komplain?success=Komplain%20berhasil%20diperbarui.')
-}
+  const { error } = await admin.from('jadwal_layanan').insert({
+    pelanggan_id: pelangganId,
+    tiket_id: null,
+    tagihan_instalasi_id: null,
+    jenis_jadwal: jenisJadwal,
+    tanggal_jadwal: tanggalJadwal.toISOString(),
+    teknisi: teknisi || null,
+    status: 'terjadwal',
+    catatan: catatanPelanggan || null,
+    catatan_pelanggan: catatanPelanggan || null,
+    catatan_internal: catatanInternal || null,
+  })
 
-export async function deleteKomplainAction(komplainId: string) {
-  const admin = createAdminClient()
+  if (error) return { success: false, message: error.message }
 
-  const { error } = await admin.from('komplain').delete().eq('id', komplainId)
-
-  if (error) {
-    redirect(`/admin/komplain?error=${encodeURIComponent(error.message)}`)
-  }
-
-  revalidatePath('/admin/komplain')
-  revalidatePath('/dashboard/komplain')
-  redirect('/admin/komplain?success=Komplain%20berhasil%20dihapus.')
+  revalidatePath('/admin/jadwal-instalasi')
+  revalidatePath('/dashboard')
+  return { success: true, message: 'Jadwal layanan berhasil dibuat.' }
 }
  

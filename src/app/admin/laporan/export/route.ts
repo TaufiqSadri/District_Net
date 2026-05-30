@@ -99,7 +99,7 @@ function statusLabel(value: string | null | undefined) {
 function reportTitle(type: string) {
   if (type === 'pelanggan') return 'Laporan Pelanggan'
   if (type === 'pembayaran') return 'Laporan Pembayaran'
-  if (type === 'komplain') return 'Laporan Komplain'
+  if (type === 'tiket') return 'Laporan Tiket Layanan'
   return 'Laporan Tagihan'
 }
 
@@ -165,7 +165,7 @@ function LaporanDocument({
   const title = reportTitle(type)
   const generatedAt = new Date().toLocaleString('id-ID')
   const colFlex = headers.map((header) => {
-    if (['Email', 'Alamat', 'Isi Komplain', 'Respon Admin', 'Bukti Pembayaran', 'Catatan Admin'].includes(header)) return 1.6
+    if (['Email', 'Alamat', 'Subjek', 'Bukti Pembayaran', 'Catatan Admin'].includes(header)) return 1.6
     if (['Nama', 'Nama Pelanggan', 'Paket'].includes(header)) return 1.25
     return 1
   })
@@ -387,16 +387,16 @@ export async function GET(request: Request) {
         'Catatan Admin': item.catatan_admin ?? '',
       }
     })
-  } else if (type === 'komplain') {
-    headers = ['Tanggal', 'Nama Pelanggan', 'Email', 'Isi Komplain', 'Status', 'Respon Admin']
+  } else if (type === 'tiket') {
+    headers = ['Tanggal', 'No. Tiket', 'Nama Pelanggan', 'Email', 'Subjek', 'Status']
     let query = admin
-      .from('komplain')
+      .from('tiket_layanan')
       .select('*, pelanggan(nama_lengkap, email)')
-      .order('tanggal', { ascending: false })
+      .order('created_at', { ascending: false })
 
-    if (status === 'menunggu') query = query.eq('status', false)
-    if (status === 'selesai') query = query.eq('status', true)
-    query = applyDateRange(query, 'tanggal', month, year)
+    if (status === 'open') query = query.eq('status', 'open')
+    if (status === 'closed') query = query.eq('status', 'closed')
+    query = applyDateRange(query, 'created_at', month, year)
 
     const { data, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -404,12 +404,12 @@ export async function GET(request: Request) {
     rows = (data ?? []).map((item: any) => {
       const pelanggan = first(item.pelanggan)
       return {
-        Tanggal: formatDateTime(item.tanggal ?? item.created_at),
+        Tanggal: formatDateTime(item.created_at),
+        'No. Tiket': item.nomor_tiket,
         'Nama Pelanggan': pelanggan?.nama_lengkap ?? '',
         Email: pelanggan?.email ?? '',
-        'Isi Komplain': item.isi_komplain,
-        Status: item.status ? 'Selesai' : 'Menunggu',
-        'Respon Admin': item.respon_admin ?? '',
+        Subjek: item.subjek,
+        Status: item.status,
       }
     })
   } else {

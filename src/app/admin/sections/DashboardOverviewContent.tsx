@@ -13,7 +13,7 @@ import StatCard from '@/app/admin/sections/StatCard'
 import StatusDistributionCard from '@/app/admin/sections/StatusDistributionCard'
 import BillingStatusCard from '@/app/admin/sections/BillingStatusCard'
 import InstallationActivityCard from '@/app/admin/sections/InstallationActivityCard'
-import ComplaintStatsCard from '@/app/admin/sections/ComplaintStatsCard'
+import TicketStatsCard from '@/app/admin/sections/TicketStatsCard'
 import RegistrationTable, {
   type NewRegistrationRow,
 } from '@/app/admin/sections/RegistrationTable'
@@ -26,7 +26,7 @@ import {
   formatCompactRupiah,
   formatDashboardDate,
 } from '@/app/admin/sections/dashboardOverviewUtils'
-import type { KomplainStats } from '@/lib/data/komplain'
+import type { TicketStats } from '@/lib/data/tiket'
 
 interface DashboardOverviewContentProps {
   now: Date
@@ -48,7 +48,7 @@ interface DashboardOverviewContentProps {
   }
   paidPercent: number
   unpaidBillCount: number
-  komplainStats: KomplainStats
+  ticketStats: TicketStats
   registrations: NewRegistrationRow[]
   activities: RecentActivityItem[]
 }
@@ -69,7 +69,7 @@ export default function DashboardOverviewContent({
   billingTotals,
   paidPercent,
   unpaidBillCount,
-  komplainStats,
+  ticketStats,
   registrations,
   activities,
 }: DashboardOverviewContentProps) {
@@ -92,7 +92,7 @@ export default function DashboardOverviewContent({
             Buat Tagihan
           </QuickAction>
           <QuickAction href="/admin/jadwal-instalasi" icon={<Wrench size={18} />}>
-            Jadwal Instalasi
+            Jadwal Layanan
           </QuickAction>
         </div>
       </div>
@@ -174,9 +174,9 @@ export default function DashboardOverviewContent({
           newSignups={newSignupsThisMonth}
           bars={buildSignupBars(signups)}
         />
-        <ComplaintStatsCard
-          resolved={komplainStats.selesai}
-          unresolved={komplainStats.menunggu}
+        <TicketStatsCard
+          closed={ticketStats.closed}
+          open={ticketStats.open}
         />
       </div>
 

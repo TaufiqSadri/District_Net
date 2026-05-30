@@ -209,28 +209,3 @@ export async function updateProfilPelanggan(formData: FormData) {
 
   redirectWithMessage('/dashboard/profil', 'success', 'Profil berhasil diperbarui.')
 }
-
-export async function createKomplain(formData: FormData) {
-  const { supabase, pelanggan } = await getAuthenticatedPelanggan()
-
-  const isiKomplain = String(formData.get('isi_komplain') ?? '').trim()
-
-  if (isiKomplain.length < 10) {
-    redirectWithMessage('/dashboard/komplain', 'error', 'Isi komplain minimal 10 karakter.')
-  }
-
-  const { error } = await supabase.from('komplain').insert({
-    pelanggan_id: pelanggan.id,
-    tanggal: new Date().toISOString(),
-    isi_komplain: isiKomplain,
-    status: false,
-  })
-
-  if (error) {
-    redirectWithMessage('/dashboard/komplain', 'error', error.message)
-  }
-
-  revalidatePath('/dashboard/komplain')
-
-  redirectWithMessage('/dashboard/komplain', 'success', 'Komplain berhasil dikirim.')
-}

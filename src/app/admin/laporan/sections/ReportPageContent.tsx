@@ -32,7 +32,7 @@ import {
 interface ReportPreviewData {
   tagihan: any[]
   pembayaran: any[]
-  komplain: any[]
+  tiket: any[]
 }
 
 interface ReportPageContentProps {
@@ -55,7 +55,7 @@ export default function ReportPageContent({
         subtitle="Ringkasan operasional, review data terbaru, dan export laporan admin."
       />
 
-      <ReportFilterBar filters={filters} hasActiveFilters={hasActiveFilters} />
+      <ReportFilterBar filters={filters}/>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <PanelMetricCard
@@ -80,11 +80,11 @@ export default function ReportPageContent({
           tone="amber"
         />
         <PanelMetricCard
-          label="Komplain Menunggu"
-          value={overview.komplainMenunggu}
-          sub={`${overview.totalKomplain} total komplain`}
+          label="Tiket Open"
+          value={overview.tiketOpen}
+          sub={`${overview.totalTiket} total tiket`}
           icon={<AlertCircle size={18} />}
-          tone="red"
+          tone="blue"
         />
       </div>
 
@@ -119,7 +119,7 @@ export default function ReportPageContent({
               Ada <span className="font-semibold text-[#111827]">{overview.tagihanMenungguVerifikasi}</span> pembayaran yang sedang menunggu pemeriksaan admin.
             </OperationalNote>
             <OperationalNote>
-              Ada <span className="font-semibold text-[#111827]">{overview.komplainMenunggu}</span> komplain pelanggan yang belum selesai.
+              Ada <span className="font-semibold text-[#111827]">{overview.tiketOpen}</span> tiket layanan yang masih open.
             </OperationalNote>
           </div>
         </section>
@@ -149,14 +149,14 @@ export default function ReportPageContent({
         />
 
         <PanelPreviewCard
-          title="Komplain Terbaru"
+          title="Tiket Terbaru"
           icon={<BarChart2 size={18} />}
-          items={preview.komplain.map((item) => ({
+          items={preview.tiket.map((item) => ({
             id: item.id,
             title: item.pelanggan?.nama_lengkap ?? '-',
-            description: item.isi_komplain,
+            description: `${item.nomor_tiket ?? '-'} - ${item.subjek ?? '-'}`,
           }))}
-          emptyText="Belum ada komplain terbaru."
+          emptyText="Belum ada tiket terbaru."
         />
       </div>
     </div>
@@ -164,11 +164,9 @@ export default function ReportPageContent({
 }
 
 function ReportFilterBar({
-  filters,
-  hasActiveFilters,
+  filters
 }: {
   filters: LaporanFilters
-  hasActiveFilters: boolean
 }) {
   const hiddenFilters: ReportSearchParams = {
     bulan: filters.bulan ? String(filters.bulan) : undefined,
@@ -180,10 +178,6 @@ function ReportFilterBar({
     <section className="rounded-[18px] border border-[#e5e7eb] bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
       <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-center">
         <form action="/admin/laporan" className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
-          <div className="flex h-12 items-center gap-2 rounded-xl bg-[#f8faff] px-4 text-[15px] font-semibold text-slate-700">
-            <Filter size={17} className="text-[#6741f5]" />
-            Filter Laporan
-          </div>
 
           <PanelFilterSelect
             name="bulan"
@@ -213,15 +207,6 @@ function ReportFilterBar({
           >
             Terapkan
           </button>
-          {hasActiveFilters ? (
-            <Link
-              href="/admin/laporan"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 text-[15px] font-semibold text-red-600 transition hover:bg-red-50"
-            >
-              <X size={16} />
-              Reset
-            </Link>
-          ) : null}
         </form>
 
         <form action="/admin/laporan/export" method="get" className="flex w-full flex-col gap-3 sm:flex-row xl:ml-auto xl:w-auto">

@@ -37,7 +37,7 @@ export const reportExportOptions = [
   { label: 'Tagihan', type: 'tagihan' },
   { label: 'Pembayaran', type: 'pembayaran' },
   { label: 'Pelanggan', type: 'pelanggan' },
-  { label: 'Komplain', type: 'komplain' },
+  { label: 'Tiket Layanan', type: 'tiket' },
 ]
 
 export interface ReportSearchParams {
