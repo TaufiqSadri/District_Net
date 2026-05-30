@@ -15,6 +15,7 @@ interface PanelLayoutProps {
   user: PanelTopbarUser
   badgeCounts?: Partial<Record<string, number>>
   notifications?: PanelNotification[]
+  notificationUnreadCount?: number
   footerStatus?: string
 }
 
@@ -24,6 +25,7 @@ export default function PanelLayout({
   user,
   badgeCounts,
   notifications,
+  notificationUnreadCount,
   footerStatus = variant === 'admin'
     ? 'System Operational: High Integrity Mode'
     : 'Layanan Pelanggan: Aktif',
@@ -44,6 +46,7 @@ export default function PanelLayout({
           variant={variant}
           user={user}
           notifications={notifications}
+          notificationUnreadCount={notificationUnreadCount}
           onMenuClick={() => setSidebarOpen(true)}
         />
         <main className="flex-1">

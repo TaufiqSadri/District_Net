@@ -36,7 +36,7 @@ export interface TicketRow {
 
 export type TicketCustomer = Pick<
   Pelanggan,
-  'id' | 'nama_lengkap' | 'email' | 'no_hp' | 'alamat_pemasangan'
+  'id' | 'user_id' | 'nama_lengkap' | 'email' | 'no_hp' | 'alamat_pemasangan'
 >
 
 export type TicketWithCustomer = TicketRow & {
@@ -82,6 +82,7 @@ const ticketSelect = `
   *,
   pelanggan:pelanggan_id (
     id,
+    user_id,
     nama_lengkap,
     email,
     no_hp,
@@ -456,46 +457,56 @@ export async function scheduleTicketService(input: ScheduleTicketServiceInput) {
   const jenisLabel = input.jenis_jadwal === 'pengecekan' ? 'pengecekan' : 'perbaikan'
   const formattedDate = formatTicketDateTime(tanggalJadwal.toISOString())
   const notificationMessage = `Jadwal ${jenisLabel} untuk tiket ${ticket.nomor_tiket} ditetapkan pada ${formattedDate}.`
+  const recipientUserId = ticket.pelanggan?.user_id
+
+  if (!recipientUserId) throw new Error('Akun pelanggan untuk notifikasi tidak ditemukan.')
+
+  const now = new Date()
+  const nowIso = now.toISOString()
+  const scheduledIso = tanggalJadwal.toISOString()
+  const notifications = [
+    {
+      userId: recipientUserId,
+      title: `Jadwal ${jenisLabel} dibuat`,
+      message: notificationMessage,
+      type: 'jadwal',
+      ticketId: ticket.id,
+      scheduleId: jadwal.id,
+      scheduledAt: nowIso,
+    },
+  ]
+
+  const reminderNotifications = [
+    {
+      title: `Pengingat H-3 jadwal ${jenisLabel}`,
+      scheduledAt: addDays(scheduledIso, -3),
+    },
+    {
+      title: `Pengingat H-1 jadwal ${jenisLabel}`,
+      scheduledAt: addDays(scheduledIso, -1),
+    },
+    {
+      title: `Pengingat Hari-H jadwal ${jenisLabel}`,
+      scheduledAt: scheduledIso,
+    },
+  ]
+
+  for (const reminder of reminderNotifications) {
+    if (new Date(reminder.scheduledAt).getTime() < now.getTime()) continue
+
+    notifications.push({
+      userId: recipientUserId,
+      title: reminder.title,
+      message: notificationMessage,
+      type: 'jadwal',
+      ticketId: ticket.id,
+      scheduleId: jadwal.id,
+      scheduledAt: reminder.scheduledAt,
+    })
+  }
 
   await createNotifications(
-    [
-      {
-        pelangganId: ticket.pelanggan_id,
-        title: `Jadwal ${jenisLabel} dibuat`,
-        message: notificationMessage,
-        type: 'jadwal_layanan',
-        ticketId: ticket.id,
-        scheduleId: jadwal.id,
-        scheduledAt: new Date().toISOString(),
-      },
-      {
-        pelangganId: ticket.pelanggan_id,
-        title: `Pengingat H-3 jadwal ${jenisLabel}`,
-        message: notificationMessage,
-        type: 'jadwal_layanan',
-        ticketId: ticket.id,
-        scheduleId: jadwal.id,
-        scheduledAt: addDays(tanggalJadwal.toISOString(), -3),
-      },
-      {
-        pelangganId: ticket.pelanggan_id,
-        title: `Pengingat H-1 jadwal ${jenisLabel}`,
-        message: notificationMessage,
-        type: 'jadwal_layanan',
-        ticketId: ticket.id,
-        scheduleId: jadwal.id,
-        scheduledAt: addDays(tanggalJadwal.toISOString(), -1),
-      },
-      {
-        pelangganId: ticket.pelanggan_id,
-        title: `Pengingat Hari-H jadwal ${jenisLabel}`,
-        message: notificationMessage,
-        type: 'jadwal_layanan',
-        ticketId: ticket.id,
-        scheduleId: jadwal.id,
-        scheduledAt: tanggalJadwal.toISOString(),
-      },
-    ],
+    notifications,
     admin,
   )
 

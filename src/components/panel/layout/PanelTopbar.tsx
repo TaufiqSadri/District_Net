@@ -19,6 +19,7 @@ interface PanelTopbarProps {
   variant: PanelVariant
   user: PanelTopbarUser
   notifications?: PanelNotification[]
+  notificationUnreadCount?: number
   onMenuClick: () => void
 }
 
@@ -26,6 +27,7 @@ export default function PanelTopbar({
   variant,
   user,
   notifications = [],
+  notificationUnreadCount,
   onMenuClick,
 }: PanelTopbarProps) {
   return (
@@ -46,7 +48,10 @@ export default function PanelTopbar({
 
         <div className="ml-auto flex flex-shrink-0 items-center gap-2 sm:gap-3">
           {variant === 'customer' ? (
-            <PanelNotificationDrawer notifications={notifications} />
+            <PanelNotificationDrawer
+              notifications={notifications}
+              unreadCount={notificationUnreadCount}
+            />
           ) : (
             <button
               type="button"

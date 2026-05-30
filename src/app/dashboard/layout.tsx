@@ -1,7 +1,7 @@
 import PanelLayout from '@/components/panel/layout/PanelLayout'
 import { getCurrentPelanggan } from '@/lib/data/pelanggan'
 import { getLatestJadwalInstalasiForPelanggan } from '@/lib/data/jadwalInstalasi'
-import { getNotifications } from '@/lib/data/notifikasi'
+import { getNotifications, getUnreadNotificationCount } from '@/lib/data/notifikasi'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { PanelNotification } from '@/components/panel/layout/PanelNotificationDrawer'
@@ -65,7 +65,7 @@ export default async function DashboardLayout({
   const supabase = await createClient()
   const now = new Date()
 
-  const [tagihanInstalasi, tagihanTerbuka, jadwalInstalasi, notificationRows] = await Promise.all([
+  const [tagihanInstalasi, tagihanTerbuka, jadwalInstalasi, notificationRows, notificationUnreadCount] = await Promise.all([
     supabase
       .from('tagihan_instalasi')
       .select('*')
@@ -83,24 +83,23 @@ export default async function DashboardLayout({
       .limit(3)
       .then((result) => result.data ?? []),
     getLatestJadwalInstalasiForPelanggan(pelanggan.id),
-    getNotifications(pelanggan.id),
+    getNotifications(),
+    getUnreadNotificationCount(),
   ])
 
   const notifications: PanelNotification[] = []
-  const dueNotificationRows = notificationRows.filter((item) => {
-    if (!item.scheduled_at) return true
-    return new Date(item.scheduled_at).getTime() <= now.getTime()
-  })
 
-  for (const item of dueNotificationRows) {
+  for (const item of notificationRows) {
     notifications.push({
       id: item.id,
       title: item.title,
       summary: item.message,
       time: formatDateTime(item.scheduled_at ?? item.created_at ?? now.toISOString()),
-      tone: item.type === 'jadwal_layanan' ? 'blue' : 'purple',
-      icon: item.type === 'jadwal_layanan' ? 'calendar' : 'alert',
+      tone: item.type === 'jadwal' || item.type === 'jadwal_layanan' ? 'blue' : 'purple',
+      icon: item.type === 'jadwal' || item.type === 'jadwal_layanan' ? 'calendar' : 'alert',
       status: item.is_read ? 'Dibaca' : 'Baru',
+      isUnread: !item.is_read,
+      canMarkRead: !item.is_read,
     })
   }
 
@@ -207,6 +206,7 @@ export default async function DashboardLayout({
         roleLabel: 'Pelanggan District Net',
       }}
       notifications={notifications}
+      notificationUnreadCount={notificationUnreadCount}
     >
       {children}
     </PanelLayout>
