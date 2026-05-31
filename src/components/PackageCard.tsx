@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Check, MessageCircle, Wifi } from 'lucide-react'
+import { MessageCircle, Wifi } from 'lucide-react'
 import { useState } from 'react'
 
 export interface PackageCardProps {
@@ -12,7 +12,6 @@ export interface PackageCardProps {
   harga: number
   deskripsi?: string | null
   image_url?: string | null
-  benefits?: string[]
   isCurrent?: boolean // for dashboard paket page
 }
 
@@ -20,16 +19,26 @@ function formatRupiah(n: number) {
   return `Rp ${n.toLocaleString('id-ID')}`
 }
 
+function getDescriptionLines(description?: string | null) {
+  return (description ?? '')
+    .replace(/\\n/g, '\n')
+    .split(/\r?\n/)
+    .flatMap((line) => line.split(/(?<=\.)\s+/))
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
 export default function PackageCard({
   nama_paket,
   kecepatan_mbps,
   harga,
   image_url,
-  benefits = [],
+  deskripsi,
   isCurrent,
 }: PackageCardProps) {
   const [imgError, setImgError] = useState(false)
   const showImage = !!image_url && !imgError
+  const descriptionLines = getDescriptionLines(deskripsi)
 
   return (
     <article
@@ -92,21 +101,13 @@ export default function PackageCard({
           </div>
         </div>
 
-        {/* Benefits */}
-        {benefits.length > 0 && (
-          <ul className="mb-5 flex-1 space-y-2">
-            {benefits.map((benefit) => (
-              <li key={benefit} className="flex items-start gap-2 text-sm text-gray-600">
-                <Check
-                  size={15}
-                  className="mt-0.5 shrink-0 text-[#68247B]"
-                  aria-hidden="true"
-                />
-                <span>{benefit}</span>
-              </li>
+        {descriptionLines.length > 0 ? (
+          <ul className="mb-5 flex-1 list-disc space-y-1.5 pl-5 text-sm leading-6 text-gray-600">
+            {descriptionLines.map((line) => (
+              <li key={line}>{line}</li>
             ))}
           </ul>
-        )}
+        ) : null}
 
         {/* CTA Buttons */}
         <div className="mt-auto grid gap-2">

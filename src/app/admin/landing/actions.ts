@@ -4,6 +4,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+function revalidateLandingContent(paths: string[], tags: string[]) {
+  revalidatePath('/admin/landing')
+  for (const path of paths) revalidatePath(path)
+  for (const tag of tags) revalidateTag(tag)
+}
+
 // ── PAKET ─────────────────────────────────────────────────────────────────────
 
 export async function togglePaketStatus(
@@ -16,8 +22,7 @@ export async function togglePaketStatus(
     .from('paket_internet')
     .update({ is_active: !isActive })
     .eq('id', paketId)
-  revalidatePath('/admin/landing?tab=paket')
-  revalidateTag('landing-packages')
+  revalidateLandingContent(['/', '/package'], ['landing-packages'])
 }
 
 export async function deletePaket(paketId: string, _formData: FormData) {
@@ -38,8 +43,7 @@ export async function deletePaket(paketId: string, _formData: FormData) {
   }
 
   await admin.from('paket_internet').delete().eq('id', paketId)
-  revalidatePath('/admin/landing?tab=paket')
-  revalidateTag('landing-packages')
+  revalidateLandingContent(['/', '/package'], ['landing-packages'])
 }
 
 export async function addPaket(formData: FormData) {
@@ -62,8 +66,7 @@ export async function addPaket(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  revalidatePath('/admin/landing?tab=paket')
-  revalidateTag('landing-packages')
+  revalidateLandingContent(['/', '/package'], ['landing-packages'])
   redirect('/admin/landing?tab=paket')
 }
 
@@ -89,8 +92,7 @@ export async function updatePaket(paketId: string, formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  revalidatePath('/admin/landing?tab=paket')
-  revalidateTag('landing-packages')
+  revalidateLandingContent(['/', '/package'], ['landing-packages'])
   redirect('/admin/landing?tab=paket')
 }
 
@@ -105,8 +107,7 @@ export async function createPromo(formData: FormData) {
     urutan: Number(formData.get('urutan') ?? 0),
     is_active: true,
   })
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-promos')
+  revalidateLandingContent(['/promo'], ['landing-promos'])
 }
 
 export async function updatePromo(id: string, formData: FormData) {
@@ -117,22 +118,19 @@ export async function updatePromo(id: string, formData: FormData) {
     tag: formData.get('tag') as string,
     urutan: Number(formData.get('urutan') ?? 0),
   }).eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-promos')
+  revalidateLandingContent(['/promo'], ['landing-promos'])
 }
 
 export async function togglePromoStatus(id: string, current: boolean) {
   const admin = createAdminClient()
   await admin.from('promo').update({ is_active: !current }).eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-promos')
+  revalidateLandingContent(['/promo'], ['landing-promos'])
 }
 
 export async function deletePromo(id: string) {
   const admin = createAdminClient()
   await admin.from('promo').delete().eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-promos')
+  revalidateLandingContent(['/promo'], ['landing-promos'])
 }
 
 // ── FAQ ───────────────────────────────────────────────────────────────────────
@@ -144,8 +142,7 @@ export async function createFaq(formData: FormData) {
     answer: formData.get('answer') as string,
     urutan: Number(formData.get('urutan') ?? 0),
   })
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-faqs')
+  revalidateLandingContent(['/faq'], ['landing-faqs'])
 }
 
 export async function updateFaq(id: string, formData: FormData) {
@@ -155,15 +152,13 @@ export async function updateFaq(id: string, formData: FormData) {
     answer: formData.get('answer') as string,
     urutan: Number(formData.get('urutan') ?? 0),
   }).eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-faqs')
+  revalidateLandingContent(['/faq'], ['landing-faqs'])
 }
 
 export async function deleteFaq(id: string) {
   const admin = createAdminClient()
   await admin.from('faq').delete().eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-faqs')
+  revalidateLandingContent(['/faq'], ['landing-faqs'])
 }
 
 // ── AREA LAYANAN ──────────────────────────────────────────────────────────────
@@ -174,15 +169,13 @@ export async function createAreaLayanan(formData: FormData) {
     kecamatan: formData.get('kecamatan') as string,
     nagari: formData.get('nagari') as string,
   })
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-areas')
+  revalidateLandingContent(['/'], ['landing-areas'])
 }
 
 export async function deleteAreaLayanan(id: string) {
   const admin = createAdminClient()
   await admin.from('area_layanan').delete().eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidateTag('landing-areas')
+  revalidateLandingContent(['/'], ['landing-areas'])
 }
 
 // ── IKLAN / BANNER ────────────────────────────────────────────────────────────
@@ -203,9 +196,7 @@ export async function createIklan(formData: FormData) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/admin/landing')
-  revalidatePath('/')
-  revalidateTag('landing-iklans')
+  revalidateLandingContent(['/'], ['landing-iklans'])
   return { success: true }
 }
 
@@ -224,18 +215,14 @@ export async function updateIklan(id: string, formData: FormData) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/admin/landing')
-  revalidatePath('/')
-  revalidateTag('landing-iklans')
+  revalidateLandingContent(['/'], ['landing-iklans'])
   return { success: true }
 }
 
 export async function toggleIklanStatus(id: string, current: boolean) {
   const admin = createAdminClient()
   await admin.from('iklan').update({ is_active: !current }).eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidatePath('/')
-  revalidateTag('landing-iklans')
+  revalidateLandingContent(['/'], ['landing-iklans'])
 }
 
 export async function deleteIklan(id: string, imageUrl: string) {
@@ -249,7 +236,5 @@ export async function deleteIklan(id: string, imageUrl: string) {
   }
 
   await admin.from('iklan').delete().eq('id', id)
-  revalidatePath('/admin/landing')
-  revalidatePath('/')
-  revalidateTag('landing-iklans')
+  revalidateLandingContent(['/'], ['landing-iklans'])
 }

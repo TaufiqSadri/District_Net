@@ -16,7 +16,7 @@ export const getLandingPackages = unstable_cache(
     return (data ?? []) as PaketInternet[]
   },
   ['landing-packages'],
-  { revalidate: REVALIDATE },
+  { revalidate: REVALIDATE, tags: ['landing-packages'] },
 )
 
 export const getLandingPromos = unstable_cache(
@@ -30,7 +30,7 @@ export const getLandingPromos = unstable_cache(
     return (data ?? []) as Promo[]
   },
   ['landing-promos'],
-  { revalidate: REVALIDATE },
+  { revalidate: REVALIDATE, tags: ['landing-promos'] },
 )
 
 export const getLandingFaqs = unstable_cache(
@@ -43,7 +43,7 @@ export const getLandingFaqs = unstable_cache(
     return (data ?? []) as Faq[]
   },
   ['landing-faqs'],
-  { revalidate: REVALIDATE },
+  { revalidate: REVALIDATE, tags: ['landing-faqs'] },
 )
 
 export const getLandingAreas = unstable_cache(
@@ -57,7 +57,7 @@ export const getLandingAreas = unstable_cache(
     return (data ?? []) as AreaLayanan[]
   },
   ['landing-areas'],
-  { revalidate: REVALIDATE },
+  { revalidate: REVALIDATE, tags: ['landing-areas'] },
 )
 
 export const getLandingIklans = unstable_cache(

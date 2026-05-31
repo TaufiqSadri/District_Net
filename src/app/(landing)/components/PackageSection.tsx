@@ -25,7 +25,6 @@ export default function PackageSection({ paket }: { paket: PaketInternet[] }) {
               harga={item.harga}
               deskripsi={item.deskripsi}
               image_url={item.image_url}
-              benefits={item.benefits}
             />
           ))}
         </div>
