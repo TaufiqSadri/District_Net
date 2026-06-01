@@ -1,7 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import PanelSidebar from '@/components/panel/layout/PanelSidebar'
 import PanelTopbar, {
   type PanelTopbarUser,
@@ -34,6 +35,7 @@ export default function PanelLayout({
 
   return (
     <div className="min-h-screen bg-[#f7f9fd] font-[var(--font-source-sans-pro)] text-slate-900 lg:flex">
+      <PanelAutoRefresh />
       <PanelSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -64,4 +66,42 @@ export default function PanelLayout({
       </div>
     </div>
   )
+}
+
+function PanelAutoRefresh() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const lastRefreshAtRef = useRef(0)
+  const currentUrl = useMemo(
+    () => `${pathname}?${searchParams.toString()}`,
+    [pathname, searchParams],
+  )
+
+  useEffect(() => {
+    router.refresh()
+  }, [currentUrl, router])
+
+  useEffect(() => {
+    function refreshIfNeeded() {
+      const now = Date.now()
+      if (now - lastRefreshAtRef.current < 2_000) return
+      lastRefreshAtRef.current = now
+      router.refresh()
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') refreshIfNeeded()
+    }
+
+    window.addEventListener('focus', refreshIfNeeded)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', refreshIfNeeded)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [router])
+
+  return null
 }

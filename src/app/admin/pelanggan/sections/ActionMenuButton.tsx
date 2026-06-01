@@ -72,6 +72,7 @@ export default function ActionMenuButton({
     title: string
     message: string
     confirmLabel: string
+    destructive?: boolean
     onConfirm: () => void
   } | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -119,7 +120,34 @@ export default function ActionMenuButton({
   }
 
   const statusActionItems =
-    pelanggan.status_langganan === 'aktif'
+    pelanggan.status_langganan === 'pending'
+      ? [
+          {
+            icon: UserCheck,
+            label: 'Approve Pelanggan',
+            className: 'text-green-600 hover:bg-green-50',
+            onClick: () => {
+              setOpen(false)
+              setConfirmAction({
+                title: 'Approve Pelanggan',
+                message:
+                  'Pelanggan ini akan disetujui, tagihan instalasi akan dibuat, dan pelanggan bisa melanjutkan pembayaran instalasi.',
+                confirmLabel: 'Ya, Approve',
+                destructive: false,
+                onConfirm: () => {
+                  startTransition(async () => {
+                    const { approvePelanggan } = await import('@/app/admin/actions')
+                    await approvePelanggan(pelanggan.id, new FormData())
+                    onStatusChange?.(pelanggan.id, 'ditangguhkan')
+                    setConfirmAction(null)
+                    router.refresh()
+                  })
+                },
+              })
+            },
+          },
+        ]
+      : pelanggan.status_langganan === 'aktif'
       ? [
         {
           icon: PauseCircle,
@@ -301,6 +329,7 @@ export default function ActionMenuButton({
         itemName={pelanggan.nama_lengkap}
         message={confirmAction?.message}
         confirmLabel={confirmAction?.confirmLabel}
+        destructive={confirmAction?.destructive}
         pending={isPending}
         onCancel={() => setConfirmAction(null)}
         onConfirm={() => confirmAction?.onConfirm()}

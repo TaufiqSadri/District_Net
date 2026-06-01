@@ -2,30 +2,28 @@ import PanelLayout from '@/components/panel/layout/PanelLayout'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { unstable_cache } from 'next/cache'
 
-// Cache badge counts for 30 seconds — these don't need to be real-time
-const getBadgeCounts = unstable_cache(
-  async () => {
-    const admin = createAdminClient()
-    const [ticketResult, pembayaranResult] = await Promise.all([
-      admin
-        .from('tiket_layanan')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'open'),
-      admin
-        .from('pembayaran')
-        .select('*', { count: 'exact', head: true })
-        .eq('status_verifikasi', 'menunggu'),
-    ])
-    return {
-      pendingCount: ticketResult.count ?? 0,
-      paymentPendingCount: pembayaranResult.count ?? 0,
-    }
-  },
-  ['admin-badge-counts'],
-  { revalidate: 30 },
-)
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+async function getBadgeCounts() {
+  const admin = createAdminClient()
+  const [ticketResult, pembayaranResult] = await Promise.all([
+    admin
+      .from('tiket_layanan')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'open'),
+    admin
+      .from('pembayaran')
+      .select('*', { count: 'exact', head: true })
+      .eq('status_verifikasi', 'menunggu'),
+  ])
+
+  return {
+    pendingCount: ticketResult.count ?? 0,
+    paymentPendingCount: pembayaranResult.count ?? 0,
+  }
+}
 
 export default async function AdminRootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()

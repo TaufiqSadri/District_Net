@@ -24,18 +24,14 @@ import {
   formatRupiah,
   getStatusTagihanMeta,
   getStatusVerifikasiMeta,
+  type PembayaranWithTagihan,
 } from '@/lib/data/dashboardPelanggan'
 import type {
   JadwalInstalasi,
   PelangganWithPaket,
-  PembayaranRow,
   TagihanInstalasi,
   TagihanRow,
 } from '@/types/database'
-
-type PembayaranWithTagihan = PembayaranRow & {
-  tagihan: { bulan: number; tahun: number } | null
-}
 
 interface DashboardOverviewContentProps {
   now: Date
@@ -220,10 +216,17 @@ function InstallationInvoiceSection({
 }
 
 function MonthlyBillsSection({ rows }: { rows: TagihanRow[] }) {
+  const subtitle =
+    rows.length === 0
+      ? 'Belum ada tagihan bulanan dari layanan aktif Anda.'
+      : rows.length === 1
+      ? '1 tagihan terbaru dari layanan aktif Anda.'
+      : `${rows.length} tagihan terbaru dari layanan aktif Anda.`
+
   return (
     <PanelSectionCard
       title="Tagihan Bulanan"
-      subtitle="Lima tagihan terbaru dari layanan aktif Anda."
+      subtitle={subtitle}
       action={<SmallLink href="/dashboard/tagihan">Lihat Semua</SmallLink>}
       bodyClassName="p-0"
     >

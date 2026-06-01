@@ -1,10 +1,13 @@
 import PanelLayout from '@/components/panel/layout/PanelLayout'
 import { getCurrentPelanggan } from '@/lib/data/pelanggan'
 import { getLatestJadwalInstalasiForPelanggan } from '@/lib/data/jadwalInstalasi'
-import { getNotifications, getUnreadNotificationCount } from '@/lib/data/notifikasi'
+import { createNotificationsIfMissing, getNotifications, getUnreadNotificationCount } from '@/lib/data/notifikasi'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { PanelNotification } from '@/components/panel/layout/PanelNotificationDrawer'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return 'Belum tersedia'
@@ -54,6 +57,86 @@ function statusJadwalLabel(status: string | null | undefined) {
   return status ? map[status] ?? status : 'Menunggu Jadwal'
 }
 
+const monthLabels = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+]
+
+type BillingNotificationPelanggan = {
+  user_id: string | null
+}
+
+type BillingNotificationTagihan = {
+  id: string
+  bulan: number
+  tahun: number
+  jumlah_tagihan: number
+  status_tagihan: string
+  jatuh_tempo: string | null
+}
+
+type BillingNotificationInstalasi = {
+  id: string
+  jumlah_tagihan: number
+  status_tagihan: string
+  jatuh_tempo: string | null
+}
+
+async function ensureBillingNotificationsForPelanggan({
+  pelanggan,
+  tagihanInstalasi,
+  tagihanTerbuka,
+}: {
+  pelanggan: BillingNotificationPelanggan
+  tagihanInstalasi: BillingNotificationInstalasi | null
+  tagihanTerbuka: BillingNotificationTagihan[]
+}) {
+  if (!pelanggan.user_id) return
+
+  const notifications = []
+
+  if (tagihanInstalasi?.status_tagihan === 'belum_bayar') {
+    notifications.push({
+      userId: pelanggan.user_id,
+      title: 'Tagihan Instalasi Belum Dibayar',
+      message: `Tagihan instalasi sebesar ${formatRupiah(tagihanInstalasi.jumlah_tagihan)} belum dibayar. Silakan bayar sebelum ${formatDate(tagihanInstalasi.jatuh_tempo)} agar jadwal pemasangan bisa diproses.`,
+      type: 'tagihan_instalasi',
+      relatedId: tagihanInstalasi.id,
+    })
+  }
+
+  for (const tagihan of tagihanTerbuka) {
+    if (tagihan.status_tagihan !== 'belum_bayar') continue
+
+    const period = `${monthLabels[tagihan.bulan - 1] ?? tagihan.bulan} ${tagihan.tahun}`
+    notifications.push({
+      userId: pelanggan.user_id,
+      title: 'Tagihan Bulanan Belum Dibayar',
+      message: `Tagihan ${period} sebesar ${formatRupiah(tagihan.jumlah_tagihan)} belum dibayar. Silakan bayar sebelum ${formatDate(tagihan.jatuh_tempo)}.`,
+      type: 'tagihan',
+      relatedId: tagihan.id,
+    })
+  }
+
+  if (notifications.length === 0) return
+
+  try {
+    await createNotificationsIfMissing(notifications)
+  } catch (error) {
+    console.error('ensureBillingNotificationsForPelanggan error:', error)
+  }
+}
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -65,7 +148,7 @@ export default async function DashboardLayout({
   const supabase = await createClient()
   const now = new Date()
 
-  const [tagihanInstalasi, tagihanTerbuka, jadwalInstalasi, notificationRows, notificationUnreadCount] = await Promise.all([
+  const [tagihanInstalasi, tagihanTerbuka, jadwalInstalasi] = await Promise.all([
     supabase
       .from('tagihan_instalasi')
       .select('*')
@@ -83,6 +166,15 @@ export default async function DashboardLayout({
       .limit(3)
       .then((result) => result.data ?? []),
     getLatestJadwalInstalasiForPelanggan(pelanggan.id),
+  ])
+
+  await ensureBillingNotificationsForPelanggan({
+    pelanggan,
+    tagihanInstalasi: tagihanInstalasi as BillingNotificationInstalasi | null,
+    tagihanTerbuka: tagihanTerbuka as BillingNotificationTagihan[],
+  })
+
+  const [notificationRows, notificationUnreadCount] = await Promise.all([
     getNotifications(),
     getUnreadNotificationCount(),
   ])
@@ -90,13 +182,16 @@ export default async function DashboardLayout({
   const notifications: PanelNotification[] = []
 
   for (const item of notificationRows) {
+    const isScheduleNotification = item.type === 'jadwal' || item.type === 'jadwal_layanan'
+    const isBillingNotification = item.type === 'tagihan' || item.type === 'tagihan_instalasi'
+
     notifications.push({
       id: item.id,
       title: item.title,
       summary: item.message,
       time: formatDateTime(item.scheduled_at ?? item.created_at ?? now.toISOString()),
-      tone: item.type === 'jadwal' || item.type === 'jadwal_layanan' ? 'blue' : 'purple',
-      icon: item.type === 'jadwal' || item.type === 'jadwal_layanan' ? 'calendar' : 'alert',
+      tone: isScheduleNotification ? 'blue' : isBillingNotification ? 'orange' : 'purple',
+      icon: isScheduleNotification ? 'calendar' : isBillingNotification ? 'receipt' : 'alert',
       status: item.is_read ? 'Dibaca' : 'Baru',
       isUnread: !item.is_read,
       canMarkRead: !item.is_read,

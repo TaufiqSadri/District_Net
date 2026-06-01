@@ -98,7 +98,7 @@ export default function LoginPage() {
         return
       }
       if (pelanggan.status_langganan === 'ditangguhkan') {
-        window.location.href = '/dashboard/tagihan'
+        window.location.href = '/dashboard'
         return
       }
 
@@ -205,7 +205,7 @@ export default function LoginPage() {
       return
     }
     if (pelanggan.status_langganan === 'ditangguhkan') {
-      window.location.href = '/dashboard/tagihan'
+      window.location.href = '/dashboard'
       return
     }
     window.location.href = '/dashboard'

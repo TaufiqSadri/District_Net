@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MoreVertical } from 'lucide-react'
+import RegistrationActions from '@/app/admin/sections/RegistrationActions'
 
 export interface NewRegistrationRow {
   id: string
@@ -79,18 +79,12 @@ export default function RegistrationTable({ rows }: RegistrationTableProps) {
                     {row.packageLabel}
                   </td>
                   <td className="px-6 py-5">
-                    <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${style.className}`}>
+                    <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${row.status === 'pending' ? 'whitespace-nowrap' : ''} ${style.className}`}>
                       {style.label}
                     </span>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <Link
-                      href={`/admin/pelanggan/${row.id}`}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-700 transition hover:bg-slate-100"
-                      aria-label={`Buka detail ${row.name}`}
-                    >
-                      <MoreVertical size={18} />
-                    </Link>
+                    <RegistrationActions id={row.id} name={row.name} status={row.status} />
                   </td>
                 </tr>
               )

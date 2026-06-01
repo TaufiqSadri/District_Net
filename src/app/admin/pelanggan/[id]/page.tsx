@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, Phone, Mail, Wifi, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import DeletePelangganButton from './deletePelangganButton'
+import ApprovePelangganButton from './ApprovePelangganButton'
 import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 type Props = { params: { id: string } }
@@ -71,6 +72,12 @@ export default async function DetailPelangganPage({ params }: Props) {
           Kembali ke Daftar Pelanggan
         </Link>
         <div className="flex flex-wrap gap-2">
+          {pelanggan.status_langganan === 'pending' ? (
+            <ApprovePelangganButton
+              pelangganId={params.id}
+              namaLengkap={pelanggan.nama_lengkap}
+            />
+          ) : null}
           <Link
             href={`/admin/pelanggan/${params.id}/updatePelanggan`}
             className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"

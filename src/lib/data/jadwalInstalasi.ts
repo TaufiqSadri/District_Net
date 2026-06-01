@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createNotifications } from '@/lib/data/notifikasi'
 import type { JadwalInstalasi, JenisJadwalLayanan, StatusJadwalInstalasi } from '@/types/database'
 
 type AdminClient = ReturnType<typeof createAdminClient>
@@ -60,6 +61,17 @@ const jadwalSelect = `
     subjek
   )
 `
+
+function formatScheduleDate(value: string | null) {
+  if (!value) return 'waktu yang akan dikonfirmasi'
+  return new Date(value).toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 export async function ensureJadwalInstalasi({
   admin,
@@ -224,6 +236,34 @@ export async function updateJadwalInstalasiByAdmin(jadwalId: string, formData: F
         .update({ status_langganan: 'proses_instalasi' })
         .eq('id', data.pelanggan_id)
         .neq('status_langganan', 'nonaktif')
+    }
+
+    if (status === 'terjadwal' || status === 'dikerjakan') {
+      try {
+        const { data: pelanggan } = await admin
+          .from('pelanggan')
+          .select('user_id')
+          .eq('id', data.pelanggan_id)
+          .maybeSingle()
+
+        if (pelanggan?.user_id) {
+          const statusLabel = status === 'dikerjakan' ? 'sedang dikerjakan' : 'sudah dijadwalkan'
+          await createNotifications(
+            [
+              {
+                userId: pelanggan.user_id,
+                title: status === 'dikerjakan' ? 'Instalasi Sedang Dikerjakan' : 'Instalasi Sudah Dijadwalkan',
+                message: `Pemasangan layanan Anda ${statusLabel} pada ${formatScheduleDate(tanggalJadwal)}.`,
+                type: 'jadwal_layanan',
+                relatedId: jadwalId,
+              },
+            ],
+            admin,
+          )
+        }
+      } catch (notificationError) {
+        console.error('updateJadwalInstalasiByAdmin notification error:', notificationError)
+      }
     }
   }
 

@@ -65,7 +65,7 @@ export async function loginAction(
     redirect('/dashboard/nonaktif')
   }
   if (pelanggan.status_langganan === 'ditangguhkan') {
-    redirect('/dashboard/tagihan')
+    redirect('/dashboard')
   }
   redirect('/dashboard')
 }
