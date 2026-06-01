@@ -58,44 +58,6 @@ export async function createNotifications(inputs: NotificationInput[], admin: Ad
   if (error) throw new Error(error.message)
 }
 
-export async function createNotificationsIfMissing(
-  inputs: NotificationInput[],
-  admin: AdminClient = createAdminClient(),
-) {
-  if (inputs.length === 0) return
-
-  const dedupeCandidates = inputs.filter((item) => item.relatedId && item.userId)
-  const withoutDedupe = inputs.filter((item) => !item.relatedId || !item.userId)
-
-  if (dedupeCandidates.length === 0) {
-    await createNotifications(withoutDedupe, admin)
-    return
-  }
-
-  const userIds = Array.from(new Set(dedupeCandidates.map((item) => item.userId)))
-  const types = Array.from(new Set(dedupeCandidates.map((item) => item.type ?? 'info')))
-  const relatedIds = Array.from(new Set(dedupeCandidates.map((item) => item.relatedId as string)))
-
-  const { data, error } = await admin
-    .from('notifikasi')
-    .select('user_id, tipe, related_id')
-    .in('user_id', userIds)
-    .in('tipe', types)
-    .in('related_id', relatedIds)
-
-  if (error) throw new Error(error.message)
-
-  const existing = new Set(
-    (data ?? []).map((item: any) => `${item.user_id}:${item.tipe ?? 'info'}:${item.related_id}`),
-  )
-
-  const missing = dedupeCandidates.filter(
-    (item) => !existing.has(`${item.userId}:${item.type ?? 'info'}:${item.relatedId}`),
-  )
-
-  await createNotifications([...missing, ...withoutDedupe], admin)
-}
-
 export async function getNotifications(): Promise<NotificationRow[]> {
   const userId = await getCurrentUserId()
   if (!userId) return []

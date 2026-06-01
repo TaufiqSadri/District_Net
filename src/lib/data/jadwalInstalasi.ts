@@ -254,7 +254,7 @@ export async function updateJadwalInstalasiByAdmin(jadwalId: string, formData: F
                 userId: pelanggan.user_id,
                 title: status === 'dikerjakan' ? 'Instalasi Sedang Dikerjakan' : 'Instalasi Sudah Dijadwalkan',
                 message: `Pemasangan layanan Anda ${statusLabel} pada ${formatScheduleDate(tanggalJadwal)}.`,
-                type: 'jadwal_layanan',
+                type: 'jadwal',
                 relatedId: jadwalId,
               },
             ],

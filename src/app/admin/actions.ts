@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { approvePayment } from '@/lib/data/pembayaran'
-import { createNotifications, createNotificationsIfMissing } from '@/lib/data/notifikasi'
+import { createNotifications } from '@/lib/data/notifikasi'
 import {
   deleteTagihan,
   deleteTagihanInstalasi,
@@ -33,111 +33,6 @@ function parseDateInput(value: FormDataEntryValue | null) {
   const date = String(value ?? '').trim()
   if (!date) return null
   return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : 'invalid'
-}
-
-const monthLabels = [
-  'Januari',
-  'Februari',
-  'Maret',
-  'April',
-  'Mei',
-  'Juni',
-  'Juli',
-  'Agustus',
-  'September',
-  'Oktober',
-  'November',
-  'Desember',
-]
-
-type PelangganNotificationTarget = {
-  id: string
-  user_id?: string | null
-}
-
-type NewMonthlyBillNotificationRow = {
-  id: string
-  pelanggan_id: string
-  bulan: number
-  tahun: number
-  jumlah_tagihan: number
-  jatuh_tempo: string | null
-}
-
-type NewInstallationBillNotificationRow = {
-  id: string
-  pelanggan_id: string
-  jumlah_tagihan: number
-  jatuh_tempo: string | null
-}
-
-function formatRupiah(value: number) {
-  return `Rp ${Number(value ?? 0).toLocaleString('id-ID')}`
-}
-
-function formatDateForNotification(value: string | null) {
-  if (!value) return 'tanggal jatuh tempo yang ditentukan'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
-
-async function notifyMonthlyBillsCreated(
-  admin: ReturnType<typeof createAdminClient>,
-  rows: NewMonthlyBillNotificationRow[],
-  pelangganRows: PelangganNotificationTarget[],
-) {
-  const userIdByPelanggan = new Map(pelangganRows.map((item) => [item.id, item.user_id ?? null]))
-
-  await createNotificationsIfMissing(
-    rows.flatMap((row) => {
-      const userId = userIdByPelanggan.get(row.pelanggan_id)
-      if (!userId) return []
-
-      const period = `${monthLabels[row.bulan - 1] ?? row.bulan} ${row.tahun}`
-
-      return [
-        {
-          userId,
-          title: 'Tagihan Bulanan Baru',
-          message: `Tagihan ${period} sebesar ${formatRupiah(row.jumlah_tagihan)} sudah diterbitkan. Silakan bayar sebelum ${formatDateForNotification(row.jatuh_tempo)}.`,
-          type: 'tagihan',
-          relatedId: row.id,
-        },
-      ]
-    }),
-    admin,
-  )
-}
-
-async function notifyInstallationBillsCreated(
-  admin: ReturnType<typeof createAdminClient>,
-  rows: NewInstallationBillNotificationRow[],
-  pelangganRows: PelangganNotificationTarget[],
-) {
-  const userIdByPelanggan = new Map(pelangganRows.map((item) => [item.id, item.user_id ?? null]))
-
-  await createNotificationsIfMissing(
-    rows.flatMap((row) => {
-      const userId = userIdByPelanggan.get(row.pelanggan_id)
-      if (!userId) return []
-
-      return [
-        {
-          userId,
-          title: 'Tagihan Instalasi Baru',
-          message: `Tagihan instalasi sebesar ${formatRupiah(row.jumlah_tagihan)} sudah diterbitkan. Silakan bayar sebelum ${formatDateForNotification(row.jatuh_tempo)} agar jadwal pemasangan bisa diproses.`,
-          type: 'tagihan_instalasi',
-          relatedId: row.id,
-        },
-      ]
-    }),
-    admin,
-  )
 }
 
 // Helper: buat tagihan instalasi Rp 600.000 di tabel tagihan_instalasi
@@ -201,7 +96,7 @@ export async function approvePelanggan(pelangganId: string, _formData: FormData)
               title: 'Tagihan Instalasi Dibuat',
               message:
                 'Pendaftaran Anda sudah disetujui. Silakan selesaikan pembayaran instalasi agar jadwal pemasangan bisa diproses.',
-              type: 'tagihan_instalasi',
+              type: 'jadwal',
               relatedId: tagihanInstalasiId,
             },
           ],
@@ -553,7 +448,7 @@ export async function generateTagihanBulanan(formData: FormData) {
 
   let pelangganQuery = admin
     .from('pelanggan')
-    .select('id, user_id, paket_id, tanggal_bergabung, paket_internet(harga)')
+    .select('id, paket_id, tanggal_bergabung, paket_internet(harga)')
     .eq('status_langganan', 'aktif')
 
   if (pelangganId && pelangganId !== 'semua') {
@@ -627,30 +522,15 @@ export async function generateTagihanBulanan(formData: FormData) {
     })
 
   if (inserts.length > 0) {
-    const { data: insertedRows, error: insertError } = await admin
-      .from('tagihan')
-      .insert(inserts)
-      .select('id, pelanggan_id, bulan, tahun, jumlah_tagihan, jatuh_tempo')
+    const { error: insertError } = await admin.from('tagihan').insert(inserts)
     if (insertError) {
       redirect(`/admin/tagihan/generate?error=${encodeURIComponent(insertError.message)}`)
-    }
-
-    try {
-      await notifyMonthlyBillsCreated(
-        admin,
-        (insertedRows ?? []) as NewMonthlyBillNotificationRow[],
-        (pelangganRows ?? []) as PelangganNotificationTarget[],
-      )
-    } catch (notificationError) {
-      console.error('generateTagihanBulanan notification error:', notificationError)
     }
   }
 
   await syncSuspendedPelangganStatuses(inserts.map((item) => item.pelanggan_id))
   revalidatePath('/admin')
   revalidatePath('/admin/tagihan')
-  revalidatePath('/dashboard')
-  revalidatePath('/dashboard/tagihan')
   redirect(
     `/admin/tagihan/generate?success=${encodeURIComponent(
       `${inserts.length} tagihan bulanan berhasil dibuat untuk periode ${month}/${year}.`,
@@ -669,7 +549,7 @@ export async function generateTagihanInstalasiManual(formData: FormData) {
 
   let pelangganQuery = admin
     .from('pelanggan')
-    .select('id, user_id')
+    .select('id')
     .eq('status_langganan', 'aktif')
 
   if (pelangganId && pelangganId !== 'semua') {
@@ -711,30 +591,15 @@ export async function generateTagihanInstalasiManual(formData: FormData) {
     }))
 
   if (inserts.length > 0) {
-    const { data: insertedRows, error: insertError } = await admin
-      .from('tagihan_instalasi')
-      .insert(inserts)
-      .select('id, pelanggan_id, jumlah_tagihan, jatuh_tempo')
+    const { error: insertError } = await admin.from('tagihan_instalasi').insert(inserts)
     if (insertError) {
       redirect(`/admin/tagihan/generate?jenis=instalasi&error=${encodeURIComponent(insertError.message)}`)
-    }
-
-    try {
-      await notifyInstallationBillsCreated(
-        admin,
-        (insertedRows ?? []) as NewInstallationBillNotificationRow[],
-        (pelangganRows ?? []) as PelangganNotificationTarget[],
-      )
-    } catch (notificationError) {
-      console.error('generateTagihanInstalasiManual notification error:', notificationError)
     }
   }
 
   await syncSuspendedPelangganStatuses(inserts.map((item) => item.pelanggan_id))
   revalidatePath('/admin')
   revalidatePath('/admin/tagihan')
-  revalidatePath('/dashboard')
-  revalidatePath('/dashboard/tagihan')
   redirect(
     `/admin/tagihan/generate?jenis=instalasi&success=${encodeURIComponent(
       `${inserts.length} tagihan instalasi berhasil dibuat.`,
