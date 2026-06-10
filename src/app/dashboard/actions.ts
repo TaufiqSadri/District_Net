@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { hasActivePembayaran } from '@/lib/data/dashboardPelanggan'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -30,6 +31,7 @@ function redirectWithMessage(path: string, type: 'success' | 'error', message: s
 
 export async function submitPembayaran(formData: FormData) {
   const { supabase, pelanggan } = await getAuthenticatedPelanggan()
+  const admin = createAdminClient()
 
   const tagihanId = String(formData.get('tagihan_id') ?? '')
   const buktiPembayaran = String(formData.get('bukti_pembayaran') ?? '').trim()
@@ -56,21 +58,29 @@ export async function submitPembayaran(formData: FormData) {
     redirectWithMessage('/dashboard/tagihan', 'error', 'Tagihan tidak ditemukan.')
   }
 
-  if (tagihan.status_tagihan !== 'belum_bayar') {
-    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', 'Tagihan ini tidak bisa dibayar ulang saat ini.')
+  if (tagihan.status_tagihan === 'lunas') {
+    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', 'Tagihan ini sudah lunas.')
   }
 
-  const { data: pembayaranAktif } = await supabase
+  const { data: pembayaranAktif, error: pembayaranAktifError } = await admin
     .from('pembayaran')
     .select('id, status_verifikasi')
     .eq('tagihan_id', tagihanId)
     .in('status_verifikasi', ['menunggu', 'diterima'])
+    .limit(1)
 
-  if ((pembayaranAktif ?? []).length > 0) {
-    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', 'Pembayaran untuk tagihan ini sudah pernah dikirim.')
+  if (pembayaranAktifError) {
+    redirectWithMessage(`/dashboard/tagihan/${tagihanId}`, 'error', pembayaranAktifError.message)
   }
 
-  const admin = createAdminClient()
+  if (hasActivePembayaran(pembayaranAktif ?? [])) {
+    redirectWithMessage(
+      `/dashboard/tagihan/${tagihanId}`,
+      'error',
+      'Pembayaran untuk tagihan ini masih menunggu verifikasi atau sudah diterima.',
+    )
+  }
+
   const [{ error: insertError }, { error: updateError }] = await Promise.all([
     admin.from('pembayaran').insert({
       tagihan_id: tagihanId,
@@ -125,21 +135,26 @@ export async function submitPembayaranInstalasi(formData: FormData) {
     .single()
 
   if (!instalasi) redirectWithMessage('/dashboard', 'error', 'Tagihan instalasi tidak ditemukan.')
-  if (instalasi.status_tagihan !== 'belum_bayar') {
-    redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', 'Tagihan instalasi ini sudah dibayar atau sedang diverifikasi.')
+  if (instalasi.status_tagihan === 'lunas') {
+    redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', 'Tagihan instalasi ini sudah lunas.')
   }
 
-  const { data: pembayaranAktif } = await admin
+  const { data: pembayaranAktif, error: pembayaranAktifError } = await admin
     .from('pembayaran')
     .select('id, status_verifikasi')
     .eq('tagihan_instalasi_id', instalasiId)
     .in('status_verifikasi', ['menunggu', 'diterima'])
+    .limit(1)
 
-  if ((pembayaranAktif ?? []).length > 0) {
+  if (pembayaranAktifError) {
+    redirectWithMessage(`/dashboard/tagihan-instalasi/${instalasiId}`, 'error', pembayaranAktifError.message)
+  }
+
+  if (hasActivePembayaran(pembayaranAktif ?? [])) {
     redirectWithMessage(
       `/dashboard/tagihan-instalasi/${instalasiId}`,
       'error',
-      'Pembayaran untuk tagihan instalasi ini sudah pernah dikirim.',
+      'Pembayaran untuk tagihan instalasi ini masih menunggu verifikasi atau sudah diterima.',
     )
   }
 

@@ -61,7 +61,7 @@ export default function PanelLayout({
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
             <span>{footerStatus}</span>
           </div>
-          <span className="font-medium normal-case">(c) 2024 District Net Indonesia. v2.4.0</span>
+          <span className="font-medium normal-case">(c) 2026 District Net Indonesia. v2.4.0</span>
         </footer>
       </div>
     </div>

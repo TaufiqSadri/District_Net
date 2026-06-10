@@ -164,6 +164,10 @@ export async function rejectPembayaran(pembayaranId: string, catatan: string, _f
   revalidatePath('/admin/tagihan')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/riwayat')
+  if (row?.tagihan_id) revalidatePath(`/dashboard/tagihan/${row.tagihan_id}`)
+  if (row?.tagihan_instalasi_id) {
+    revalidatePath(`/dashboard/tagihan-instalasi/${row.tagihan_instalasi_id}`)
+  }
 }
 
 export async function deactivatePelanggan(pelangganId: string, _formData: FormData) {

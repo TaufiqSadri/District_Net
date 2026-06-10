@@ -2,7 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import PanelAlert from '@/components/panel/shared/PanelAlert'
-import { getTagihanDetailForCurrentPelanggan } from '@/lib/data/dashboardPelanggan'
+import {
+  canSubmitPembayaran,
+  getTagihanDetailForCurrentPelanggan,
+} from '@/lib/data/dashboardPelanggan'
 import MonthlyBillDetailSection from './sections/MonthlyBillDetailSection'
 import MonthlyPaymentSection from './sections/MonthlyPaymentSection'
 
@@ -19,7 +22,7 @@ export default async function TagihanDetailPage({
 
   const { tagihan, pembayaran } = detail
   const latestPayment = pembayaran[0]
-  const canSubmitPayment = tagihan.status_tagihan === 'belum_bayar'
+  const canSubmitPayment = canSubmitPembayaran(tagihan.status_tagihan, pembayaran)
 
   return (
     <div className="space-y-6">
