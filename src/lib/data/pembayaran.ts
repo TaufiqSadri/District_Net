@@ -290,6 +290,10 @@ export async function rejectPayment(pembayaranId: string): Promise<void> {
   revalidatePath('/admin/tagihan')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/riwayat')
+  if (row.tagihan_id) revalidatePath(`/dashboard/tagihan/${row.tagihan_id}`)
+  if (row.tagihan_instalasi_id) {
+    revalidatePath(`/dashboard/tagihan-instalasi/${row.tagihan_instalasi_id}`)
+  }
 }
 
 export async function getPaymentDetail(pembayaranId: string): Promise<PembayaranWithRelations | null> {

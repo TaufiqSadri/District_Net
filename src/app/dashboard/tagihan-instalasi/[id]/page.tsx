@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import PanelAlert from '@/components/panel/shared/PanelAlert'
 import {
+  canSubmitPembayaran,
   getTagihanInstalasiDetailForCurrentPelanggan,
 } from '@/lib/data/dashboardPelanggan'
 import { getLatestJadwalInstalasiForPelanggan } from '@/lib/data/jadwalInstalasi'
@@ -25,7 +26,7 @@ export default async function TagihanInstalasiDetailPage({
   const jadwalInstalasi = await getLatestJadwalInstalasiForPelanggan(pelanggan.id)
   const tagihanInstalasi = instalasi as TagihanInstalasi
   const latestPayment = pembayaran[0]
-  const canSubmitPayment = tagihanInstalasi.status_tagihan === 'belum_bayar'
+  const canSubmitPayment = canSubmitPembayaran(tagihanInstalasi.status_tagihan, pembayaran)
 
   return (
     <div className="space-y-6">

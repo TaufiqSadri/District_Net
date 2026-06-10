@@ -9,6 +9,22 @@ export type PembayaranWithTagihan = PembayaranRow & {
   tagihan_instalasi?: { id: string; pelanggan_id: string } | null
 }
 
+export function hasActivePembayaran(
+  pembayaran: Array<Pick<PembayaranRow, 'status_verifikasi'>>,
+) {
+  return pembayaran.some((item) =>
+    item.status_verifikasi === 'menunggu' || item.status_verifikasi === 'diterima',
+  )
+}
+
+export function canSubmitPembayaran(
+  statusTagihan: string,
+  pembayaran: Array<Pick<PembayaranRow, 'status_verifikasi'>>,
+) {
+  if (statusTagihan === 'lunas') return false
+  return !hasActivePembayaran(pembayaran)
+}
+
 export async function requireActivePelanggan(): Promise<PelangganWithPaket> {
   const pelanggan = await getCurrentPelanggan()
 
@@ -97,6 +113,7 @@ export async function getDashboardPelangganData() {
 export async function getTagihanDetailForCurrentPelanggan(tagihanId: string) {
   const pelanggan = await requireActivePelanggan()
   const supabase = await createClient()
+  const admin = createAdminClient()
 
   const { data: tagihan } = await supabase
     .from('tagihan')
@@ -107,10 +124,11 @@ export async function getTagihanDetailForCurrentPelanggan(tagihanId: string) {
 
   if (!tagihan) return null
 
-  const { data: pembayaran } = await supabase
+  const { data: pembayaran } = await admin
     .from('pembayaran')
     .select('*')
     .eq('tagihan_id', tagihanId)
+    .order('tanggal_pembayaran', { ascending: false })
     .order('created_at', { ascending: false })
 
   return {
@@ -123,6 +141,7 @@ export async function getTagihanDetailForCurrentPelanggan(tagihanId: string) {
 export async function getTagihanInstalasiDetailForCurrentPelanggan(instalasiId: string) {
   const pelanggan = await requireActivePelanggan()
   const supabase = await createClient()
+  const admin = createAdminClient()
 
   const { data: instalasi } = await supabase
     .from('tagihan_instalasi')
@@ -133,10 +152,11 @@ export async function getTagihanInstalasiDetailForCurrentPelanggan(instalasiId: 
 
   if (!instalasi) return null
 
-  const { data: pembayaran } = await supabase
+  const { data: pembayaran } = await admin
     .from('pembayaran')
     .select('*')
     .eq('tagihan_instalasi_id', instalasiId)
+    .order('tanggal_pembayaran', { ascending: false })
     .order('created_at', { ascending: false })
 
   return {

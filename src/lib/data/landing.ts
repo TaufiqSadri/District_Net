@@ -16,7 +16,7 @@ export const getLandingPackages = unstable_cache(
     return (data ?? []) as PaketInternet[]
   },
   ['landing-packages'],
-  { revalidate: REVALIDATE },
+  { revalidate: REVALIDATE, tags: ['landing-packages'] },
 )
 
 export const getLandingPromos = unstable_cache(
