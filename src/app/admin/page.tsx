@@ -11,12 +11,9 @@ import {
   sumRows,
 } from '@/app/admin/sections/dashboardOverviewUtils'
 import { getTicketStats } from '@/lib/data/tiket'
-import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export default async function AdminDashboardPage() {
-  await syncSuspendedPelangganStatuses()
-
   const admin = createAdminClient()
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)

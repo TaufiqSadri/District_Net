@@ -108,19 +108,10 @@ export async function approvePelanggan(pelangganId: string, _formData: FormData)
     }
   }
 
-  await syncSuspendedPelangganStatuses([pelangganId])
-  revalidatePath('/admin')
-  revalidatePath('/admin/pelanggan')
-  revalidatePath(`/admin/pelanggan/${pelangganId}`)
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/dashboard')
-  revalidatePath('/dashboard/pending')
-  revalidatePath('/dashboard/tagihan')
 }
 
 export async function approvePembayaran(pembayaranId: string, _tagihanId: string | null, _formData: FormData) {
   await approvePayment(pembayaranId)
-  revalidatePath('/admin')
 }
 
 export async function rejectPembayaran(pembayaranId: string, catatan: string, _formData: FormData) {
@@ -158,16 +149,6 @@ export async function rejectPembayaran(pembayaranId: string, catatan: string, _f
   if (pelangganId) {
     await syncSuspendedPelangganStatuses([pelangganId])
   }
-  revalidatePath('/admin')
-  revalidatePath('/admin/pelanggan')
-  revalidatePath('/admin/verifikasi')
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/dashboard')
-  revalidatePath('/dashboard/riwayat')
-  if (row?.tagihan_id) revalidatePath(`/dashboard/tagihan/${row.tagihan_id}`)
-  if (row?.tagihan_instalasi_id) {
-    revalidatePath(`/dashboard/tagihan-instalasi/${row.tagihan_instalasi_id}`)
-  }
 }
 
 export async function deactivatePelanggan(pelangganId: string, _formData: FormData) {
@@ -179,16 +160,11 @@ export async function deactivatePelanggan(pelangganId: string, _formData: FormDa
 export async function suspendPelanggan(pelangganId: string, _formData: FormData) {
   const admin = createAdminClient()
   await admin.from('pelanggan').update({ status_langganan: 'ditangguhkan' }).eq('id', pelangganId)
-  revalidatePath('/admin')
-  revalidatePath('/admin/pelanggan')
-  revalidatePath(`/admin/pelanggan/${pelangganId}`)
 }
 
 export async function activatePelanggan(pelangganId: string, _formData: FormData) {
   const admin = createAdminClient()
   await admin.from('pelanggan').update({ status_langganan: 'aktif' }).eq('id', pelangganId)
-  await syncSuspendedPelangganStatuses([pelangganId])
-  revalidatePath('/admin/pelanggan')
 }
 
 export async function togglePelangganStatus(
@@ -199,7 +175,6 @@ export async function togglePelangganStatus(
   const admin = createAdminClient()
 
   if (currentStatus === 'proses_instalasi') {
-    revalidatePath('/admin/pelanggan')
     return
   }
 
@@ -215,8 +190,6 @@ export async function togglePelangganStatus(
     })
     .eq('id', pelangganId)
 
-  await syncSuspendedPelangganStatuses([pelangganId])
-  revalidatePath('/admin/pelanggan')
 }
 
 /*
@@ -355,8 +328,7 @@ export async function updatePelangganByAdmin(pelangganId: string, formData: Form
   redirect(`/admin/pelanggan/${pelangganId}`)
 }
 
-// ── Delete pelanggan ──────────────────────────────────────────────────────────
-export async function deletePelangganByAdmin(pelangganId: string) {
+async function deletePelangganAndAuth(pelangganId: string) {
   const admin = createAdminClient()
 
   const { data: pelanggan, error: fetchError } = await admin
@@ -366,19 +338,19 @@ export async function deletePelangganByAdmin(pelangganId: string) {
     .maybeSingle()
 
   if (fetchError) {
-    redirect(`/admin/pelanggan?error=${encodeURIComponent(`Gagal mengambil data pelanggan: ${fetchError.message}`)}`)
+    return { success: false, message: `Gagal mengambil data pelanggan: ${fetchError.message}` }
   }
   if (!pelanggan) {
-    redirect('/admin/pelanggan?error=Data%20pelanggan%20tidak%20ditemukan.')
+    return { success: false, message: 'Data pelanggan tidak ditemukan.' }
   }
   if (!pelanggan.user_id) {
-    redirect('/admin/pelanggan?error=User%20ID%20akun%20pelanggan%20tidak%20ditemukan.')
+    return { success: false, message: 'User ID akun pelanggan tidak ditemukan.' }
   }
 
   const { error: authError } = await admin.auth.admin.deleteUser(pelanggan.user_id)
   const authUserAlreadyMissing = authError && /not found|not exist/i.test(authError.message)
   if (authError && !authUserAlreadyMissing) {
-    redirect(`/admin/pelanggan?error=${encodeURIComponent(`Gagal menghapus akun login pelanggan: ${authError.message}`)}`)
+    return { success: false, message: `Gagal menghapus akun login pelanggan: ${authError.message}` }
   }
 
   const { error: deleteError } = await admin
@@ -387,11 +359,26 @@ export async function deletePelangganByAdmin(pelangganId: string) {
     .eq('id', pelangganId)
 
   if (deleteError) {
-    redirect(`/admin/pelanggan?error=${encodeURIComponent(`Akun login sudah dihapus, tetapi data pelanggan gagal dihapus: ${deleteError.message}`)}`)
+    return { success: false, message: `Akun login sudah dihapus, tetapi data pelanggan gagal dihapus: ${deleteError.message}` }
+  }
+
+  return { success: true, message: 'Pelanggan dan akun login terkait berhasil dihapus.' }
+}
+
+// ── Delete pelanggan ──────────────────────────────────────────────────────────
+export async function deletePelangganFromList(pelangganId: string) {
+  return deletePelangganAndAuth(pelangganId)
+}
+
+export async function deletePelangganByAdmin(pelangganId: string) {
+  const result = await deletePelangganAndAuth(pelangganId)
+
+  if (!result.success) {
+    redirect(`/admin/pelanggan?error=${encodeURIComponent(result.message)}`)
   }
 
   revalidatePath('/admin/pelanggan')
-  redirect(`/admin/pelanggan?success=${encodeURIComponent('Pelanggan dan akun login terkait berhasil dihapus.')}`)
+  redirect(`/admin/pelanggan?success=${encodeURIComponent(result.message)}`)
 }
 
 /*
@@ -401,26 +388,18 @@ export async function deletePelangganByAdmin(pelangganId: string) {
 */
 export async function markAsPaidAction(tagihanId: string): Promise<void> {
   await markAsPaid(tagihanId)
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/admin/pelanggan')
 }
  
 export async function deleteTagihanAction(tagihanId: string): Promise<void> {
   await deleteTagihan(tagihanId)
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/admin/pelanggan')
 }
 
 export async function markAsPaidInstalasiAction(instalasiId: string): Promise<void> {
   await markAsPaidInstalasi(instalasiId)
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/admin/pelanggan')
 }
 
 export async function deleteTagihanInstalasiAction(instalasiId: string): Promise<void> {
   await deleteTagihanInstalasi(instalasiId)
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/admin/pelanggan')
 }
 
 function getMonthDateRange(month: number, year: number, dueDay = 10) {
@@ -688,8 +667,6 @@ export async function createManualJadwalLayananAction(formData: FormData) {
 
   if (error) return { success: false, message: error.message }
 
-  revalidatePath('/admin/jadwal-instalasi')
-  revalidatePath('/dashboard')
   return { success: true, message: 'Jadwal layanan berhasil dibuat.' }
 }
  

@@ -58,11 +58,10 @@ export async function createNotifications(inputs: NotificationInput[], admin: Ad
   if (error) throw new Error(error.message)
 }
 
-export async function getNotifications(): Promise<NotificationRow[]> {
-  const userId = await getCurrentUserId()
-  if (!userId) return []
-
-  const admin = createAdminClient()
+export async function getNotificationsForUser(
+  userId: string,
+  admin: AdminClient = createAdminClient(),
+): Promise<NotificationRow[]> {
   const now = new Date().toISOString()
   const { data, error } = await admin
     .from('notifikasi')
@@ -91,11 +90,19 @@ export async function getNotifications(): Promise<NotificationRow[]> {
   }))
 }
 
-export async function getUnreadNotificationCount() {
+export async function getNotifications(): Promise<NotificationRow[]> {
   const userId = await getCurrentUserId()
+  if (!userId) return []
+
+  return getNotificationsForUser(userId)
+}
+
+export async function getUnreadNotificationCountForUser(
+  userId: string,
+  admin: AdminClient = createAdminClient(),
+) {
   if (!userId) return 0
 
-  const admin = createAdminClient()
   const now = new Date().toISOString()
   const { count, error } = await admin
     .from('notifikasi')
@@ -110,6 +117,13 @@ export async function getUnreadNotificationCount() {
   }
 
   return count ?? 0
+}
+
+export async function getUnreadNotificationCount() {
+  const userId = await getCurrentUserId()
+  if (!userId) return 0
+
+  return getUnreadNotificationCountForUser(userId)
 }
 
 export async function markNotificationAsRead(notificationId: string) {

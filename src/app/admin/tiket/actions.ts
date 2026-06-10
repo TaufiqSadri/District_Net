@@ -101,11 +101,5 @@ export async function scheduleTicketServiceAction(tiketId: string, formData: For
     }
   }
 
-  revalidatePath('/admin/tiket')
-  revalidatePath(`/admin/tiket/${tiketId}`)
-  revalidatePath(`/dashboard/tiket/${tiketId}`)
-  revalidatePath('/admin/jadwal-instalasi')
-  revalidatePath('/admin')
-  revalidatePath('/dashboard')
   return { success: true, message: 'Jadwal layanan berhasil dibuat.' }
 }

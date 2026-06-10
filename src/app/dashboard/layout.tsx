@@ -1,7 +1,10 @@
 import PanelLayout from '@/components/panel/layout/PanelLayout'
 import { getCurrentPelanggan } from '@/lib/data/pelanggan'
 import { getLatestJadwalInstalasiForPelanggan } from '@/lib/data/jadwalInstalasi'
-import { getNotifications, getUnreadNotificationCount } from '@/lib/data/notifikasi'
+import {
+  getNotificationsForUser,
+  getUnreadNotificationCountForUser,
+} from '@/lib/data/notifikasi'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { PanelNotification } from '@/components/panel/layout/PanelNotificationDrawer'
@@ -86,8 +89,8 @@ export default async function DashboardLayout({
       .limit(3)
       .then((result) => result.data ?? []),
     getLatestJadwalInstalasiForPelanggan(pelanggan.id),
-    getNotifications(),
-    getUnreadNotificationCount(),
+    getNotificationsForUser(pelanggan.user_id),
+    getUnreadNotificationCountForUser(pelanggan.user_id),
   ])
 
   const notifications: PanelNotification[] = []

@@ -1,5 +1,4 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 export interface LaporanOverview {
   totalPelanggan: number
@@ -88,7 +87,6 @@ function applyDateRange(
 }
 
 export async function getLaporanOverview(filters: LaporanFilters = {}): Promise<LaporanOverview> {
-  await syncSuspendedPelangganStatuses()
   const admin = createAdminClient()
 
   const totalTagihanQuery = applyTagihanFilters(

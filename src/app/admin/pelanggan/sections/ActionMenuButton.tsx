@@ -137,11 +137,10 @@ export default function ActionMenuButton({
                 onConfirm: () => {
                   startTransition(async () => {
                     const { approvePelanggan } = await import('@/app/admin/actions')
-                    await approvePelanggan(pelanggan.id, new FormData())
-                    onStatusChange?.(pelanggan.id, 'ditangguhkan')
-                    setConfirmAction(null)
-                    router.refresh()
-                  })
+	                    await approvePelanggan(pelanggan.id, new FormData())
+	                    onStatusChange?.(pelanggan.id, 'ditangguhkan')
+	                    setConfirmAction(null)
+	                  })
                 },
               })
             },
@@ -162,11 +161,10 @@ export default function ActionMenuButton({
               onConfirm: () => {
                 startTransition(async () => {
                   const { suspendPelanggan } = await import('@/app/admin/actions')
-                  await suspendPelanggan(pelanggan.id, new FormData())
-                  onStatusChange?.(pelanggan.id, 'ditangguhkan')
-                  setConfirmAction(null)
-                  router.refresh()
-                })
+	                  await suspendPelanggan(pelanggan.id, new FormData())
+	                  onStatusChange?.(pelanggan.id, 'ditangguhkan')
+	                  setConfirmAction(null)
+	                })
               },
             })
           },
@@ -184,11 +182,10 @@ export default function ActionMenuButton({
               onConfirm: () => {
                 startTransition(async () => {
                   const { togglePelangganStatus } = await import('@/app/admin/actions')
-                  await togglePelangganStatus(pelanggan.id, pelanggan.status_langganan, new FormData())
-                  onStatusChange?.(pelanggan.id, 'nonaktif')
-                  setConfirmAction(null)
-                  router.refresh()
-                })
+	                  await togglePelangganStatus(pelanggan.id, pelanggan.status_langganan, new FormData())
+	                  onStatusChange?.(pelanggan.id, 'nonaktif')
+	                  setConfirmAction(null)
+	                })
               },
             })
           },
@@ -211,11 +208,10 @@ export default function ActionMenuButton({
           onClick: () => {
             setOpen(false)
             startTransition(async () => {
-              const { togglePelangganStatus } = await import('@/app/admin/actions')
-              await togglePelangganStatus(pelanggan.id, pelanggan.status_langganan, new FormData())
-              onStatusChange?.(pelanggan.id, 'aktif')
-              router.refresh()
-            })
+	              const { togglePelangganStatus } = await import('@/app/admin/actions')
+	              await togglePelangganStatus(pelanggan.id, pelanggan.status_langganan, new FormData())
+	              onStatusChange?.(pelanggan.id, 'aktif')
+	            })
           },
         },
       ]
@@ -260,9 +256,17 @@ export default function ActionMenuButton({
           confirmLabel: 'Ya, Hapus',
           onConfirm: () => {
             startTransition(async () => {
-              onDelete?.(pelanggan.id)
+              const { deletePelangganFromList } = await import('@/app/admin/actions')
+              const result = await deletePelangganFromList(pelanggan.id)
+
+              if (result.success) {
+                onDelete?.(pelanggan.id)
+                setConfirmAction(null)
+                return
+              }
+
               setConfirmAction(null)
-              router.refresh()
+              window.alert(result.message ?? 'Gagal menghapus pelanggan.')
             })
           },
         })

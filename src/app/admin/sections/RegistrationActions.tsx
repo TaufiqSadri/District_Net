@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Eye, Loader2, UserCheck } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
@@ -17,7 +16,6 @@ export default function RegistrationActions({
   name,
   status,
 }: RegistrationActionsProps) {
-  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [approved, setApproved] = useState(false)
@@ -32,7 +30,6 @@ export default function RegistrationActions({
         await approvePelanggan(id, new FormData())
         setApproved(true)
         setConfirmOpen(false)
-        router.refresh()
       } catch (approveError) {
         setConfirmOpen(false)
         setError(

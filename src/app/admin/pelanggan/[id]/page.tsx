@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import DeletePelangganButton from './deletePelangganButton'
 import ApprovePelangganButton from './ApprovePelangganButton'
-import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 type Props = { params: { id: string } }
 
@@ -30,24 +29,24 @@ const fmtDate = (d: string) =>
 const fmtNullableDate = (d: string | null) => d ? fmtDate(d) : 'Belum aktif'
 
 export default async function DetailPelangganPage({ params }: Props) {
-  await syncSuspendedPelangganStatuses([params.id])
   const admin = createAdminClient()
 
-  const { data: pelanggan } = await admin
-    .from('pelanggan')
-    .select('*, paket_internet(*)')
-    .eq('id', params.id)
-    .single()
+  const [{ data: pelanggan }, { data: tagihan }] = await Promise.all([
+    admin
+      .from('pelanggan')
+      .select('*, paket_internet(*)')
+      .eq('id', params.id)
+      .single(),
+    admin
+      .from('tagihan')
+      .select('*')
+      .eq('pelanggan_id', params.id)
+      .order('tahun', { ascending: false })
+      .order('bulan', { ascending: false })
+      .limit(12),
+  ])
 
   if (!pelanggan) notFound()
-
-  const { data: tagihan } = await admin
-    .from('tagihan')
-    .select('*')
-    .eq('pelanggan_id', params.id)
-    .order('tahun', { ascending: false })
-    .order('bulan', { ascending: false })
-    .limit(12)
 
   const status = STATUS_MAP[pelanggan.status_langganan as keyof typeof STATUS_MAP]
   const initials = pelanggan.nama_lengkap

@@ -1,5 +1,4 @@
 import BillingPageContent from '@/app/admin/tagihan/sections/BillingPageContent'
-import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 interface SearchParams extends Record<string, string | undefined> {
   pelanggan?: string
@@ -17,7 +16,5 @@ export default async function AdminTagihanPage({
 }: {
   searchParams: SearchParams
 }) {
-  await syncSuspendedPelangganStatuses()
-
   return <BillingPageContent searchParams={searchParams} />
 }

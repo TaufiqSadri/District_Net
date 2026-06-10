@@ -1,4 +1,3 @@
-import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createNotifications } from '@/lib/data/notifikasi'
 import type { JadwalInstalasi, JenisJadwalLayanan, StatusJadwalInstalasi } from '@/types/database'
@@ -267,7 +266,4 @@ export async function updateJadwalInstalasiByAdmin(jadwalId: string, formData: F
     }
   }
 
-  revalidatePath('/admin/jadwal-instalasi')
-  revalidatePath('/admin/pelanggan')
-  revalidatePath('/dashboard')
 }

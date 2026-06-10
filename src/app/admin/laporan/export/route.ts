@@ -10,7 +10,6 @@ import {
 } from '@react-pdf/renderer'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 export const runtime = 'nodejs'
 
@@ -299,7 +298,6 @@ export async function GET(request: Request) {
   const year = parseYear(searchParams.get('tahun'))
   const status = searchParams.get('status')
   const admin = createAdminClient()
-  await syncSuspendedPelangganStatuses()
 
   let headers: string[] = []
   let rows: PdfRow[] = []

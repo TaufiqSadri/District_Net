@@ -62,35 +62,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Kalau sudah login dan akses halaman auth (/login, /register)
-  //    → redirect sesuai role, TAPI hormati ?redirect param dulu
-  if (user && isEmailConfirmed && (path === '/login' || (path.startsWith('/register') && !path.startsWith('/register/success')))) {
-    const redirectTo = request.nextUrl.searchParams.get('redirect')
-    const isAdmin = user.user_metadata?.role === 'admin'
-
-    // Tidak query DB di sini — status langganan dicek di page level
-    if (redirectTo && redirectTo.startsWith('/')) {
-      // Validasi redirect param - jangan redirect ke /admin kalau bukan admin
-      if (redirectTo.startsWith('/admin') && !isAdmin) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-      return NextResponse.redirect(new URL(redirectTo, request.url))
-    }
-
-    // Tidak ada redirect param, arahkan sesuai role
-    return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/dashboard', request.url))
-  }
-
   return supabaseResponse
 }
 
 export const config = {
   matcher: [
-    // Hanya jalankan middleware di route yang butuh auth
+    // Hanya jalankan middleware di route yang butuh proteksi.
+    // Halaman publik seperti /login dan /register tidak perlu menunggu auth round-trip.
     '/dashboard/:path*',
     '/admin/:path*',
-    '/login',
-    '/register/:path*',
-    '/auth/:path*',
   ],
 }

@@ -1,11 +1,10 @@
 import RegisterForm from '@/app/(public)/register/RegisterForm'
 import Navbar from '@/components/Navbar'
-import { getPaketAktif } from '@/lib/data/paket'
-import { getLandingAreas } from '@/lib/data/landing'
+import { getLandingAreas, getLandingPackages } from '@/lib/data/landing'
 
 export default async function RegisterPage() {
   const [paketList, areaList] = await Promise.all([
-    getPaketAktif(),
+    getLandingPackages(),
     getLandingAreas(),
   ])
 

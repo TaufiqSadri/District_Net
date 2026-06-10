@@ -1,7 +1,6 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { revalidatePath } from 'next/cache'
 import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 import { ensureJadwalInstalasi } from '@/lib/data/jadwalInstalasi'
 
@@ -241,13 +240,6 @@ export async function approvePayment(pembayaranId: string): Promise<void> {
       await syncSuspendedPelangganStatuses([pelangganId], { restoreCleared: true })
     }
   }
-  revalidatePath('/admin/verifikasi')
-  revalidatePath('/admin')
-  revalidatePath('/admin/pelanggan')
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/admin/jadwal-instalasi')
-  revalidatePath('/dashboard')
-  revalidatePath('/dashboard/riwayat')
 }
 
 export async function rejectPayment(pembayaranId: string): Promise<void> {
@@ -283,16 +275,6 @@ export async function rejectPayment(pembayaranId: string): Promise<void> {
 
   if (pelangganId) {
     await syncSuspendedPelangganStatuses([pelangganId])
-  }
-  revalidatePath('/admin/verifikasi')
-  revalidatePath('/admin')
-  revalidatePath('/admin/pelanggan')
-  revalidatePath('/admin/tagihan')
-  revalidatePath('/dashboard')
-  revalidatePath('/dashboard/riwayat')
-  if (row.tagihan_id) revalidatePath(`/dashboard/tagihan/${row.tagihan_id}`)
-  if (row.tagihan_instalasi_id) {
-    revalidatePath(`/dashboard/tagihan-instalasi/${row.tagihan_instalasi_id}`)
   }
 }
 

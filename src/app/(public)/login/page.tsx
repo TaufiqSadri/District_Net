@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 function getLoginErrorMessage(code: string | null) {
@@ -38,6 +39,7 @@ function isEmailNotConfirmedMessage(message: string) {
 }
 
 export default function LoginPage() {
+  const router = useRouter()
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -69,7 +71,7 @@ export default function LoginPage() {
       }
 
       if (user.user_metadata?.role === 'admin') {
-        window.location.href = '/admin'
+        router.replace('/admin')
         return
       }
 
@@ -90,19 +92,19 @@ export default function LoginPage() {
       }
 
       if (pelanggan.status_langganan === 'pending') {
-        window.location.href = '/dashboard/pending'
+        router.replace('/dashboard/pending')
         return
       }
       if (pelanggan.status_langganan === 'nonaktif') {
-        window.location.href = '/dashboard/nonaktif'
+        router.replace('/dashboard/nonaktif')
         return
       }
       if (pelanggan.status_langganan === 'ditangguhkan') {
-        window.location.href = '/dashboard'
+        router.replace('/dashboard')
         return
       }
 
-      window.location.href = '/dashboard'
+      router.replace('/dashboard')
     }
 
     void validateExistingSession()
@@ -110,7 +112,7 @@ export default function LoginPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [router])
 
   async function handleGoogleLogin() {
     setGoogleLoading(true)
@@ -179,7 +181,7 @@ export default function LoginPage() {
   
     const isAdmin = user.user_metadata?.role === 'admin'
     if (isAdmin) {
-      window.location.href = '/admin'
+      router.replace('/admin')
       return
     }
   
@@ -197,18 +199,18 @@ export default function LoginPage() {
     }
   
     if (pelanggan.status_langganan === 'pending') {
-      window.location.href = '/dashboard/pending'
+      router.replace('/dashboard/pending')
       return
     }
     if (pelanggan.status_langganan === 'nonaktif') {
-      window.location.href = '/dashboard/nonaktif'
+      router.replace('/dashboard/nonaktif')
       return
     }
     if (pelanggan.status_langganan === 'ditangguhkan') {
-      window.location.href = '/dashboard'
+      router.replace('/dashboard')
       return
     }
-    window.location.href = '/dashboard'
+    router.replace('/dashboard')
   }
 
   return (

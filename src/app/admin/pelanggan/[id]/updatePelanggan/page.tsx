@@ -3,12 +3,10 @@ import { updatePelangganByAdmin } from '@/app/admin/actions'
 import { ArrowLeft, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 type Props = { params: { id: string } }
 
 export default async function EditPelangganPage({ params }: Props) {
-await syncSuspendedPelangganStatuses([params.id])
 const admin = createAdminClient()
 
 const [{ data: pelanggan }, { data: paketList }] = await Promise.all([

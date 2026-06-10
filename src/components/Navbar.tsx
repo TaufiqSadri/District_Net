@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Menu, X, MapPin } from 'lucide-react'
 import Image from "next/image";
 import { useState } from 'react'
@@ -15,6 +15,7 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
 
   function handleCekLokasi() {
@@ -25,7 +26,7 @@ export default function Navbar() {
       setTimeout(() => el?.focus(), 400)
     } else {
       // Halaman lain — langsung ke homepage saja
-      window.location.href = '/'
+      router.push('/')
     }
   }
 

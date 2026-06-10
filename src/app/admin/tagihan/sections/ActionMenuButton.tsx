@@ -125,7 +125,6 @@ export default function ActionMenuButton(props: ActionMenuProps) {
       }
 
       onMarkPaid?.(row.id)
-      router.refresh()
     })
   }
 
@@ -140,7 +139,6 @@ export default function ActionMenuButton(props: ActionMenuProps) {
       }
 
       setConfirmDelete(false)
-      router.refresh()
     })
   }
 

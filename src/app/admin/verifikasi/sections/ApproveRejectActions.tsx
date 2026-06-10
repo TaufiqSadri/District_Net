@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Check, X } from 'lucide-react'
 import type { PembayaranWithRelations } from '@/lib/data/pembayaran'
 import { getPembayaranPelanggan } from '@/lib/pembayaranPelanggan'
@@ -28,7 +27,6 @@ export default function ApproveRejectActions({
   onApprove,
   onReject,
 }: ApproveRejectActionsProps) {
-  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [confirmAction, setConfirmAction] = useState<ConfirmState | null>(null)
   const [error, setError] = useState('')
@@ -74,7 +72,6 @@ export default function ApproveRejectActions({
 
         onApprove(pembayaran.id, pdfUrl)
         setConfirmAction(null)
-        router.refresh()
       } catch (approveError) {
         setError(
           approveError instanceof Error
@@ -94,7 +91,6 @@ export default function ApproveRejectActions({
         await rejectPayment(pembayaran.id)
         onReject(pembayaran.id)
         setConfirmAction(null)
-        router.refresh()
       } catch (rejectError) {
         setError(
           rejectError instanceof Error

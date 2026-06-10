@@ -7,7 +7,6 @@ import type {
 } from '@/types/database'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { cache } from 'react'
-import { syncSuspendedPelangganStatuses } from '@/lib/data/pelangganStatus'
 
 export const getCurrentPelanggan = cache(async (): Promise<PelangganWithPaket | null> => {
   const supabase = await createClient()
@@ -26,23 +25,10 @@ export const getCurrentPelanggan = cache(async (): Promise<PelangganWithPaket | 
 
   if (error || !data) return null
 
-  const syncableStatuses = ['aktif', 'ditangguhkan', 'proses_instalasi']
-  if (syncableStatuses.includes(data.status_langganan)) {
-    const syncResult = await syncSuspendedPelangganStatuses([data.id])
-    const status_langganan = syncResult.inactiveIds.includes(data.id)
-      ? 'nonaktif'
-      : syncResult.suspendedIds.includes(data.id)
-      ? 'ditangguhkan'
-      : data.status_langganan
-
-    return { ...data, status_langganan } as PelangganWithPaket
-  }
-
   return data as PelangganWithPaket
 })
 
 export async function getPelangganStats(): Promise<PelangganStats> {
-  await syncSuspendedPelangganStatuses()
   const admin = createAdminClient()
 
   const [total, aktif, ditangguhkan, prosesInstalasi, pending, nonaktif] = await Promise.all([
@@ -79,7 +65,6 @@ export async function getPelangganList({
   page?: number
   pageSize?: number
 }): Promise<PelangganListResult> {
-  await syncSuspendedPelangganStatuses()
   const admin = createAdminClient()
   const searchTerm = search.trim().toLowerCase()
 
